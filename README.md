@@ -45,7 +45,7 @@ il webserver possa leggere, creare ed editare i file contenuti in essa.
 
 # Uso
 L'applicazione di verifica dovr&agrave; importare la cartella `vendor` dell'SDK.
-`require __DIR__ . '/sdk_repo_folder/vendor/autoload.php';`
+```require __DIR__ . '/sdk_repo_folder/vendor/autoload.php';```
 
 A questo punto &egrave; possibile utilizzare una libreria di scansione di QR Code
 a scelta che, dopo aver letto un QR Code di un EU DCC, passi la stringa
@@ -56,7 +56,7 @@ Esempio:
  
 ```php
 ...
-`require __DIR__ . '/sdk_repo_folder/vendor/autoload.php';`
+require __DIR__ . '/sdk_repo_folder/vendor/autoload.php';
 use Herald\GreenPass\Utils\CertificateValidator;
 
 $gp_string = 'HC1:6BF.......';
