@@ -15,7 +15,7 @@ class CertificateValidator
         $this->greenPass = Decoder::qrcode($qrCodeText);
     }
 
-    public function getCertificateSimple()
+    public function getCertificateSimple(): CertificateSimple
     {
         $person = new SimplePerson($this->greenPass->holder->standardisedSurname, $this->greenPass->holder->surname, $this->greenPass->holder->standardisedForename, $this->greenPass->holder->forename);
         return new CertificateSimple($person, $this->greenPass->holder->dateOfBirth, $this->greenPass->checkValid());
