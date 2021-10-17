@@ -86,7 +86,7 @@ stato della verifica del DCC.
 Qui c'&egrave; una lista di contributori. Grazie per essere partecipi nel
 miglioramento del progetto giorno dopo giorno!
     
-<a href="https://github.com/ministero-salute/it-dgc-verificac19-sdk-android">  
+<a href="https://github.com/herald-si/verificac19-sdk-php">  
   <img    
   src="https://contributors-img.web.app/image?repo=herald-si/verificac19-sdk-php"   
   />    
