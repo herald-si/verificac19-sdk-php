@@ -60,11 +60,6 @@ class GreenPass
     private function _greenpassStatusAnonymizer($stato)
     {
         switch ($stato) {
-            case ValidationStatus::VALID:
-            case ValidationStatus::PARTIALLY_VALID:
-                return "VALID";
-            case ValidationStatus::NOT_VALID_YET:
-            case ValidationStatus::NOT_VALID:
             case ValidationStatus::EXPIRED:
                 return "NOT_VALID";
             default:

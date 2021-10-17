@@ -1,6 +1,9 @@
 <?php
 namespace Herald\GreenPass\Validation\Covid19;
 
+/*
+ * https://ministero-salute.github.io/it-dgc-verificac19-sdk-android/documentation/-verifica-c19%20-s-d-k/it.ministerodellasalute.verificaC19sdk.model/-certificate-status/index.html
+ */
 class ValidationStatus
 {
 
@@ -19,4 +22,6 @@ class ValidationStatus
     const NOT_VALID = "NOT_VALID";
 
     const EXPIRED = "EXPIRED";
+    
+    const NOT_EU_DCC = "NOT_EU_DCC";
 }
