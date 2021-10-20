@@ -18,6 +18,8 @@ class Decoder
     const JSON = 'json';
 
     const GET_CERTIFICATE_FROM = 'list';
+    
+    const HOUR_BEFORE_DOWNLOAD_LIST = 24;
 
     private static function base45($base45)
     {
@@ -231,7 +233,7 @@ class Decoder
         if (static::GET_CERTIFICATE_FROM == static::LIST) {
             $uri = "$current_dir/../../assets/it-gov-dgc.json";
             $certs_obj = "";
-            if (time() - filemtime($uri) > 12 * 3600) {
+            if (time() - filemtime($uri) > static::HOUR_BEFORE_DOWNLOAD_LIST * 3600) {
                 $certificates = static::retrieveCertificateFromList($certificateKeys);
                 $fp = fopen($uri, 'w');
                 $json_certs = json_encode($certificates);
