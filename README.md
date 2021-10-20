@@ -9,9 +9,9 @@
   - [Dettaglio licenza](#dettaglio-licenza)
 
 # Contesto
-Questo repository contiene un Software Development Kit (SDK), basato su 
-<a href="https://github.com/ministero-salute/it-dgc-verificac19-sdk-android/">
-ministero-salute/it-dgc-verificac19-sdk-android</a>, che consente di integrare nei sistemi
+**Attenzione, questo non e' un repository ufficiale del Ministero della Salute, ma è derivato dalle specifiche presenti in <a href="https://github.com/ministero-salute/it-dgc-verificac19-sdk-android/">ministero-salute/it-dgc-verificac19-sdk-android</a>!**
+
+Questo repository contiene un Software Development Kit (SDK), che consente di integrare nei sistemi
 le funzionalit&agrave; di verifica della Certificazione verde COVID-19, mediante 
 la lettura del QR code. 
 
@@ -96,5 +96,5 @@ miglioramento del progetto giorno dopo giorno!
 
 ## Dettaglio Licenza
 La licenza per questo repository &egrave; una `Apache License 2.0`.
-All'interno del file [LICENSE](./LICENSE.md) sono presenti le informazioni
+All'interno del file [LICENSE](./LICENSE) sono presenti le informazioni
 specifiche.
