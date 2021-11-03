@@ -57,11 +57,16 @@ class GreenPass
         return self::_greenpassStatusAnonymizer(GreenPassCovid19Checker::verifyCert($this));
     }
 
+    // vedi it-dgc-verificac19-sdk-android/sdk/src/main/java/it/ministerodellasalute/verificaC19sdk/model/VerificationViewModel.kt fullModel
     private function _greenpassStatusAnonymizer($stato)
     {
         switch ($stato) {
+            
+            case ValidationStatus::NOT_VALID_YET:
             case ValidationStatus::EXPIRED:
                 return "NOT_VALID";
+            case ValidationStatus::PARTIALLY_VALID:
+                return "VALID";
             default:
                 return $stato;
         }
