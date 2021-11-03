@@ -7,11 +7,12 @@ use Herald\GreenPass\GreenPassEntities\RecoveryStatement;
 use Herald\GreenPass\GreenPassEntities\Covid19;
 use Herald\GreenPass\GreenPassEntities\TestResultType;
 use Herald\GreenPass\GreenPassEntities\TestType;
+use Herald\GreenPass\GreenPass;
 
 class GreenPassCovid19Checker
 {
 
-    public static function verifyCert($greenPass)
+    public static function verifyCert(GreenPass $greenPass)
     {
         $cert = $greenPass->certificate;
 
@@ -20,6 +21,16 @@ class GreenPassCovid19Checker
         }
 
         $data_oggi = new \DateTime();
+
+        $certificateId = self::extractUVCI($greenPass);
+
+        if (empty($certificateId)) {
+            return ValidationStatus::NOT_VALID;
+        }
+
+        if (self::checkInBlackList($certificateId)) {
+            return ValidationStatus::NOT_VALID;
+        }
 
         // vaccino effettuato
         if ($cert instanceof VaccinationDose) {
@@ -134,5 +145,35 @@ class GreenPassCovid19Checker
     private static function verifyDiseaseAgent($agent)
     {
         return ($agent instanceof Covid19);
+    }
+
+    private static function checkInBlackList(string $kid): bool
+    {
+        $list = self::getValueFromValidationRules(ValidationRules::BLACK_LIST_UVCI, ValidationRules::BLACK_LIST_UVCI);
+        if (! empty($list)) {
+            $blacklisted = explode(";", $list);
+            foreach ($blacklisted as $bl_item) {
+                if ($kid == $bl_item)
+                    return true;
+            }
+        }
+        return false;
+    }
+
+    private static function extractUVCI(GreenPass $greenPass)
+    {
+        $certificateIdentifier = "";
+        $cert = $greenPass->certificate;
+
+        if ($cert instanceof VaccinationDose) {
+            $certificateIdentifier = $cert->id;
+        }
+        if ($cert instanceof TestResult) {
+            $certificateIdentifier = $cert->id;
+        }
+        if ($cert instanceof RecoveryStatement) {
+            $certificateIdentifier = $cert->id;
+        }
+        return $certificateIdentifier;
     }
 }

@@ -25,6 +25,8 @@ class ValidationRules
     const VACCINE_START_DAY_COMPLETE = "vaccine_start_day_complete";
 
     const VACCINE_END_DAY_COMPLETE = "vaccine_end_day_complete";
+    
+    const BLACK_LIST_UVCI = "black_list_uvci";
 
     private static function getValidationFromUri($locale)
     {
