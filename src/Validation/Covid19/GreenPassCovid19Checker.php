@@ -38,7 +38,10 @@ class GreenPassCovid19Checker
             if ($esiste_vaccino == ValidationStatus::NOT_FOUND) {
                 return ValidationStatus::NOT_RECOGNIZED;
             }
-
+            // isSputnikNotFromSanMarino ( https://github.com/ministero-salute/it-dgc-verificac19-sdk-android/commit/fee61a8ab86c6f4598afd6bbb48553081933f813 )
+            $isSputnikNotFromSanMarino = ($cert->product == "Sputnik-V" && $cert->country != "SM");
+            if ($isSputnikNotFromSanMarino) return ValidationStatus::NOT_VALID;
+            
             if ($cert->doseGiven < $cert->totalDoses) {
                 $giorni_min_valido = self::getValueFromValidationRules(ValidationRules::VACCINE_START_DAY_NOT_COMPLETE, $cert->product);
                 $data_inizio_validita = $cert->date->modify("+$giorni_min_valido days");
@@ -150,7 +153,7 @@ class GreenPassCovid19Checker
     private static function checkInBlackList(string $kid): bool
     {
         $list = self::getValueFromValidationRules(ValidationRules::BLACK_LIST_UVCI, ValidationRules::BLACK_LIST_UVCI);
-        if (! empty($list)) {
+        if ($list != ValidationStatus::NOT_FOUND) {
             $blacklisted = explode(";", $list);
             foreach ($blacklisted as $bl_item) {
                 if ($kid == $bl_item)
