@@ -233,13 +233,18 @@ class Decoder
         if (static::GET_CERTIFICATE_FROM == static::LIST) {
             $uri = "$current_dir/../../assets/it-gov-dgc.json";
             $certs_obj = "";
-            if (time() - filemtime($uri) > static::HOUR_BEFORE_DOWNLOAD_LIST * 3600) {
+            $is_file_expired = time() - filemtime($uri) > static::HOUR_BEFORE_DOWNLOAD_LIST * 3600;
+            if ($is_file_expired) {
                 $certificates = static::retrieveCertificateFromList($certificateKeys);
-                $fp = fopen($uri, 'w');
-                $json_certs = json_encode($certificates);
-                fwrite($fp, $json_certs);
-                fclose($fp);
-                $certs_obj = json_decode($json_certs);
+                if(!empty($certificates)){
+                    $fp = fopen($uri, 'w');
+                    $json_certs = json_encode($certificates);
+                    fwrite($fp, $json_certs);
+                    fclose($fp);
+                    $certs_obj = json_decode($json_certs);
+                } else {
+                    throw new \Exception('Invalid certificates list');
+                }
             } else {
                 $fp = fopen($uri, 'r');
                 $certs_obj = json_decode(fread($fp, filesize($uri)));
