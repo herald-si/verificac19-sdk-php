@@ -2,6 +2,7 @@
 	"name" : "herald-si/verificac19-sdk-php",
 	"description" : "PHP Digital Green Certificate SDK",
 	"require" : {
+		"php": ">=7.4",
 		"guzzlehttp/guzzle" : "^7",
 		"ext-zlib" : "*",
 		"mhauri/base45" : "^0.1.1",
