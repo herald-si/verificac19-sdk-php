@@ -9,6 +9,7 @@ use CBOR\OtherObject\OtherObjectManager;
 use CBOR\Tag\TagObjectManager;
 use Herald\GreenPass\GreenPass;
 use Mhauri\Base45;
+use Herald\GreenPass\Exceptions\NoCertificateListException;
 
 class Decoder
 {
@@ -107,8 +108,7 @@ class Decoder
         $uri = "$current_dir/../../assets/dsc.json";
 
         // We decode the JSON object we received
-        $certificates = json_decode(file_get_contents($uri), true, 512, JSON_THROW_ON_ERROR);
-        return $certificates;
+        return json_decode(file_get_contents($uri), true, 512, JSON_THROW_ON_ERROR);
     }
 
     // Retrieve from RESUME-TOKEN KID
@@ -154,8 +154,9 @@ class Decoder
         if ($info['http_code'] == 200) {
             $list[$headers_arr['X-KID']] = $body;
             return static::retrieveCertificateFromList($list, $headers_arr['X-RESUME-TOKEN']);
-        } else
+        } else {
             return $list;
+        }
     }
 
     private static function validateKidCountry(array $cbor, $certificates)
@@ -206,8 +207,9 @@ class Decoder
         }
 
         foreach ($certificates as $kid => $data) {
-            if ($keyId == $kid)
+            if ($keyId == $kid){
                 return $data;
+            }
         }
 
         // If no public key is found, throw an exception
@@ -243,7 +245,7 @@ class Decoder
                     fclose($fp);
                     $certs_obj = json_decode($json_certs);
                 } else {
-                    throw new \Exception('Invalid certificates list');
+                    throw new NoCertificateListException();
                 }
             } else {
                 $fp = fopen($uri, 'r');
