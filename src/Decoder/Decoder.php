@@ -231,7 +231,7 @@ class Decoder
         $pem = "";
 
         if (static::GET_CERTIFICATE_FROM == static::LIST) {
-            $uri = "$current_dir/../../assets/it-gov-dgc.json";
+			$uri = join(DIRECTORY_SEPARATOR, array($current_dir, '..', '..', 'assets', 'it-gov-dgc.json'));
             $certs_obj = "";
             $is_file_expired = time() - filemtime($uri) > static::HOUR_BEFORE_DOWNLOAD_LIST * 3600;
             if ($is_file_expired) {
