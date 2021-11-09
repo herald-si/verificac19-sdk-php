@@ -25,6 +25,9 @@ abstract class DiseaseAgent
             case "840539006":
                 return new Covid19();
                 break;
+            case "placeholder_for_other_code":
+                return null;
+                break;
             default:
                 return "";
         }

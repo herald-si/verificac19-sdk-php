@@ -34,99 +34,17 @@ class GreenPassCovid19Checker
 
         // vaccino effettuato
         if ($cert instanceof VaccinationDose) {
-            $esiste_vaccino = self::getValueFromValidationRules(ValidationRules::VACCINE_END_DAY_COMPLETE, $cert->product);
-            if ($esiste_vaccino == ValidationStatus::NOT_FOUND) {
-                return ValidationStatus::NOT_RECOGNIZED;
-            }
-            // isSputnikNotFromSanMarino ( https://github.com/ministero-salute/it-dgc-verificac19-sdk-android/commit/fee61a8ab86c6f4598afd6bbb48553081933f813 )
-            $isSputnikNotFromSanMarino = ($cert->product == "Sputnik-V" && $cert->country != "SM");
-            if ($isSputnikNotFromSanMarino) return ValidationStatus::NOT_VALID;
-            
-            if ($cert->doseGiven < $cert->totalDoses) {
-                $giorni_min_valido = self::getValueFromValidationRules(ValidationRules::VACCINE_START_DAY_NOT_COMPLETE, $cert->product);
-                $data_inizio_validita = $cert->date->modify("+$giorni_min_valido days");
-
-                $giorni_max_valido = self::getValueFromValidationRules(ValidationRules::VACCINE_END_DAY_NOT_COMPLETE, $cert->product);
-                $data_fine_validita = $cert->date->modify("+$giorni_max_valido days");
-
-                if ($data_oggi < $data_inizio_validita)
-                    return ValidationStatus::NOT_VALID_YET;
-                if ($data_oggi > $data_fine_validita)
-                    return ValidationStatus::EXPIRED;
-
-                return ValidationStatus::PARTIALLY_VALID;
-            }
-
-            if ($cert->doseGiven >= $cert->totalDoses) {
-                $giorni_min_valido = self::getValueFromValidationRules(ValidationRules::VACCINE_START_DAY_COMPLETE, $cert->product);
-                $data_inizio_validita = $cert->date->modify("+$giorni_min_valido days");
-
-                $giorni_max_valido = self::getValueFromValidationRules(ValidationRules::VACCINE_END_DAY_COMPLETE, $cert->product);
-                $data_fine_validita = $cert->date->modify("+$giorni_max_valido days");
-
-                if ($data_oggi < $data_inizio_validita)
-                    return ValidationStatus::NOT_VALID_YET;
-                if ($data_oggi > $data_fine_validita)
-                    return ValidationStatus::EXPIRED;
-
-                return ValidationStatus::VALID;
-            }
-
-            return ValidationStatus::NOT_RECOGNIZED;
+            return self::verifyVaccinationDose($cert, $data_oggi);
         }
 
         // tampone effettuato
         if ($cert instanceof TestResult) {
-            if ($cert->result == TestResultType::DETECTED)
-                return ValidationStatus::NOT_VALID;
-
-            if ($cert->type == TestType::MOLECULAR) {
-
-                $ore_min_valido = self::getValueFromValidationRules(ValidationRules::MOLECULAR_TEST_START_HOUR, "GENERIC");
-                $ora_inizio_validita = $cert->date->modify("+$ore_min_valido hours");
-
-                $ore_max_valido = self::getValueFromValidationRules(ValidationRules::MOLECULAR_TEST_END_HOUR, "GENERIC");
-                $ora_fine_validita = $cert->date->modify("+$ore_max_valido hours");
-
-                if ($data_oggi < $ora_inizio_validita)
-                    return ValidationStatus::NOT_VALID_YET;
-                if ($data_oggi > $ora_fine_validita)
-                    return ValidationStatus::EXPIRED;
-
-                return ValidationStatus::VALID;
-            }
-
-            if ($cert->type == TestType::RAPID) {
-
-                $ore_min_valido = self::getValueFromValidationRules(ValidationRules::RAPID_TEST_START_HOUR, "GENERIC");
-                $ora_inizio_validita = $cert->date->modify("+$ore_min_valido hours");
-
-                $ore_max_valido = self::getValueFromValidationRules(ValidationRules::RAPID_TEST_END_HOUR, "GENERIC");
-                $ora_fine_validita = $cert->date->modify("+$ore_max_valido hours");
-
-                if ($data_oggi < $ora_inizio_validita)
-                    return ValidationStatus::NOT_VALID_YET;
-                if ($data_oggi > $ora_fine_validita)
-                    return ValidationStatus::EXPIRED;
-
-                return ValidationStatus::VALID;
-            }
-
-            return ValidationStatus::NOT_RECOGNIZED;
+            return self::verifyTestResults($cert, $data_oggi);
         }
 
         // guarigione avvenuta
         if ($cert instanceof RecoveryStatement) {
-
-            $data_inizio_validita = $cert->validFrom;
-            $data_fine_validita = $cert->validUntil;
-
-            if ($data_oggi < $data_inizio_validita)
-                return ValidationStatus::NOT_VALID_YET;
-            if ($data_oggi > $data_fine_validita)
-                return ValidationStatus::EXPIRED;
-
-            return ValidationStatus::VALID;
+            return self::verifyRecoveryStatement($cert, $data_oggi);
         }
 
         return ValidationStatus::NOT_RECOGNIZED;
@@ -148,6 +66,113 @@ class GreenPassCovid19Checker
     private static function verifyDiseaseAgent($agent)
     {
         return ($agent instanceof Covid19);
+    }
+
+    private static function verifyVaccinationDose($cert, $validation_date)
+    {
+        $esiste_vaccino = self::getValueFromValidationRules(ValidationRules::VACCINE_END_DAY_COMPLETE, $cert->product);
+        if ($esiste_vaccino == ValidationStatus::NOT_FOUND) {
+            return ValidationStatus::NOT_RECOGNIZED;
+        }
+        // isSputnikNotFromSanMarino ( https://github.com/ministero-salute/it-dgc-verificac19-sdk-android/commit/fee61a8ab86c6f4598afd6bbb48553081933f813 )
+        $isSputnikNotFromSanMarino = ($cert->product == "Sputnik-V" && $cert->country != "SM");
+        if ($isSputnikNotFromSanMarino)
+            return ValidationStatus::NOT_VALID;
+
+        if ($cert->doseGiven < $cert->totalDoses) {
+            $giorni_min_valido = self::getValueFromValidationRules(ValidationRules::VACCINE_START_DAY_NOT_COMPLETE, $cert->product);
+            $data_inizio_validita = $cert->date->modify("+$giorni_min_valido days");
+
+            $giorni_max_valido = self::getValueFromValidationRules(ValidationRules::VACCINE_END_DAY_NOT_COMPLETE, $cert->product);
+            $data_fine_validita = $cert->date->modify("+$giorni_max_valido days");
+
+            if ($validation_date < $data_inizio_validita) {
+                return ValidationStatus::NOT_VALID_YET;
+            }
+            if ($validation_date > $data_fine_validita) {
+                return ValidationStatus::EXPIRED;
+            }
+
+            return ValidationStatus::PARTIALLY_VALID;
+        }
+
+        if ($cert->doseGiven >= $cert->totalDoses) {
+            $giorni_min_valido = self::getValueFromValidationRules(ValidationRules::VACCINE_START_DAY_COMPLETE, $cert->product);
+            $data_inizio_validita = $cert->date->modify("+$giorni_min_valido days");
+
+            $giorni_max_valido = self::getValueFromValidationRules(ValidationRules::VACCINE_END_DAY_COMPLETE, $cert->product);
+            $data_fine_validita = $cert->date->modify("+$giorni_max_valido days");
+
+            if ($validation_date < $data_inizio_validita) {
+                return ValidationStatus::NOT_VALID_YET;
+            }
+            if ($validation_date > $data_fine_validita) {
+                return ValidationStatus::EXPIRED;
+            }
+
+            return ValidationStatus::VALID;
+        }
+
+        return ValidationStatus::NOT_RECOGNIZED;
+    }
+
+    private static function verifyTestResults($cert, $validation_date)
+    {
+        if ($cert->result == TestResultType::DETECTED) {
+            return ValidationStatus::NOT_VALID;
+        }
+
+        if ($cert->type == TestType::MOLECULAR) {
+
+            $ore_min_valido = self::getValueFromValidationRules(ValidationRules::MOLECULAR_TEST_START_HOUR, "GENERIC");
+            $ora_inizio_validita = $cert->date->modify("+$ore_min_valido hours");
+
+            $ore_max_valido = self::getValueFromValidationRules(ValidationRules::MOLECULAR_TEST_END_HOUR, "GENERIC");
+            $ora_fine_validita = $cert->date->modify("+$ore_max_valido hours");
+
+            if ($validation_date < $ora_inizio_validita) {
+                return ValidationStatus::NOT_VALID_YET;
+            }
+            if ($validation_date > $ora_fine_validita) {
+                return ValidationStatus::EXPIRED;
+            }
+
+            return ValidationStatus::VALID;
+        }
+
+        if ($cert->type == TestType::RAPID) {
+
+            $ore_min_valido = self::getValueFromValidationRules(ValidationRules::RAPID_TEST_START_HOUR, "GENERIC");
+            $ora_inizio_validita = $cert->date->modify("+$ore_min_valido hours");
+
+            $ore_max_valido = self::getValueFromValidationRules(ValidationRules::RAPID_TEST_END_HOUR, "GENERIC");
+            $ora_fine_validita = $cert->date->modify("+$ore_max_valido hours");
+
+            if ($validation_date < $ora_inizio_validita) {
+                return ValidationStatus::NOT_VALID_YET;
+            }
+            if ($validation_date > $ora_fine_validita) {
+                return ValidationStatus::EXPIRED;
+            }
+
+            return ValidationStatus::VALID;
+        }
+
+        return ValidationStatus::NOT_RECOGNIZED;
+    }
+
+    private static function verifyRecoveryStatement($cert, $validation_date)
+    {
+        $data_inizio_validita = $cert->validFrom;
+        $data_fine_validita = $cert->validUntil;
+
+        if ($validation_date < $data_inizio_validita) {
+            return ValidationStatus::NOT_VALID_YET;
+        }
+        if ($validation_date > $data_fine_validita) {
+            return ValidationStatus::EXPIRED;
+        }
+        return ValidationStatus::VALID;
     }
 
     private static function checkInBlackList(string $kid): bool

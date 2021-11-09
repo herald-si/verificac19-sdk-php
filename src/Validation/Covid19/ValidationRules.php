@@ -35,6 +35,12 @@ class ValidationRules
         switch ($locale) {
             case "it_IT":
                 $uri = "https://get.dgc.gov.it/v1/dgc/settings";
+                break;
+            case "other_country":
+                $uri = "set_country_uri_there";
+                break;
+            default:
+                throw new \InvalidArgumentException("No country selected");
         }
         $res = $client->request('GET', $uri);
 
