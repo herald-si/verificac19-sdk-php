@@ -8,7 +8,6 @@ use CBOR\TextStringObject;
 use CBOR\OtherObject\OtherObjectManager;
 use CBOR\Tag\TagObjectManager;
 use Herald\GreenPass\GreenPass;
-use Mhauri\Base45;
 use Herald\GreenPass\Exceptions\NoCertificateListException;
 
 class Decoder
@@ -25,7 +24,7 @@ class Decoder
     private static function base45($base45)
     {
         try {
-            $decoder = new Base45();
+            $decoder = new \Herald\GreenPass\Decoder\Base45();
 
             return $decoder->decode($base45);
         } catch (\Exception $e) {
