@@ -52,10 +52,16 @@ class Base45
         for ($i = 0; $i < count($buffer); $i += 3) {
             if (count($buffer) - $i >= 3) {
                 $x = $buffer[$i] + $buffer[$i + 1] * 45 + $buffer[$i + 2] * 45 * 45;
+                if($x > 0xFFFF) {
+                    throw new \InvalidArgumentException('Invalid base45 string');
+                }
                 list($a, $b) = $this->divmod($x, 256);
                 $result .= sprintf('%s%s', chr((int)$a), chr((int)$b));
             } else {
                 $x = $buffer[$i] + $buffer[$i + 1] * 45;
+                if($x > 0xFF) {
+                    throw new \InvalidArgumentException('Invalid base45 string');
+                }
                 $result .= chr((int)$x);
             }
         }
