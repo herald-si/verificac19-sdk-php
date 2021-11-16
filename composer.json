@@ -5,7 +5,6 @@
 		"php": ">=7.4",
 		"guzzlehttp/guzzle" : "^7",
 		"ext-zlib" : "*",
-		"mhauri/base45" : "^0.1.1",
 		"spomky-labs/cbor-php" : "^2.0"
 	},
 	"autoload" : {
