@@ -11,7 +11,7 @@ class NoCertificateListException extends \Exception
 {
     public function __construct($message = null, $code = 0, Throwable $previous = null) {
         if(empty($message)){
-            $message = "Invalid certificates list";
+            $message = "Invalid certificates list: " . $message;
         }
         parent::__construct($message, $code, $previous);
     }

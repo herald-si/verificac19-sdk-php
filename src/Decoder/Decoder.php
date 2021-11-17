@@ -9,6 +9,7 @@ use CBOR\OtherObject\OtherObjectManager;
 use CBOR\Tag\TagObjectManager;
 use Herald\GreenPass\GreenPass;
 use Herald\GreenPass\Exceptions\NoCertificateListException;
+use Herald\GreenPass\Utils\FileUtils;
 
 class Decoder
 {
@@ -18,8 +19,6 @@ class Decoder
     const JSON = 'json';
 
     const GET_CERTIFICATE_FROM = 'list';
-
-    const HOUR_BEFORE_DOWNLOAD_LIST = 24;
 
     private static function base45($base45)
     {
@@ -205,14 +204,6 @@ class Decoder
         throw new \InvalidArgumentException('Public key not found in list');
     }
 
-    private static function checkFileNotExistOrExpired($file, $time): bool
-    {
-        if (! file_exists($file)) {
-            return true;
-        }
-        return time() - filemtime($file) > $time;
-    }
-
     public static function qrcode(string $qrcode)
     {
         if (! (substr($qrcode, 0, 4) === 'HC1:')) {
@@ -231,6 +222,8 @@ class Decoder
         $keyId = static::retrieveKidFromCBOR($cbor);
 
         if (static::GET_CERTIFICATE_FROM == static::LIST) {
+            
+            $locale = FileUtils::COUNTRY;
 
             // Check if kid in certificate list status
             $uri_status = join(DIRECTORY_SEPARATOR, array(
@@ -238,11 +231,11 @@ class Decoder
                 '..',
                 '..',
                 'assets',
-                'it-gov-dgc-status.json'
+                "$locale-gov-dgc-status.json"
             ));
             $certs_list = "";
 
-            if (static::checkFileNotExistOrExpired($uri_status, static::HOUR_BEFORE_DOWNLOAD_LIST * 3600)) {
+            if (FileUtils::checkFileNotExistOrExpired($uri_status, FileUtils::HOUR_BEFORE_DOWNLOAD_LIST * 3600)) {
                 $certificate_status = static::retrieveCertificatesStatus();
                 if (! empty($certificate_status)) {
                     $fp = fopen($uri_status, 'w');
@@ -250,7 +243,7 @@ class Decoder
                     fclose($fp);
                     $certs_list = json_decode($certificate_status);
                 } else {
-                    throw new NoCertificateListException();
+                    throw new NoCertificateListException("status");
                 }
             } else {
                 $fp = fopen($uri_status, 'r');
@@ -268,11 +261,11 @@ class Decoder
                 '..',
                 '..',
                 'assets',
-                'it-gov-dgc-certs.json'
+                "$locale-gov-dgc-certs.json"
             ));
             $certs_obj = "";
 
-            if (static::checkFileNotExistOrExpired($uri, static::HOUR_BEFORE_DOWNLOAD_LIST * 3600)) {
+            if (FileUtils::checkFileNotExistOrExpired($uri, FileUtils::HOUR_BEFORE_DOWNLOAD_LIST * 3600)) {
                 $certificates = static::retrieveCertificateFromList($certificateKeys);
                 if (! empty($certificates)) {
                     $fp = fopen($uri, 'w');
@@ -281,7 +274,7 @@ class Decoder
                     fclose($fp);
                     $certs_obj = json_decode($json_certs);
                 } else {
-                    throw new NoCertificateListException();
+                    throw new NoCertificateListException("update");
                 }
             } else {
                 $fp = fopen($uri, 'r');

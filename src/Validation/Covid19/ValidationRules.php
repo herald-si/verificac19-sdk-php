@@ -1,7 +1,8 @@
 <?php
 namespace Herald\GreenPass\Validation\Covid19;
 
-use GuzzleHttp\Client;
+use Herald\GreenPass\Exceptions\NoCertificateListException;
+use Herald\GreenPass\Utils\FileUtils;
 
 class ValidationRules
 {
@@ -28,12 +29,12 @@ class ValidationRules
     
     const BLACK_LIST_UVCI = "black_list_uvci";
 
-    private static function getValidationFromUri($locale)
+    private static function getValidationFromUri($country)
     {
         $client = new \GuzzleHttp\Client();
         $uri = "";
-        switch ($locale) {
-            case "it_IT":
+        switch ($country) {
+            case "it":
                 $uri = "https://get.dgc.gov.it/v1/dgc/settings";
                 break;
             case "other_country":
@@ -46,23 +47,39 @@ class ValidationRules
 
         return $res->getBody();
     }
-
+    
     public static function getValidationRules()
     {
-        $locale = 'it_IT';
-        $today = new \DateTime();
+        $country = FileUtils::COUNTRY;
         $current_dir = dirname(__FILE__);
-        $uri = "$current_dir/../../../assets/greenpass_{$locale}_rules_{$today->format('Ymd')}.json";
-        if (! file_exists($uri)) {
-            $rules = self::getValidationFromUri($locale);
-            $fhandle = fopen($uri, 'w');
-            fwrite($fhandle, $rules);
-            fclose($fhandle);
+        
+        $uri = join(DIRECTORY_SEPARATOR, array(
+            $current_dir,
+            '..',
+            '..',
+            '..',
+            'assets',
+            "{$country}-gov-dgc-settings.json"
+        ));
+        $rules = "";
+        
+        if (FileUtils::checkFileNotExistOrExpired($uri, FileUtils::HOUR_BEFORE_DOWNLOAD_LIST * 3600)) {
+            $rules = self::getValidationFromUri($country);
+            if (! empty($rules)) {
+                $fhandle = fopen($uri, 'w');
+                fwrite($fhandle, $rules);
+                fclose($fhandle);
+            } else {
+                throw new NoCertificateListException("rules");
+            }
         } else {
             $fhandle = fopen($uri, 'r');
             $rules = fread($fhandle, filesize($uri));
             fclose($fhandle);
         }
+        
         return json_decode($rules);
     }
+    
+    
 }
