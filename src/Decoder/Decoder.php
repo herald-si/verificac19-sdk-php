@@ -18,7 +18,7 @@ class Decoder
     const JSON = 'json';
 
     const GET_CERTIFICATE_FROM = 'list';
-    
+
     const HOUR_BEFORE_DOWNLOAD_LIST = 24;
 
     private static function base45($base45)
@@ -98,18 +98,6 @@ class Decoder
         return $decoded;
     }
 
-    // Retrieve from JSON Country/KID
-    private static function retrieveCertificates()
-    {
-
-        // We retrieve the public keys
-        $current_dir = dirname(__FILE__);
-        $uri = "$current_dir/../../assets/dsc.json";
-
-        // We decode the JSON object we received
-        return json_decode(file_get_contents($uri), true, 512, JSON_THROW_ON_ERROR);
-    }
-
     // Retrieve from RESUME-TOKEN KID
     private static function retrieveCertificateFromList($list, $resume_token = "")
     {
@@ -141,7 +129,7 @@ class Decoder
 
         // Create an associative array containing the response headers
         foreach ($headers_indexed_arr as $value) {
-            if (false !== ($matches = explode(':', $value, 2))) {
+            if (false !== ($matches = array_pad(explode(':', $value), 2, null))) {
                 $headers_arr["{$matches[0]}"] = trim($matches[1]);
             }
         }
@@ -158,37 +146,34 @@ class Decoder
         }
     }
 
-    private static function validateKidCountry(array $cbor, $certificates)
+    // Retrieve from RESUME-TOKEN KID
+    private static function retrieveCertificatesStatus()
     {
-        // We filter the keyset using the country and the key ID from the data
-        $country = $cbor['data'][1];
-        $keyId = "";
+        // We retrieve the public keys
+        $ch = curl_init('https://get.dgc.gov.it/v1/dgc/signercertificate/status');
 
-        if (is_array($cbor['unprotected']) && isset($cbor['unprotected'][4])) {
-            $keyId = base64_encode($cbor['unprotected'][4]);
+        curl_setopt($ch, CURLOPT_HEADER, true);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+        $response = curl_exec($ch);
+        $info = curl_getinfo($ch);
+
+        // Then, after your curl_exec call:
+        $header_size = curl_getinfo($ch, CURLINFO_HEADER_SIZE);
+        $body = substr($response, $header_size);
+
+        if (empty($info['http_code'])) {
+            throw new \InvalidArgumentException("No HTTP code was returned");
         }
 
-        if (is_array($cbor['protected']) && isset($cbor['protected'][4])) {
-            $keyId = base64_encode($cbor['protected'][4]);
+        if ($info['http_code'] == 200) {
+            return $body;
         }
 
-        if (empty($keyId)) {
-            throw new \InvalidArgumentException('Invalid KID');
-        }
-
-        $countryCertificates = array_filter($certificates['certificates'], static function (array $data) use ($country, $keyId): bool {
-            return $data['country'] === $country && $data['kid'] === $keyId;
-        });
-
-        // If no public key is found, we cannot continue
-        if (1 !== count($countryCertificates)) {
-            throw new \InvalidArgumentException('Public key not found in json');
-        }
-
-        return current($countryCertificates);
+        return "";
     }
 
-    private static function validateKidList(array $cbor, $certificates)
+    private static function retrieveKidFromCBOR($cbor)
     {
         // We filter the keyset using the country and the key ID from the data
         $keyId = "";
@@ -205,15 +190,27 @@ class Decoder
             throw new \InvalidArgumentException('Invalid KID');
         }
 
+        return $keyId;
+    }
+
+    private static function validateKidList($keyId, $certificates)
+    {
         foreach ($certificates as $kid => $data) {
-            if ($keyId == $kid){
+            if ($keyId == $kid) {
                 return $data;
             }
         }
 
         // If no public key is found, throw an exception
         throw new \InvalidArgumentException('Public key not found in list');
-        
+    }
+
+    private static function checkFileNotExistOrExpired($file, $time): bool
+    {
+        if (! file_exists($file)) {
+            return true;
+        }
+        return time() - filemtime($file) > $time;
     }
 
     public static function qrcode(string $qrcode)
@@ -231,13 +228,53 @@ class Decoder
 
         $pem = "";
 
+        $keyId = static::retrieveKidFromCBOR($cbor);
+
         if (static::GET_CERTIFICATE_FROM == static::LIST) {
-			$uri = join(DIRECTORY_SEPARATOR, array($current_dir, '..', '..', 'assets', 'it-gov-dgc.json'));
+
+            // Check if kid in certificate list status
+            $uri_status = join(DIRECTORY_SEPARATOR, array(
+                $current_dir,
+                '..',
+                '..',
+                'assets',
+                'it-gov-dgc-status.json'
+            ));
+            $certs_list = "";
+
+            if (static::checkFileNotExistOrExpired($uri_status, static::HOUR_BEFORE_DOWNLOAD_LIST * 3600)) {
+                $certificate_status = static::retrieveCertificatesStatus();
+                if (! empty($certificate_status)) {
+                    $fp = fopen($uri_status, 'w');
+                    fwrite($fp, $certificate_status);
+                    fclose($fp);
+                    $certs_list = json_decode($certificate_status);
+                } else {
+                    throw new NoCertificateListException();
+                }
+            } else {
+                $fp = fopen($uri_status, 'r');
+                $certs_list = json_decode(fread($fp, filesize($uri_status)));
+                fclose($fp);
+            }
+
+            if (! in_array($keyId, $certs_list)) {
+                throw new \InvalidArgumentException('Public key not found list');
+            }
+
+            // Check if kid in certificate list status
+            $uri = join(DIRECTORY_SEPARATOR, array(
+                $current_dir,
+                '..',
+                '..',
+                'assets',
+                'it-gov-dgc-certs.json'
+            ));
             $certs_obj = "";
-            $is_file_expired = time() - filemtime($uri) > static::HOUR_BEFORE_DOWNLOAD_LIST * 3600;
-            if ($is_file_expired) {
+
+            if (static::checkFileNotExistOrExpired($uri, static::HOUR_BEFORE_DOWNLOAD_LIST * 3600)) {
                 $certificates = static::retrieveCertificateFromList($certificateKeys);
-                if(!empty($certificates)){
+                if (! empty($certificates)) {
                     $fp = fopen($uri, 'w');
                     $json_certs = json_encode($certificates);
                     fwrite($fp, $json_certs);
@@ -251,13 +288,9 @@ class Decoder
                 $certs_obj = json_decode(fread($fp, filesize($uri)));
                 fclose($fp);
             }
-            $signingCertificate = static::validateKidList($cbor, $certs_obj);
+
+            $signingCertificate = static::validateKidList($keyId, $certs_obj);
             $pem = chunk_split($signingCertificate, 64, PHP_EOL);
-        }
-        if (static::GET_CERTIFICATE_FROM == static::JSON) {
-            $certificates = static::retrieveCertificates();
-            $signingCertificate = static::validateKidCountry($cbor, $certificates);
-            $pem = chunk_split($signingCertificate['rawData'], 64, PHP_EOL);
         }
 
         // We convert the raw data into a PEM encoded certificate
@@ -277,17 +310,13 @@ class Decoder
         // If valid, the result is 1
         $isValid = 1 === openssl_verify((string) $structure, $derSignature, $pem, 'sha256');
         if (! $isValid) {
+            $open_error = "";
             while ($m = openssl_error_string()) {
-                static::dump("OpenSSL Error ", $m);
+                $open_error .= (" - OpenSSL Error: $m");
             }
-            throw new \InvalidArgumentException('The signature is NOT valid');
+            throw new \InvalidArgumentException("The signature is NOT valid {$open_error}");
         }
 
         return new GreenPass($cbor['data'][- 260][1]);
-    }
-
-    private static function dump($title, $list)
-    {
-        echo "<h1>$title</h1><pre>" . print_r($list, true) . "</pre>";
     }
 }
