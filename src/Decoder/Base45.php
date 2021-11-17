@@ -110,7 +110,7 @@ class Base45
         for ($i = 0; $i < strlen($input); $i++) {
             $position = strpos(self::CHARSET, $input[$i]);
             if ($position === false) {
-                throw new \Exception('Invalid base45 value');
+                throw new \InvalidArgumentException('Invalid base45 value');
             } else {
                 $result[] = $position;
             }
