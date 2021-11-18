@@ -5,11 +5,12 @@
 - [Installazione](#installazione)
 - [Uso](#uso)
 - [Licenza](#licenza)
-  - [Autori / Copyright](#autori--copyright)
   - [Dettaglio licenza](#dettaglio-licenza)
 
 # Contesto
-**Attenzione, questo non e' un repository ufficiale del Ministero della Salute, ma è derivato dalle specifiche presenti in <a href="https://github.com/ministero-salute/it-dgc-verificac19-sdk-android/">ministero-salute/it-dgc-verificac19-sdk-android</a>!**
+**Attenzione, questo repository è derivato dalle specifiche presenti in <a href="https://github.com/ministero-salute/it-dgc-verificac19-sdk-android/">ministero-salute/it-dgc-verificac19-sdk-android</a>!**
+
+**L'elenco le librerie utilizzabili è presente in questa <a href="https://github.com/ministero-salute/it-dgc-verificac19-sdk-onboarding#lista-librerie">lista</a>. La pagina contiene anche informazioni sulle policy di accettazione e rimozione dalla lista stessa. Fate riferimento ad essa prima di utilizzo in ambienti di produzione.**
 
 Questo repository contiene un Software Development Kit (SDK), che consente di integrare nei sistemi
 le funzionalit&agrave; di verifica della Certificazione verde COVID-19, mediante 
