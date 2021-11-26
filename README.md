@@ -5,15 +5,16 @@
 - [Installazione](#installazione)
 - [Uso](#uso)
 - [Licenza](#licenza)
-  - [Autori / Copyright](#autori--copyright)
   - [Dettaglio licenza](#dettaglio-licenza)
 
 # Contesto
-**Attenzione, questo non e' un repository ufficiale del Ministero della Salute, ma è derivato dalle specifiche presenti in <a href="https://github.com/ministero-salute/it-dgc-verificac19-sdk-android/">ministero-salute/it-dgc-verificac19-sdk-android</a>!**
+**Attenzione, questo repository è derivato dalle specifiche presenti in <a href="https://github.com/ministero-salute/it-dgc-verificac19-sdk-android/">ministero-salute/it-dgc-verificac19-sdk-android</a>!**
+
+**L'elenco le librerie utilizzabili è presente in questa <a href="https://github.com/ministero-salute/it-dgc-verificac19-sdk-onboarding#lista-librerie">lista</a>. La pagina contiene anche informazioni sulle policy di accettazione e rimozione dalla lista stessa. Fate riferimento ad essa prima di utilizzo in ambienti di produzione.**
 
 Questo repository contiene un Software Development Kit (SDK), che consente di integrare nei sistemi
-le funzionalit&agrave; di verifica della Certificazione verde COVID-19, mediante 
-la lettura del QR code. 
+le funzionalit&agrave; di verifica della Certificazione verde COVID-19, mediante
+la lettura del QR code.
 
 # Trattamento dati personali
 Il trattamento dei dati personali svolto dalle soluzioni applicative sviluppate
@@ -26,7 +27,10 @@ consultare, registrare o comunque trattare per finalit&agrave; ulteriori rispett
 a quelle previste per la verifica della Certificazione verde COVID-19 o le
 informazioni rilevate dalla lettura dei QR code e le informazioni fornite in
 esito ai controlli, come indicato nel DPCM 12 ottobre 2021    
- 
+
+# Requisiti
+- PHP >= 7.4
+
 # Installazione
 E' necessario clonare questo progetto, nel seguente modo:
 
@@ -38,7 +42,7 @@ a questo punto lanciare all'interno della cartella `sdk_repo_folder` il comando
 ```
 composer install
 ```
-e settare i permessi della cartella `sdk_repo_folder\assets` in modo tale che 
+e settare i permessi della cartella `sdk_repo_folder\assets` in modo tale che
 il webserver possa leggere, creare ed editare i file contenuti in essa.
 
 ###   
@@ -55,7 +59,7 @@ estratta al validatore
 `Herald\GreenPass\Utils\CertificateValidator`.  
 
 Esempio:  
- 
+
 ```php
 ...
 require __DIR__ . '/sdk_repo_folder/vendor/autoload.php';
@@ -66,11 +70,11 @@ $gp_reader = new CertificateValidator($gp_string);
 $gp_info = $gp_reader->getCertificateSimple();
 
 // Mostro la struttura dell'esito validazione
-echo "<pre>" . print_r($gp_info, true) . "</pre>";	
+echo "<pre>" . print_r($gp_info, true) . "</pre>";
 ...
 ```
 
-Osservando la risposta del metodo &egrave; restituito un oggetto 
+Osservando la risposta del metodo &egrave; restituito un oggetto
 `Herald\GreenPass\Model\CertificateSimple` che contiene
 il risultato della verifica.
 Il data model contiene i dati relativi alla
@@ -79,19 +83,19 @@ verifica.
 
 Basandosi su questi dati &egrave; possibile disegnare la UI e fornire all'operatore lo
 stato della verifica del DCC.
- 
+
 
 ## Contributori
 
 Qui c'&egrave; una lista di contributori. Grazie per essere partecipi nel
 miglioramento del progetto giorno dopo giorno!
-    
+
 <a href="https://github.com/herald-si/verificac19-sdk-php">  
   <img    
   src="https://contributors-img.web.app/image?repo=herald-si/verificac19-sdk-php"   
   />    
 </a>    
-    
+
 # Licenza
 
 ## Dettaglio Licenza
