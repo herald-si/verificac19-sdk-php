@@ -26,8 +26,21 @@ class ValidationRules
     const VACCINE_START_DAY_COMPLETE = "vaccine_start_day_complete";
 
     const VACCINE_END_DAY_COMPLETE = "vaccine_end_day_complete";
-    
+
     const BLACK_LIST_UVCI = "black_list_uvci";
+
+    private $it_uri = "https://get.dgc.gov.it/v1/dgc/settings";
+    private $cache_file_path_override = null;
+
+    public static function overrideItDgcSettingsUri($newUri)
+    {
+        self::$it_uri = $newUri;
+    }
+
+    public static function overrideCacheFilePath($newPath)
+    {
+        self::$cache_file_path_override = $newPath;
+    }
 
     private static function getValidationFromUri($country)
     {
@@ -35,7 +48,7 @@ class ValidationRules
         $uri = "";
         switch ($country) {
             case "it":
-                $uri = "https://get.dgc.gov.it/v1/dgc/settings";
+                $uri = self::$it_uri;
                 break;
             case "other_country":
                 $uri = "set_country_uri_there";
@@ -47,22 +60,36 @@ class ValidationRules
 
         return $res->getBody();
     }
-    
+
+    private static function _getRulesCacheFilePath()
+    {
+        $uri = self::$cache_file_path_override;
+
+        if(!$uri)
+        {
+            $current_dir = dirname(__FILE__);
+
+            $uri = join(DIRECTORY_SEPARATOR, array(
+                $current_dir,
+                '..',
+                '..',
+                '..',
+                'assets',
+                "{$country}-gov-dgc-settings.json"
+            ));
+        }
+
+        return $uri;
+    }
+
     public static function getValidationRules()
     {
         $country = FileUtils::COUNTRY;
-        $current_dir = dirname(__FILE__);
-        
-        $uri = join(DIRECTORY_SEPARATOR, array(
-            $current_dir,
-            '..',
-            '..',
-            '..',
-            'assets',
-            "{$country}-gov-dgc-settings.json"
-        ));
+
+        $uri = self::_getRulesCacheFilePath();
+
         $rules = "";
-        
+
         if (FileUtils::checkFileNotExistOrExpired($uri, FileUtils::HOUR_BEFORE_DOWNLOAD_LIST * 3600)) {
             $rules = self::getValidationFromUri($country);
             if (! empty($rules)) {
@@ -77,9 +104,9 @@ class ValidationRules
             $rules = fread($fhandle, filesize($uri));
             fclose($fhandle);
         }
-        
+
         return json_decode($rules);
     }
-    
-    
+
+
 }
