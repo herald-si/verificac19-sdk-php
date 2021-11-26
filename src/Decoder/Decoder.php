@@ -6,7 +6,7 @@ use CBOR\ListObject;
 use CBOR\StringStream;
 use CBOR\TextStringObject;
 use CBOR\OtherObject\OtherObjectManager;
-use CBOR\Tag\TagObjectManager;
+use CBOR\Tag\TagManager;
 use Herald\GreenPass\GreenPass;
 use Herald\GreenPass\Exceptions\NoCertificateListException;
 use Herald\GreenPass\Utils\FileUtils;
@@ -44,7 +44,7 @@ class Decoder
     {
         $stream = new StringStream($cose);
 
-        $tagObjectManager = new TagObjectManager();
+        $tagObjectManager = new TagManager();
         $tagObjectManager->add(CoseSign1Tag::class);
         $cborDecoder = new \CBOR\Decoder($tagObjectManager, new OtherObjectManager());
 
@@ -68,23 +68,21 @@ class Decoder
     private static function cbor($list)
     {
         $decoded = array();
-        $tagObjectManager = new TagObjectManager();
-        $tagObjectManager->add(CoseSign1Tag::class);
-        $cborDecoder = new \CBOR\Decoder(new TagObjectManager(), new OtherObjectManager());
+        $cborDecoder = new \CBOR\Decoder(new TagManager(), new OtherObjectManager());
 
         $h1 = $list->get(0); // The first item corresponds to the protected header
         $headerStream = new StringStream($h1->getValue()); // The first item is also a CBOR encoded byte string
-        $decoded['protected'] = $cborDecoder->decode($headerStream)->getNormalizedData(); // The array [1 => "-7"] = ["alg" => "ES256"]
+        $decoded['protected'] = $cborDecoder->decode($headerStream)->normalize(); // The array [1 => "-7"] = ["alg" => "ES256"]
 
         $h2 = $list->get(1); // The second item corresponds to unprotected header
-        $decoded['unprotected'] = $h2->getNormalizedData(); // The index 4 refers to the 'kid' (key ID) parameter (see https://www.iana.org/assignments/cose/cose.xhtml)
+        $decoded['unprotected'] = $h2->normalize(); // The index 4 refers to the 'kid' (key ID) parameter (see https://www.iana.org/assignments/cose/cose.xhtml)
 
         $data = $list->get(2); // The third item corresponds to the data we want to load
         if (! $data instanceof ByteStringObject) {
             throw new \InvalidArgumentException('Not a valid certificate. The payload is not a byte string.');
         }
         $infoStream = new StringStream($data->getValue()); // The third item is a CBOR encoded byte string
-        $decoded['data'] = $cborDecoder->decode($infoStream)->getNormalizedData(); // The data we are looking for
+        $decoded['data'] = $cborDecoder->decode($infoStream)->normalize(); // The data we are looking for
 
         $signature = $list->get(3); // The fourth item is the signature.
                                     // It can be verified using the protected header (first item) and the data (third item)
@@ -92,7 +90,7 @@ class Decoder
         if (! $signature instanceof ByteStringObject) {
             throw new \InvalidArgumentException('Not a valid certificate. The signature is not a byte string.');
         }
-        $decoded['signature'] = $signature->getNormalizedData(); // The digital signature
+        $decoded['signature'] = $signature->normalize(); // The digital signature
 
         return $decoded;
     }
