@@ -58,6 +58,10 @@ class ValidationRules
         }
         $res = $client->request('GET', $uri);
 
+        if(empty($res) || empty ($res->getBody()) ){
+            throw new NoCertificateListException("rules");
+        }
+        
         return $res->getBody();
     }
 
@@ -92,17 +96,9 @@ class ValidationRules
 
         if (FileUtils::checkFileNotExistOrExpired($uri, FileUtils::HOUR_BEFORE_DOWNLOAD_LIST * 3600)) {
             $rules = self::getValidationFromUri($country);
-            if (! empty($rules)) {
-                $fhandle = fopen($uri, 'w');
-                fwrite($fhandle, $rules);
-                fclose($fhandle);
-            } else {
-                throw new NoCertificateListException("rules");
-            }
+            FileUtils::saveDataToFile($uri, $rules);
         } else {
-            $fhandle = fopen($uri, 'r');
-            $rules = fread($fhandle, filesize($uri));
-            fclose($fhandle);
+            $rules = FileUtils::readDataFromFile($uri);
         }
 
         return json_decode($rules);

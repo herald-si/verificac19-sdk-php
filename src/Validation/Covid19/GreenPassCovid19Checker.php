@@ -182,8 +182,9 @@ class GreenPassCovid19Checker
         if ($list != ValidationStatus::NOT_FOUND) {
             $blacklisted = explode(";", $list);
             foreach ($blacklisted as $bl_item) {
-                if ($kid == $bl_item)
+                if ($kid == $bl_item){
                     return true;
+                }
             }
         }
         return false;

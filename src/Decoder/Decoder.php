@@ -168,8 +168,9 @@ class Decoder
         if ($info['http_code'] == 200) {
             return $body;
         }
+        
+        throw new NoCertificateListException("status");
 
-        return "";
     }
 
     private static function retrieveKidFromCBOR($cbor)
@@ -206,7 +207,7 @@ class Decoder
 
     public static function qrcode(string $qrcode)
     {
-        if (! (substr($qrcode, 0, 4) === 'HC1:')) {
+        if ( (substr($qrcode, 0, 4) !== 'HC1:')) {
             throw new \InvalidArgumentException('Invalid HC1 Header');
         }
         $zlib = static::base45(substr($qrcode, 4));
@@ -237,18 +238,10 @@ class Decoder
 
             if (FileUtils::checkFileNotExistOrExpired($uri_status, FileUtils::HOUR_BEFORE_DOWNLOAD_LIST * 3600)) {
                 $certificate_status = static::retrieveCertificatesStatus();
-                if (! empty($certificate_status)) {
-                    $fp = fopen($uri_status, 'w');
-                    fwrite($fp, $certificate_status);
-                    fclose($fp);
-                    $certs_list = json_decode($certificate_status);
-                } else {
-                    throw new NoCertificateListException("status");
-                }
+                FileUtils::saveDataToFile($uri_status, $certificate_status);
+                $certs_list = json_decode($certificate_status);
             } else {
-                $fp = fopen($uri_status, 'r');
-                $certs_list = json_decode(fread($fp, filesize($uri_status)));
-                fclose($fp);
+                $certs_list = json_decode(FileUtils::readDataFromFile($uri_status));
             }
 
             if (! in_array($keyId, $certs_list)) {
@@ -263,26 +256,18 @@ class Decoder
                 'assets',
                 "$locale-gov-dgc-certs.json"
             ));
-            $certs_obj = "";
+            $certificates = "";
 
             if (FileUtils::checkFileNotExistOrExpired($uri, FileUtils::HOUR_BEFORE_DOWNLOAD_LIST * 3600)) {
                 $certificates = static::retrieveCertificateFromList($certificateKeys);
-                if (! empty($certificates)) {
-                    $fp = fopen($uri, 'w');
-                    $json_certs = json_encode($certificates);
-                    fwrite($fp, $json_certs);
-                    fclose($fp);
-                    $certs_obj = json_decode($json_certs);
-                } else {
+                if (! FileUtils::saveDataToFile($uri, json_encode($certificates))) {
                     throw new NoCertificateListException("update");
                 }
             } else {
-                $fp = fopen($uri, 'r');
-                $certs_obj = json_decode(fread($fp, filesize($uri)));
-                fclose($fp);
+                $certificates = json_decode(FileUtils::readDataFromFile($uri));
             }
 
-            $signingCertificate = static::validateKidList($keyId, $certs_obj);
+            $signingCertificate = static::validateKidList($keyId, $certificates);
             $pem = chunk_split($signingCertificate, 64, PHP_EOL);
         }
 
@@ -303,11 +288,7 @@ class Decoder
         // If valid, the result is 1
         $isValid = 1 === openssl_verify((string) $structure, $derSignature, $pem, 'sha256');
         if (! $isValid) {
-            $open_error = "";
-            while ($m = openssl_error_string()) {
-                $open_error .= (" - OpenSSL Error: $m");
-            }
-            throw new \InvalidArgumentException("The signature is NOT valid {$open_error}");
+            throw new \InvalidArgumentException("The signature is NOT valid");
         }
 
         return new GreenPass($cbor['data'][- 260][1]);
