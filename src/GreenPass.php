@@ -52,9 +52,9 @@ class GreenPass
         }
     }
 
-    public function checkValid()
+    public function checkValid(String $scanMode)
     {
-        return self::_greenpassStatusAnonymizer(GreenPassCovid19Checker::verifyCert($this));
+        return self::_greenpassStatusAnonymizer(GreenPassCovid19Checker::verifyCert($this,$scanMode));
     }
 
     // vedi it-dgc-verificac19-sdk-android/sdk/src/main/java/it/ministerodellasalute/verificaC19sdk/model/VerificationViewModel.kt fullModel
