@@ -26,7 +26,7 @@ class ValidationRules
     const VACCINE_START_DAY_COMPLETE = "vaccine_start_day_complete";
 
     const VACCINE_END_DAY_COMPLETE = "vaccine_end_day_complete";
-    
+
     const BLACK_LIST_UVCI = "black_list_uvci";
 
     private static function getValidationFromUri($country)
@@ -48,25 +48,17 @@ class ValidationRules
         if(empty($res) || empty ($res->getBody()) ){
             throw new NoCertificateListException("rules");
         }
-        
+
         return $res->getBody();
     }
-    
+
     public static function getValidationRules()
     {
         $country = FileUtils::COUNTRY;
-        $current_dir = dirname(__FILE__);
-        
-        $uri = join(DIRECTORY_SEPARATOR, array(
-            $current_dir,
-            '..',
-            '..',
-            '..',
-            'assets',
-            "{$country}-gov-dgc-settings.json"
-        ));
+
+        $uri = FileUtils::getCacheFilePath("{$country}-gov-dgc-settings.json");
         $rules = "";
-        
+
         if (FileUtils::checkFileNotExistOrExpired($uri, FileUtils::HOUR_BEFORE_DOWNLOAD_LIST * 3600)) {
             $rules = self::getValidationFromUri($country);
             FileUtils::saveDataToFile($uri, $rules);
@@ -75,6 +67,6 @@ class ValidationRules
         }
         return json_decode($rules);
     }
-    
-    
+
+
 }
