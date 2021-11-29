@@ -166,7 +166,7 @@ class Decoder
         if ($info['http_code'] == 200) {
             return $body;
         }
-        
+
         throw new NoCertificateListException("status");
 
     }
@@ -221,17 +221,11 @@ class Decoder
         $keyId = static::retrieveKidFromCBOR($cbor);
 
         if (static::GET_CERTIFICATE_FROM == static::LIST) {
-            
+
             $locale = FileUtils::COUNTRY;
 
             // Check if kid in certificate list status
-            $uri_status = join(DIRECTORY_SEPARATOR, array(
-                $current_dir,
-                '..',
-                '..',
-                'assets',
-                "$locale-gov-dgc-status.json"
-            ));
+            $uri_status = FileUtils::getCacheFilePath("$locale-gov-dgc-status.json");
             $certs_list = "";
 
             if (FileUtils::checkFileNotExistOrExpired($uri_status, FileUtils::HOUR_BEFORE_DOWNLOAD_LIST * 3600)) {
@@ -247,13 +241,7 @@ class Decoder
             }
 
             // Check if kid in certificate list status
-            $uri = join(DIRECTORY_SEPARATOR, array(
-                $current_dir,
-                '..',
-                '..',
-                'assets',
-                "$locale-gov-dgc-certs.json"
-            ));
+            $uri = FileUtils::getCacheFilePath("$locale-gov-dgc-certs.json");
             $certificates = "";
 
             if (FileUtils::checkFileNotExistOrExpired($uri, FileUtils::HOUR_BEFORE_DOWNLOAD_LIST * 3600)) {
