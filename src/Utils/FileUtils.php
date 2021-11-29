@@ -55,12 +55,12 @@ class FileUtils
         if(!$cache_uri)
         {
             $current_dir[] = dirname(__FILE__);
-			for($i = 0; $i < self::ASSETS_FOLDER_HOP; $i++)
-			{
-				$current_dir[] = "..";
-			}
-			$current_dir[] = self::ASSETS_FOLDER_NAME;
-			
+            for($i = 0; $i < self::ASSETS_FOLDER_HOP; $i++)
+            {
+            	$current_dir[] = "..";
+            }
+            $current_dir[] = self::ASSETS_FOLDER_NAME;
+
             $cache_uri = join(DIRECTORY_SEPARATOR, $current_dir);
         }
 
