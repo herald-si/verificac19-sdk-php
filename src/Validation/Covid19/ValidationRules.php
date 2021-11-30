@@ -33,27 +33,51 @@ class ValidationRules
 
     const MAX_RETRY = "MAX_RETRY";
 
-    private static function getValidationFromUri($country)
+    private static function getValidationFromUri(string $type)
     {
         $client = new \GuzzleHttp\Client();
         $uri = "";
-        switch ($country) {
-            case "it":
+        switch ($type) {
+            case "settings":
                 $uri = "https://get.dgc.gov.it/v1/dgc/settings";
                 break;
-            case "other_country":
-                $uri = "set_country_uri_there";
+            /**
+             * TODO
+             * cambiare con endpoint ufficiale, ora inaccessibile: 
+             * https://get.dgc.gov.it/v1/dgc/drl/check
+             */
+            case "drl-check":
+                $uri = "https://gist.githubusercontent.com/rawmain/85ea0786ded9e4634ae13f467ef343ac/raw/42ad731d33d12442a98c0af1721673ae4df1f6e1/rvktest02.json";
+                break;
+            /**
+             * TODO
+             * cambiare con endpoint ufficiale, ora inaccessibile:
+             * https://get.dgc.gov.it/v1/dgc/drl
+             */
+            case "drl-revokes":
+                $uri = "https://gist.githubusercontent.com/rawmain/85ea0786ded9e4634ae13f467ef343ac/raw/42ad731d33d12442a98c0af1721673ae4df1f6e1/rvktest02.json";
                 break;
             default:
-                throw new \InvalidArgumentException("No country selected");
+                throw new NoCertificateListException($type);
         }
         $res = $client->request('GET', $uri);
 
         if (empty($res) || empty($res->getBody())) {
-            throw new NoCertificateListException("rules");
+            throw new NoCertificateListException($type);
         }
 
         return $res->getBody();
+    }
+
+    private static function getJsonFromFile(string $filename, string $type)
+    {
+        if (FileUtils::checkFileNotExistOrExpired($filename, FileUtils::HOUR_BEFORE_DOWNLOAD_LIST * 3600)) {
+            $json = self::getValidationFromUri($type);
+            FileUtils::saveDataToFile($filename, $json);
+        } else {
+            $json = FileUtils::readDataFromFile($filename);
+        }
+        return json_decode($json);
     }
 
     public static function getValidationRules()
@@ -61,14 +85,22 @@ class ValidationRules
         $country = FileUtils::COUNTRY;
 
         $uri = FileUtils::getCacheFilePath("{$country}-gov-dgc-settings.json");
-        $rules = "";
+        return self::getJsonFromFile($uri, "settings");
+    }
 
-        if (FileUtils::checkFileNotExistOrExpired($uri, FileUtils::HOUR_BEFORE_DOWNLOAD_LIST * 3600)) {
-            $rules = self::getValidationFromUri($country);
-            FileUtils::saveDataToFile($uri, $rules);
-        } else {
-            $rules = FileUtils::readDataFromFile($uri);
-        }
-        return json_decode($rules);
+    public static function getCRLStatus()
+    {
+        $country = FileUtils::COUNTRY;
+
+        $uri = FileUtils::getCacheFilePath("{$country}-gov-dgc-drl-check.json");
+        return self::getJsonFromFile($uri, "drl-check");
+    }
+
+    public static function getRevokeList()
+    {
+        $country = FileUtils::COUNTRY;
+
+        $uri = FileUtils::getCacheFilePath("{$country}-gov-dgc-drl-revokes.json");
+        return self::getJsonFromFile($uri, "drl-revokes");
     }
 }
