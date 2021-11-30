@@ -13,12 +13,12 @@ class CertificateValidator
 
     public function __construct($qrCodeText)
     {
-        try{
+        try {
             $greenPass = Decoder::qrcode($qrCodeText);
             $person = new SimplePerson($greenPass->holder->standardisedSurname, $greenPass->holder->surname, $greenPass->holder->standardisedForename, $greenPass->holder->forename);
-            
+
             $this->greenPassSimple = new CertificateSimple($person, $greenPass->holder->dateOfBirth, $greenPass->checkValid());
-        }catch (\Exception $e){
+        } catch (\Exception $e) {
             $this->greenPassSimple = new CertificateSimple(null, null, ValidationStatus::NOT_EU_DCC);
         }
     }

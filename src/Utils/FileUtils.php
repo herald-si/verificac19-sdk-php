@@ -9,10 +9,10 @@ class FileUtils
     const LOCALE = "it_IT";
 
     const HOUR_BEFORE_DOWNLOAD_LIST = 24;
-	
-	const ASSETS_FOLDER_HOP = 2;
-	
-	const ASSETS_FOLDER_NAME = "assets";
+
+    const ASSETS_FOLDER_HOP = 2;
+
+    const ASSETS_FOLDER_NAME = "assets";
 
     private static $cache_path_override = null;
 
@@ -52,12 +52,10 @@ class FileUtils
     {
         $cache_uri = self::$cache_path_override;
 
-        if(!$cache_uri)
-        {
+        if (! $cache_uri) {
             $current_dir[] = dirname(__FILE__);
-            for($i = 0; $i < self::ASSETS_FOLDER_HOP; $i++)
-            {
-            	$current_dir[] = "..";
+            for ($i = 0; $i < self::ASSETS_FOLDER_HOP; $i ++) {
+                $current_dir[] = "..";
             }
             $current_dir[] = self::ASSETS_FOLDER_NAME;
 

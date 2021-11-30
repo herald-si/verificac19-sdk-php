@@ -29,6 +29,10 @@ class ValidationRules
 
     const BLACK_LIST_UVCI = "black_list_uvci";
 
+    const DRL_SYNC_ACTIVE = "DRL_SYNC_ACTIVE";
+
+    const MAX_RETRY = "MAX_RETRY";
+
     private static function getValidationFromUri($country)
     {
         $client = new \GuzzleHttp\Client();
@@ -45,7 +49,7 @@ class ValidationRules
         }
         $res = $client->request('GET', $uri);
 
-        if(empty($res) || empty ($res->getBody()) ){
+        if (empty($res) || empty($res->getBody())) {
             throw new NoCertificateListException("rules");
         }
 
@@ -67,6 +71,4 @@ class ValidationRules
         }
         return json_decode($rules);
     }
-
-
 }

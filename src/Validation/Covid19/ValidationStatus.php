@@ -22,6 +22,6 @@ class ValidationStatus
     const NOT_VALID = "NOT_VALID";
 
     const EXPIRED = "EXPIRED";
-    
+
     const NOT_EU_DCC = "NOT_EU_DCC";
 }

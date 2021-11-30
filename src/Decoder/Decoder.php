@@ -168,7 +168,6 @@ class Decoder
         }
 
         throw new NoCertificateListException("status");
-
     }
 
     private static function retrieveKidFromCBOR($cbor)

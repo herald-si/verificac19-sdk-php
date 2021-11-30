@@ -76,7 +76,7 @@ class GreenPassCovid19Checker
         }
         // isSputnikNotFromSanMarino ( https://github.com/ministero-salute/it-dgc-verificac19-sdk-android/commit/fee61a8ab86c6f4598afd6bbb48553081933f813 )
         $isSputnikNotFromSanMarino = ($cert->product == "Sputnik-V" && $cert->country != "SM");
-        if ($isSputnikNotFromSanMarino){
+        if ($isSputnikNotFromSanMarino) {
             return ValidationStatus::NOT_VALID;
         }
 
@@ -182,7 +182,7 @@ class GreenPassCovid19Checker
         if ($list != ValidationStatus::NOT_FOUND) {
             $blacklisted = explode(";", $list);
             foreach ($blacklisted as $bl_item) {
-                if ($kid == $bl_item){
+                if ($kid == $bl_item) {
                     return true;
                 }
             }
