@@ -32,6 +32,10 @@ class GreenPassCovid19Checker
             return ValidationStatus::NOT_VALID;
         }
 
+        if (self::checkInDrl($certificateId)) {
+            return ValidationStatus::NOT_VALID;
+        }
+
         // vaccino effettuato
         if ($cert instanceof VaccinationDose) {
             return self::verifyVaccinationDose($cert, $data_oggi);
@@ -190,7 +194,19 @@ class GreenPassCovid19Checker
         return false;
     }
 
-    private static function extractUVCI(GreenPass $greenPass)
+    private static function checkInDrl(string $kid): bool
+    {
+        /*TODO
+         * Implementare le logiche di check
+         */
+        
+        $status = ValidationRules::getCRLStatus();
+        $revoke_list = ValidationRules::getRevokeList();
+
+        return false;
+    }
+
+    private static function extractUVCI(GreenPass $greenPass): string
     {
         $certificateIdentifier = "";
         $cert = $greenPass->certificate;
