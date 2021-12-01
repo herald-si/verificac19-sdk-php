@@ -6,7 +6,7 @@ use CBOR\ListObject;
 use CBOR\StringStream;
 use CBOR\TextStringObject;
 use CBOR\OtherObject\OtherObjectManager;
-use CBOR\Tag\TagObjectManager;
+use CBOR\Tag\TagManager;
 use Herald\GreenPass\GreenPass;
 use Herald\GreenPass\Exceptions\NoCertificateListException;
 use Herald\GreenPass\Utils\FileUtils;
@@ -44,7 +44,7 @@ class Decoder
     {
         $stream = new StringStream($cose);
 
-        $tagObjectManager = new TagObjectManager();
+        $tagObjectManager = new TagManager();
         $tagObjectManager->add(CoseSign1Tag::class);
         $cborDecoder = new \CBOR\Decoder($tagObjectManager, new OtherObjectManager());
 
@@ -68,23 +68,21 @@ class Decoder
     private static function cbor($list)
     {
         $decoded = array();
-        $tagObjectManager = new TagObjectManager();
-        $tagObjectManager->add(CoseSign1Tag::class);
-        $cborDecoder = new \CBOR\Decoder(new TagObjectManager(), new OtherObjectManager());
+        $cborDecoder = new \CBOR\Decoder(new TagManager(), new OtherObjectManager());
 
         $h1 = $list->get(0); // The first item corresponds to the protected header
         $headerStream = new StringStream($h1->getValue()); // The first item is also a CBOR encoded byte string
-        $decoded['protected'] = $cborDecoder->decode($headerStream)->getNormalizedData(); // The array [1 => "-7"] = ["alg" => "ES256"]
+        $decoded['protected'] = $cborDecoder->decode($headerStream)->normalize(); // The array [1 => "-7"] = ["alg" => "ES256"]
 
         $h2 = $list->get(1); // The second item corresponds to unprotected header
-        $decoded['unprotected'] = $h2->getNormalizedData(); // The index 4 refers to the 'kid' (key ID) parameter (see https://www.iana.org/assignments/cose/cose.xhtml)
+        $decoded['unprotected'] = $h2->normalize(); // The index 4 refers to the 'kid' (key ID) parameter (see https://www.iana.org/assignments/cose/cose.xhtml)
 
         $data = $list->get(2); // The third item corresponds to the data we want to load
         if (! $data instanceof ByteStringObject) {
             throw new \InvalidArgumentException('Not a valid certificate. The payload is not a byte string.');
         }
         $infoStream = new StringStream($data->getValue()); // The third item is a CBOR encoded byte string
-        $decoded['data'] = $cborDecoder->decode($infoStream)->getNormalizedData(); // The data we are looking for
+        $decoded['data'] = $cborDecoder->decode($infoStream)->normalize(); // The data we are looking for
 
         $signature = $list->get(3); // The fourth item is the signature.
                                     // It can be verified using the protected header (first item) and the data (third item)
@@ -92,7 +90,7 @@ class Decoder
         if (! $signature instanceof ByteStringObject) {
             throw new \InvalidArgumentException('Not a valid certificate. The signature is not a byte string.');
         }
-        $decoded['signature'] = $signature->getNormalizedData(); // The digital signature
+        $decoded['signature'] = $signature->normalize(); // The digital signature
 
         return $decoded;
     }
@@ -169,7 +167,7 @@ class Decoder
             return $body;
         }
 
-        return "";
+        throw new NoCertificateListException("status");
     }
 
     private static function retrieveKidFromCBOR($cbor)
@@ -206,7 +204,7 @@ class Decoder
 
     public static function qrcode(string $qrcode)
     {
-        if (! (substr($qrcode, 0, 4) === 'HC1:')) {
+        if (substr($qrcode, 0, 4) !== 'HC1:') {
             throw new \InvalidArgumentException('Invalid HC1 Header');
         }
         $zlib = static::base45(substr($qrcode, 4));
@@ -222,33 +220,19 @@ class Decoder
         $keyId = static::retrieveKidFromCBOR($cbor);
 
         if (static::GET_CERTIFICATE_FROM == static::LIST) {
-            
+
             $locale = FileUtils::COUNTRY;
 
             // Check if kid in certificate list status
-            $uri_status = join(DIRECTORY_SEPARATOR, array(
-                $current_dir,
-                '..',
-                '..',
-                'assets',
-                "$locale-gov-dgc-status.json"
-            ));
+            $uri_status = FileUtils::getCacheFilePath("$locale-gov-dgc-status.json");
             $certs_list = "";
 
             if (FileUtils::checkFileNotExistOrExpired($uri_status, FileUtils::HOUR_BEFORE_DOWNLOAD_LIST * 3600)) {
                 $certificate_status = static::retrieveCertificatesStatus();
-                if (! empty($certificate_status)) {
-                    $fp = fopen($uri_status, 'w');
-                    fwrite($fp, $certificate_status);
-                    fclose($fp);
-                    $certs_list = json_decode($certificate_status);
-                } else {
-                    throw new NoCertificateListException("status");
-                }
+                FileUtils::saveDataToFile($uri_status, $certificate_status);
+                $certs_list = json_decode($certificate_status);
             } else {
-                $fp = fopen($uri_status, 'r');
-                $certs_list = json_decode(fread($fp, filesize($uri_status)));
-                fclose($fp);
+                $certs_list = json_decode(FileUtils::readDataFromFile($uri_status));
             }
 
             if (! in_array($keyId, $certs_list)) {
@@ -256,33 +240,19 @@ class Decoder
             }
 
             // Check if kid in certificate list status
-            $uri = join(DIRECTORY_SEPARATOR, array(
-                $current_dir,
-                '..',
-                '..',
-                'assets',
-                "$locale-gov-dgc-certs.json"
-            ));
-            $certs_obj = "";
+            $uri = FileUtils::getCacheFilePath("$locale-gov-dgc-certs.json");
+            $certificates = "";
 
             if (FileUtils::checkFileNotExistOrExpired($uri, FileUtils::HOUR_BEFORE_DOWNLOAD_LIST * 3600)) {
                 $certificates = static::retrieveCertificateFromList($certificateKeys);
-                if (! empty($certificates)) {
-                    $fp = fopen($uri, 'w');
-                    $json_certs = json_encode($certificates);
-                    fwrite($fp, $json_certs);
-                    fclose($fp);
-                    $certs_obj = json_decode($json_certs);
-                } else {
+                if (! FileUtils::saveDataToFile($uri, json_encode($certificates))) {
                     throw new NoCertificateListException("update");
                 }
             } else {
-                $fp = fopen($uri, 'r');
-                $certs_obj = json_decode(fread($fp, filesize($uri)));
-                fclose($fp);
+                $certificates = json_decode(FileUtils::readDataFromFile($uri));
             }
 
-            $signingCertificate = static::validateKidList($keyId, $certs_obj);
+            $signingCertificate = static::validateKidList($keyId, $certificates);
             $pem = chunk_split($signingCertificate, 64, PHP_EOL);
         }
 
@@ -303,11 +273,7 @@ class Decoder
         // If valid, the result is 1
         $isValid = 1 === openssl_verify((string) $structure, $derSignature, $pem, 'sha256');
         if (! $isValid) {
-            $open_error = "";
-            while ($m = openssl_error_string()) {
-                $open_error .= (" - OpenSSL Error: $m");
-            }
-            throw new \InvalidArgumentException("The signature is NOT valid {$open_error}");
+            throw new \InvalidArgumentException("The signature is NOT valid");
         }
 
         return new GreenPass($cbor['data'][- 260][1]);

@@ -26,8 +26,12 @@ class ValidationRules
     const VACCINE_START_DAY_COMPLETE = "vaccine_start_day_complete";
 
     const VACCINE_END_DAY_COMPLETE = "vaccine_end_day_complete";
-    
+
     const BLACK_LIST_UVCI = "black_list_uvci";
+
+    const DRL_SYNC_ACTIVE = "DRL_SYNC_ACTIVE";
+
+    const MAX_RETRY = "MAX_RETRY";
 
     private static function getValidationFromUri($country)
     {
@@ -45,41 +49,26 @@ class ValidationRules
         }
         $res = $client->request('GET', $uri);
 
+        if (empty($res) || empty($res->getBody())) {
+            throw new NoCertificateListException("rules");
+        }
+
         return $res->getBody();
     }
-    
+
     public static function getValidationRules()
     {
         $country = FileUtils::COUNTRY;
-        $current_dir = dirname(__FILE__);
-        
-        $uri = join(DIRECTORY_SEPARATOR, array(
-            $current_dir,
-            '..',
-            '..',
-            '..',
-            'assets',
-            "{$country}-gov-dgc-settings.json"
-        ));
+
+        $uri = FileUtils::getCacheFilePath("{$country}-gov-dgc-settings.json");
         $rules = "";
-        
+
         if (FileUtils::checkFileNotExistOrExpired($uri, FileUtils::HOUR_BEFORE_DOWNLOAD_LIST * 3600)) {
             $rules = self::getValidationFromUri($country);
-            if (! empty($rules)) {
-                $fhandle = fopen($uri, 'w');
-                fwrite($fhandle, $rules);
-                fclose($fhandle);
-            } else {
-                throw new NoCertificateListException("rules");
-            }
+            FileUtils::saveDataToFile($uri, $rules);
         } else {
-            $fhandle = fopen($uri, 'r');
-            $rules = fread($fhandle, filesize($uri));
-            fclose($fhandle);
+            $rules = FileUtils::readDataFromFile($uri);
         }
-        
         return json_decode($rules);
     }
-    
-    
 }
