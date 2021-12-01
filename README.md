@@ -3,8 +3,10 @@
 # Indice
 - [Contesto](#contesto)
 - [Installazione](#installazione)
+  - [Permessi cartella assets](#permessi-cartella-assets)
 - [Uso](#uso)
   - [Cache Folder](#cache-folder)
+  - [Green Pass Rafforzato](#green-pass-rafforzato)
 - [Licenza](#licenza)
   - [Dettaglio licenza](#dettaglio-licenza)
 
@@ -44,24 +46,15 @@ a questo punto lanciare all'interno della cartella `sdk_repo_folder` il comando
 composer install
 ```
 
-## Cache Folder
+## Permessi cartella assets
 
 E' necessario settare i permessi della cartella `sdk_repo_folder\assets` in modo tale che
 il webserver possa leggere, creare ed editare i file contenuti in essa.
 
 Nel caso in cui non fosse possibile cambiare i permessi della cartella,
-dalla release `1.0.5` esiste la possilità di modificare il path di salvataggio dei 
-file, utilizzando il metodo `overrideCacheFilePath` della classe `FileUtils`:
+dalla release `1.0.5` esiste la possibilità di modificare il path di salvataggio dei 
+file, vedi [Cache Folder](#cache-folder).
 
-```php
-Herald\GreenPass\Utils\FileUtils::overrideCacheFilePath("/absolute/path/to/cache/folder");
-```
-oppure su Windows:
-```php
-Herald\GreenPass\Utils\FileUtils::overrideCacheFilePath("c:\path\to\cache\folder");
-```
-
-###   
 
 # Uso
 L'applicazione di verifica dovr&agrave; importare la cartella `vendor` dell'SDK.
@@ -100,6 +93,43 @@ verifica.
 Basandosi su questi dati &egrave; possibile disegnare la UI e fornire all'operatore lo
 stato della verifica del DCC.
 
+## Cache Folder
+
+Dalla release `1.0.5` esiste la possilità di modificare il path di salvataggio dei 
+file, utilizzando il metodo `overrideCacheFilePath` della classe `FileUtils`:
+
+```php
+Herald\GreenPass\Utils\FileUtils::overrideCacheFilePath("/absolute/path/to/cache/folder");
+```
+oppure su Windows:
+```php
+Herald\GreenPass\Utils\FileUtils::overrideCacheFilePath("c:\path\to\cache\folder");
+```
+
+## Green Pass Rafforzato
+Dalla versione `1.0.5` è necessario definire una delle due modalità di verifica della Certificazione verde Covid-19: BASE o RAFFORZATA.
+* Tipologia BASE `3G`: l'sdk considera valide le certificazioni verdi generate da vaccinazione, da guarigione, da tampone.
+* Tipologia RAFFORZATA `2G`: l'sdk considera valide solo le certificazioni verdi generate da vaccinazione o da guarigione.
+
+Per selezionare la tipologia, è possibile passare al costruttore del validatore un parametro di tipo `Herald\GreenPass\Validation\Covid19\ValidationScanMode`.
+
+Nel caso in cui non venisse scelto, viene impostata di default la tipologia BASE.
+
+```php
+// set scan mode to 3G (BASE)
+$scanMode = ValidationScanMode::CLASSIC_DGP;
+// or set scan mode to 2G (RAFFORZATO)
+$scanMode = ValidationScanMode::SUPER_DGP;
+
+$gp_reader = new CertificateValidator($gp_string, $scanMode);
+```
+
+# Licenza
+
+## Dettaglio Licenza
+La licenza per questo repository &egrave; una `Apache License 2.0`.
+All'interno del file [LICENSE](./LICENSE) sono presenti le informazioni
+specifiche.
 
 ## Contributori
 
@@ -111,10 +141,3 @@ miglioramento del progetto giorno dopo giorno!
   src="https://contributors-img.web.app/image?repo=herald-si/verificac19-sdk-php"   
   />    
 </a>    
-
-# Licenza
-
-## Dettaglio Licenza
-La licenza per questo repository &egrave; una `Apache License 2.0`.
-All'interno del file [LICENSE](./LICENSE) sono presenti le informazioni
-specifiche.
