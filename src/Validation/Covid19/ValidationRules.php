@@ -3,6 +3,7 @@ namespace Herald\GreenPass\Validation\Covid19;
 
 use Herald\GreenPass\Exceptions\NoCertificateListException;
 use Herald\GreenPass\Utils\FileUtils;
+use Herald\GreenPass\Utils\VerificaC19DB;
 
 class ValidationRules
 {
@@ -43,11 +44,11 @@ class ValidationRules
                 break;
             /**
              * TODO
-             * cambiare con endpoint ufficiale, ora inaccessibile: 
+             * cambiare con endpoint ufficiale, ora inaccessibile:
              * https://get.dgc.gov.it/v1/dgc/drl/check
              */
             case "drl-check":
-                $uri = "https://gist.githubusercontent.com/rawmain/85ea0786ded9e4634ae13f467ef343ac/raw/42ad731d33d12442a98c0af1721673ae4df1f6e1/rvktest02.json";
+                $uri = "https://raw.githubusercontent.com/italia/verificac19-sdk/feature/crl/test/data/responses/CRL-check-v3.json";
                 break;
             /**
              * TODO
@@ -55,7 +56,7 @@ class ValidationRules
              * https://get.dgc.gov.it/v1/dgc/drl
              */
             case "drl-revokes":
-                $uri = "https://gist.githubusercontent.com/rawmain/85ea0786ded9e4634ae13f467ef343ac/raw/42ad731d33d12442a98c0af1721673ae4df1f6e1/rvktest02.json";
+                $uri = "https://raw.githubusercontent.com/italia/verificac19-sdk/feature/crl/test/data/responses/CRL-v3-c1.json";
                 break;
             default:
                 throw new NoCertificateListException($type);
@@ -96,11 +97,29 @@ class ValidationRules
         return self::getJsonFromFile($uri, "drl-check");
     }
 
+    private static function updateRevokedList(VerificaC19DB $db)
+    {  
+        $country = FileUtils::COUNTRY;
+        
+        $uri = FileUtils::getCacheFilePath("{$country}-gov-dgc-drl-revokes.json");
+        $chunk = self::getJsonFromFile($uri, "drl-revokes");
+
+        foreach($chunk->revokedUcvi as $revokedUcvi){
+            $db->addRevokedUcviToUcviList($revokedUcvi);
+        }
+    }
+
     public static function getRevokeList()
     {
-        $country = FileUtils::COUNTRY;
-
-        $uri = FileUtils::getCacheFilePath("{$country}-gov-dgc-drl-revokes.json");
-        return self::getJsonFromFile($uri, "drl-revokes");
+        try {
+            $db = new VerificaC19DB();
+            $db->initUCVI();
+        } catch (\PDOException $e) {
+            throw new \InvalidArgumentException("Cant connect to DB" . $e);
+        }
+        
+        self::updateRevokedList($db);
+        return $db->getRevokedUcviList();
+        
     }
 }
