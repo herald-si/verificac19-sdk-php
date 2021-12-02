@@ -43,8 +43,8 @@ class GreenPassCovid19Checker
 
         // tampone effettuato
         if ($cert instanceof TestResult) {
-            // if scan mode Super Green Pass, TestResult is non a valid GP 
-            if($scanMode == ValidationScanMode::SUPER_DGP){
+            // if scan mode Super Green Pass, TestResult is non a valid GP
+            if ($scanMode == ValidationScanMode::SUPER_DGP) {
                 return ValidationStatus::NOT_VALID;
             }
             return self::verifyTestResults($cert, $data_oggi);
@@ -76,7 +76,7 @@ class GreenPassCovid19Checker
         return ($agent instanceof Covid19);
     }
 
-    private static function verifyVaccinationDose($cert, $validation_date)
+    private static function verifyVaccinationDose(VaccinationDose $cert, \DateTime $validation_date)
     {
         $esiste_vaccino = self::getValueFromValidationRules(ValidationRules::VACCINE_END_DAY_COMPLETE, $cert->product);
         if ($esiste_vaccino == ValidationStatus::NOT_FOUND) {
@@ -125,7 +125,7 @@ class GreenPassCovid19Checker
         return ValidationStatus::NOT_RECOGNIZED;
     }
 
-    private static function verifyTestResults($cert, $validation_date)
+    private static function verifyTestResults(TestResult $cert, \DateTime $validation_date)
     {
         if ($cert->result == TestResultType::DETECTED) {
             return ValidationStatus::NOT_VALID;
@@ -170,17 +170,28 @@ class GreenPassCovid19Checker
         return ValidationStatus::NOT_RECOGNIZED;
     }
 
-    private static function verifyRecoveryStatement($cert, $validation_date)
+    private static function verifyRecoveryStatement(RecoveryStatement $cert, \DateTime $validation_date)
     {
-        $data_inizio_validita = $cert->validFrom;
-        $data_fine_validita = $cert->validUntil;
+        $start_day = self::getValueFromValidationRules(ValidationRules::RECOVERY_CERT_START_DAY, "GENERIC");
+        $end_day = self::getValueFromValidationRules(ValidationRules::RECOVERY_CERT_END_DAY, "GENERIC");
 
-        if ($validation_date < $data_inizio_validita) {
+        $valid_from = $cert->validFrom;
+
+        $start_date = $valid_from->modify("+$start_day days");
+        $end_date = $cert->validUntil;
+
+        if ($start_date > $validation_date) {
             return ValidationStatus::NOT_VALID_YET;
         }
-        if ($validation_date > $data_fine_validita) {
-            return ValidationStatus::EXPIRED;
+
+        if ($validation_date > $start_date->modify("+$end_day days")) {
+            return ValidationStatus::NOT_VALID;
         }
+
+        if ($validation_date > $end_date) {
+            return ValidationStatus::PARTIALLY_VALID;
+        }
+
         return ValidationStatus::VALID;
     }
 
