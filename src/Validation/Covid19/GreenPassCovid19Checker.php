@@ -12,7 +12,7 @@ use Herald\GreenPass\GreenPass;
 class GreenPassCovid19Checker
 {
 
-    public static function verifyCert(GreenPass $greenPass)
+    public static function verifyCert(GreenPass $greenPass, String $scanMode = ValidationScanMode::CLASSIC_DGP)
     {
         $cert = $greenPass->certificate;
 
@@ -43,6 +43,10 @@ class GreenPassCovid19Checker
 
         // tampone effettuato
         if ($cert instanceof TestResult) {
+            // if scan mode Super Green Pass, TestResult is non a valid GP 
+            if($scanMode == ValidationScanMode::SUPER_DGP){
+                return ValidationStatus::NOT_VALID;
+            }
             return self::verifyTestResults($cert, $data_oggi);
         }
 
