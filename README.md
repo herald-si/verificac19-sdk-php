@@ -32,7 +32,7 @@ informazioni rilevate dalla lettura dei QR code e le informazioni fornite in
 esito ai controlli, come indicato nel DPCM 12 ottobre 2021    
 
 # Requisiti
-- PHP >= 7.4
+- PHP >= 7.3
 
 # Installazione
 E' necessario clonare questo progetto, nel seguente modo:
