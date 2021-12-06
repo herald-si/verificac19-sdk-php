@@ -2,9 +2,9 @@
 namespace Herald\GreenPass\Decoder;
 
 use CBOR\CBORObject;
-use CBOR\TagObject;
+use CBOR\Tag;
 
-final class CoseSign1Tag extends TagObject
+final class CoseSign1Tag extends Tag
 {
 
     public static function getTagId(): int
@@ -12,7 +12,7 @@ final class CoseSign1Tag extends TagObject
         return 18;
     }
 
-    public static function createFromLoadedData(int $additionalInformation, ?string $data, CBORObject $object): TagObject
+    public static function createFromLoadedData(int $additionalInformation, ?string $data, CBORObject $object): Tag
     {
         return new self($additionalInformation, $data, $object);
     }
