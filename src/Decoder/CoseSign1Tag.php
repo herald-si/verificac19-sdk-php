@@ -19,6 +19,6 @@ final class CoseSign1Tag extends Tag
 
     public function getNormalizedData(bool $ignoreTags = false)
     {
-        return $this->getValue()->getNormalizedData($ignoreTags);
+        return $this->getValue()->normalize();
     }
 }
