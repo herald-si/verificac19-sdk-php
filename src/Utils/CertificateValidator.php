@@ -12,7 +12,7 @@ class CertificateValidator
 
     private $greenPassSimple;
     
-    private String $scanMode;
+    private $scanMode;
 
     public function __construct(String $qrCodeText, String $scanMode = ValidationScanMode::CLASSIC_DGP)
     {
