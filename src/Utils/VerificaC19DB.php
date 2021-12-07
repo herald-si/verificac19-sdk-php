@@ -6,7 +6,7 @@ class VerificaC19DB
 
     const SQLITE_DB_NAME = 'verificac19.db';
 
-    private string $db_complete_path;
+    private $db_complete_path;
 
     /**
      * PDO instance
