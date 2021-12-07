@@ -18,5 +18,8 @@
 		  "type": "vcs",
 		  "url":  "https://github.com/herald-si/cbor-php.git"
 		}
-	]
+	],
+	"require-dev": {
+		"phpunit/phpunit": "9.*"
+	}
 }
