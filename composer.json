@@ -5,7 +5,8 @@
 		"php": ">=7.3",
 		"guzzlehttp/guzzle" : "^7",
 		"ext-zlib" : "*",
-		"spomky-labs/cbor-php" : "dev-string-encode-fix"
+		"spomky-labs/cbor-php" : "dev-string-encode-fix",
+		"web-auth/cose-lib": "^3.3"
 	},
 	  
 	"autoload" : {
