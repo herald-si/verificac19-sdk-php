@@ -204,10 +204,10 @@ class Decoder
 
     public static function qrcode(string $qrcode)
     {
-        if (substr($qrcode, 0, 4) !== 'HC1:') {
-            throw new \InvalidArgumentException('Invalid HC1 Header');
+        if (substr($qrcode, 0, 4) === 'HC1:') {
+            $qrcode = substr($qrcode, 4);
         }
-        $zlib = static::base45(substr($qrcode, 4));
+        $zlib = static::base45($qrcode);
         $cose = static::cose(static::zlib($zlib));
         $cbor = static::cbor($cose);
 
