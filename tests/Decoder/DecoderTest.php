@@ -18,10 +18,9 @@ class DecoderTest extends \PHPUnit\Framework\TestCase
 
     public function testInvalidHC1()
     {
-        $notHC1 = GPDataTest::$qrcode_new_zeland_gp;
-        $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('Invalid HC1 Header');
+        $notHC1 = GPDataTest::$qrcode_without_hc1;
         $greenPass = Decoder::qrcode($notHC1);
+        $this->assertEquals($greenPass->holder->forename, "ADOLF");
     }
 
     public function testInvalidKid()
