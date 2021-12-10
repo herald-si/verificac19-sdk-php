@@ -52,7 +52,7 @@ class Base45Test extends \PHPUnit\Framework\TestCase
     public function testInvalidTryplet()
     {
         $this->expectException(\InvalidArgumentException::class);
-        $result = (new Base45())->decode("GGWFGW");
+        (new Base45())->decode("GGWFGW");
     }
 
     public function dataProvider(): array
