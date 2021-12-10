@@ -14,14 +14,14 @@ class DecoderTest extends \PHPUnit\Framework\TestCase
     {
         $validQRCode = GPDataTest::$qrcode_certificate_valid_but_revoked;
         $greenPass = Decoder::qrcode($validQRCode);
-        $this->assertEquals($greenPass->holder->forename, "ADOLF");
+        $this->assertEquals("ADOLF", $greenPass->holder->forename);
     }
 
     public function testInvalidHC1()
     {
         $notHC1 = GPDataTest::$qrcode_without_hc1;
         $greenPass = Decoder::qrcode($notHC1);
-        $this->assertEquals($greenPass->holder->forename, "ADOLF");
+        $this->assertEquals("ADOLF", $greenPass->holder->forename);
     }
 
     public function testInvalidKid()
@@ -51,7 +51,7 @@ class DecoderTest extends \PHPUnit\Framework\TestCase
 
         $validQRCode = GPDataTest::$qrcode_ch;
         $greenPass = Decoder::qrcode($validQRCode);
-        $this->assertEquals($greenPass->holder->forename, "Martina");
+        $this->assertEquals("Martina", $greenPass->holder->forename);
 
         FileUtils::resetCacheFilePath();
     }

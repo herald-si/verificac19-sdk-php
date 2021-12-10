@@ -58,7 +58,7 @@ class GreenPassCovid19CheckerTest extends \PHPUnit\Framework\TestCase
         $greenpass = new GreenPass($testgp);
 
         $esito = GreenPassCovid19Checker::verifyCert($greenpass);
-        $this->assertEquals($esito, "NOT_RECOGNIZED");
+        $this->assertEquals("NOT_RECOGNIZED", $esito);
 
         // TEST GREEN PASS COMPLETO DOPO UN MESE
         $testgp = GPDataTest::$vaccine;
@@ -67,11 +67,11 @@ class GreenPassCovid19CheckerTest extends \PHPUnit\Framework\TestCase
         $greenpass = new GreenPass($testgp);
 
         $esito = GreenPassCovid19Checker::verifyCert($greenpass);
-        $this->assertEquals($esito, "VALID");
+        $this->assertEquals("VALID", $esito);
 
         // TEST SUPER GREEN PASS (CON I DATI PRECEDENTI)
         $esito = GreenPassCovid19Checker::verifyCert($greenpass, "2G");
-        $this->assertEquals($esito, "VALID");
+        $this->assertEquals("VALID", $esito);
 
         // TEST GREEN PASS COMPLETO DOPO UN MESE Sputnik-V NOT SAN MARINO
         $testgp = GPDataTest::$vaccine;
@@ -82,7 +82,7 @@ class GreenPassCovid19CheckerTest extends \PHPUnit\Framework\TestCase
         $greenpass = new GreenPass($testgp);
 
         $esito = GreenPassCovid19Checker::verifyCert($greenpass);
-        $this->assertEquals($esito, "NOT_VALID");
+        $this->assertEquals("NOT_VALID", $esito);
 
         // TEST GREEN PASS COMPLETO DOPO UN MESE Sputnik-V IN SAN MARINO
         $testgp = GPDataTest::$vaccine;
@@ -93,7 +93,7 @@ class GreenPassCovid19CheckerTest extends \PHPUnit\Framework\TestCase
         $greenpass = new GreenPass($testgp);
 
         $esito = GreenPassCovid19Checker::verifyCert($greenpass);
-        $this->assertEquals($esito, "VALID");
+        $this->assertEquals("VALID", $esito);
 
         // TEST PRIMA DOSE DOPO 5 GIORNI
         $testgp = GPDataTest::$vaccine;
@@ -115,7 +115,7 @@ class GreenPassCovid19CheckerTest extends \PHPUnit\Framework\TestCase
         $greenpass = new GreenPass($testgp);
 
         $esito = GreenPassCovid19Checker::verifyCert($greenpass);
-        $this->assertEquals($esito, "PARTIALLY_VALID");
+        $this->assertEquals("PARTIALLY_VALID", $esito);
 
         // TEST DOSI COMPLETE DOPO UN ANNO E UN GIORNO
         $testgp = GPDataTest::$vaccine;
@@ -125,7 +125,7 @@ class GreenPassCovid19CheckerTest extends \PHPUnit\Framework\TestCase
         $greenpass = new GreenPass($testgp);
 
         $esito = GreenPassCovid19Checker::verifyCert($greenpass);
-        $this->assertEquals($esito, "EXPIRED");
+        $this->assertEquals("EXPIRED", $esito);
     }
 
     public function testVerifyCertRecovery()
@@ -140,11 +140,11 @@ class GreenPassCovid19CheckerTest extends \PHPUnit\Framework\TestCase
         $greenpass = new GreenPass($testgp);
 
         $esito = GreenPassCovid19Checker::verifyCert($greenpass);
-        $this->assertEquals($esito, "VALID");
+        $this->assertEquals("VALID", $esito);
 
         // TEST SUPER GREEN PASS (CON I DATI PRECEDENTI)
         $esito = GreenPassCovid19Checker::verifyCert($greenpass, "2G");
-        $this->assertEquals($esito, "VALID");
+        $this->assertEquals("VALID", $esito);
 
         // TEST RECOVERY DA DOMANI
         $testgp = GPDataTest::$recovery;
@@ -153,7 +153,7 @@ class GreenPassCovid19CheckerTest extends \PHPUnit\Framework\TestCase
         $greenpass = new GreenPass($testgp);
 
         $esito = GreenPassCovid19Checker::verifyCert($greenpass);
-        $this->assertEquals($esito, "NOT_VALID_YET");
+        $this->assertEquals("NOT_VALID_YET", $esito);
 
         // TEST RECOVERY DOPO 5 MESI CON DATE_UNTIL SCADUTO
         $testgp = GPDataTest::$recovery;
@@ -165,7 +165,7 @@ class GreenPassCovid19CheckerTest extends \PHPUnit\Framework\TestCase
         $greenpass = new GreenPass($testgp);
 
         $esito = GreenPassCovid19Checker::verifyCert($greenpass);
-        $this->assertEquals($esito, "PARTIALLY_VALID");
+        $this->assertEquals("PARTIALLY_VALID", $esito);
 
         // TEST RECOVERY DOPO 7 MESI
         $testgp = GPDataTest::$recovery;
@@ -175,14 +175,14 @@ class GreenPassCovid19CheckerTest extends \PHPUnit\Framework\TestCase
         $greenpass = new GreenPass($testgp);
 
         $esito = GreenPassCovid19Checker::verifyCert($greenpass);
-        $this->assertEquals($esito, "NOT_VALID");
+        $this->assertEquals("NOT_VALID", $esito);
     }
 
     public function testVerifyCertBlacklist()
     {
         $greenpass = Decoder::qrcode(GPDataTest::$qrcode_certificate_valid_but_revoked);
         $esito = GreenPassCovid19Checker::verifyCert($greenpass, "3G");
-        $this->assertEquals($esito, "NOT_VALID");
+        $this->assertEquals("NOT_VALID", $esito);
     }
 }
 
