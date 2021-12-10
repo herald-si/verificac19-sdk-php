@@ -47,6 +47,11 @@ class FileUtils
     {
         self::$cache_path_override = $newPath;
     }
+    
+    public static function resetCacheFilePath()
+    {
+        self::$cache_path_override = null;
+    }
 
     public static function getCacheFilePath($fileName)
     {

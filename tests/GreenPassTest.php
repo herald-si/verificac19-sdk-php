@@ -27,7 +27,7 @@ class GreenPassTest extends \PHPUnit\Framework\TestCase
         $this->greenPass = new GreenPass($testgp);
         $valid = $this->greenPass->checkValid("3G");
 
-        $this->assertEquals($valid, "VALID");
+        $this->assertEquals("VALID", $valid);
 
         $testgp = GPDataTest::$vaccine;
 
@@ -38,7 +38,7 @@ class GreenPassTest extends \PHPUnit\Framework\TestCase
         $this->greenPass = new GreenPass($testgp);
         $valid = $this->greenPass->checkValid("3G");
 
-        $this->assertEquals($valid, "NOT_VALID");
+        $this->assertEquals("NOT_VALID", $valid);
     }
 }
 
