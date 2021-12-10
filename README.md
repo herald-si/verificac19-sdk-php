@@ -43,7 +43,7 @@ your_project_folder
 ```
 a questo punto lanciare all'interno della cartella `sdk_repo_folder` il comando
 ```
-composer install
+composer install --no-dev
 ```
 
 ## Permessi cartella assets
