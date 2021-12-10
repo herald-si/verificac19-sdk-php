@@ -19,7 +19,7 @@ class GreenPassCovid19CheckerTest extends \PHPUnit\Framework\TestCase
         $greenpass = new GreenPass($testgp);
 
         $esito = GreenPassCovid19Checker::verifyCert($greenpass);
-        $this->assertEquals($esito, "NOT_COVID_19");
+        $this->assertEquals("NOT_COVID_19", $esito);
     }
 
     public function testVerifyCertTampone()
@@ -32,11 +32,11 @@ class GreenPassCovid19CheckerTest extends \PHPUnit\Framework\TestCase
         $greenpass = new GreenPass($testgp);
 
         $esito = GreenPassCovid19Checker::verifyCert($greenpass, "3G");
-        $this->assertEquals($esito, "VALID");
+        $this->assertEquals("VALID", $esito);
 
         // TEST SUPER GREEN PASS (CON I DATI PRECEDENTI)
         $esito = GreenPassCovid19Checker::verifyCert($greenpass, "2G");
-        $this->assertEquals($esito, "NOT_VALID");
+        $this->assertEquals("NOT_VALID", $esito);
 
         // TEST GREEN PASS DOPO 120 ORE
         $data_oggi = new \DateTimeImmutable();
@@ -45,7 +45,7 @@ class GreenPassCovid19CheckerTest extends \PHPUnit\Framework\TestCase
         $greenpass = new GreenPass($testgp);
 
         $esito = GreenPassCovid19Checker::verifyCert($greenpass, "3G");
-        $this->assertEquals($esito, "EXPIRED");
+        $this->assertEquals("EXPIRED", $esito);
     }
 
     public function testVerifyCertVaccine()
