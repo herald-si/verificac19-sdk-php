@@ -11,6 +11,8 @@ use Herald\GreenPass\Decoder\Decoder;
 class GreenPassCovid19CheckerTest extends \PHPUnit\Framework\TestCase
 {
 
+    const DATE_IN_5_MONTHS = "+5 month";
+    
     const DATE_A_MONTH_AGO = "-1 month";
 
     const DATE_5_MONTHS_AGO = "-5 month";
@@ -151,8 +153,11 @@ class GreenPassCovid19CheckerTest extends \PHPUnit\Framework\TestCase
         // TEST RECOVERY DOPO UN MESE
         $testgp = GPDataTest::$recovery;
         $data_greenpass = $data_oggi->modify(self::DATE_A_MONTH_AGO);
+        $data_scadenza_gp = $data_oggi->modify(self::DATE_IN_5_MONTHS);
         $testgp["r"][0]["fr"] = $data_greenpass->format("Y-m-d");
         $testgp["r"][0]["df"] = $data_greenpass->format("Y-m-d");
+        $testgp["r"][0]["du"] = $data_scadenza_gp->format("Y-m-d");
+
         $greenpass = new GreenPass($testgp);
 
         $esito = GreenPassCovid19Checker::verifyCert($greenpass);
