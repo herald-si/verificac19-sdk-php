@@ -34,33 +34,34 @@ class ValidationRules
 
     const MAX_RETRY = "MAX_RETRY";
 
-    private static function getValidationFromUri(string $type)
+    private const DRL_CHECK_FILE = FileUtils::COUNTRY . "-gov-dgc-drl-check.json";
+
+    private const DRL_STATUS_FILE = FileUtils::COUNTRY . "-gov-dgc-drl-status.json";
+
+    private const SETTINGS_FILE = FileUtils::COUNTRY . "-gov-dgc-settings.json";
+
+    private static function getValidationFromUri(string $type, array $params = null)
     {
         $client = new \GuzzleHttp\Client();
         $uri = "";
+        $querystring = "";
+        if (! empty($params)) {
+            $querystring = "?" . http_build_query($params);
+        }
         switch ($type) {
             case "settings":
-                $uri = "https://get.dgc.gov.it/v1/dgc/settings";
+                $uri = "https://get.dgc.gov.it/v1/dgc/settings" . $querystring;
                 break;
-            /**
-             * TODO
-             * cambiare con endpoint ufficiale, ora inaccessibile:
-             * https://get.dgc.gov.it/v1/dgc/drl/check
-             */
             case "drl-check":
-                $uri = "https://raw.githubusercontent.com/italia/verificac19-sdk/feature/crl/test/data/responses/CRL-check-v3.json";
+                $uri = "https://get.dgc.gov.it/v1/dgc/drl/check" . $querystring;
                 break;
-            /**
-             * TODO
-             * cambiare con endpoint ufficiale, ora inaccessibile:
-             * https://get.dgc.gov.it/v1/dgc/drl
-             */
             case "drl-revokes":
-                $uri = "https://raw.githubusercontent.com/italia/verificac19-sdk/feature/crl/test/data/responses/CRL-v3-c1.json";
+                $uri = "https://get.dgc.gov.it/v1/dgc/drl" . $querystring;
                 break;
             default:
                 throw new NoCertificateListException($type);
         }
+
         $res = $client->request('GET', $uri);
 
         if (empty($res) || empty($res->getBody())) {
@@ -70,10 +71,10 @@ class ValidationRules
         return $res->getBody();
     }
 
-    private static function getJsonFromFile(string $filename, string $type)
+    private static function getJsonFromFile(string $filename, string $type, $params = null, $force_update = false)
     {
-        if (FileUtils::checkFileNotExistOrExpired($filename, FileUtils::HOUR_BEFORE_DOWNLOAD_LIST * 3600)) {
-            $json = self::getValidationFromUri($type);
+        if (FileUtils::checkFileNotExistOrExpired($filename, FileUtils::HOUR_BEFORE_DOWNLOAD_LIST * 3600) || $force_update) {
+            $json = self::getValidationFromUri($type, $params);
             FileUtils::saveDataToFile($filename, $json);
         } else {
             $json = FileUtils::readDataFromFile($filename);
@@ -81,45 +82,100 @@ class ValidationRules
         return json_decode($json);
     }
 
+    private static function getJsonFromUrl(string $type, $params = null)
+    {
+        $json = self::getValidationFromUri($type, $params);
+        return json_decode($json);
+    }
+
+    private static function getUvciStatus()
+    {
+        $uri = FileUtils::getCacheFilePath(self::DRL_STATUS_FILE);
+        if (! file_exists($uri)) {
+            $json = static::saveUvciStatus(1, 0);
+        } else {
+            $json = FileUtils::readDataFromFile($uri);
+        }
+        return json_decode($json);
+    }
+
+    private static function saveUvciStatus($chunk, $version)
+    {
+        $data = <<<JSON
+        {"chunk":"$chunk","version":"$version"}
+        JSON;
+
+        $uri = FileUtils::getCacheFilePath(self::DRL_STATUS_FILE);
+        FileUtils::saveDataToFile($uri, $data);
+        return $data;
+    }
+
     public static function getValidationRules()
     {
-        $country = FileUtils::COUNTRY;
-
-        $uri = FileUtils::getCacheFilePath("{$country}-gov-dgc-settings.json");
+        $uri = FileUtils::getCacheFilePath(SELF::SETTINGS_FILE);
         return self::getJsonFromFile($uri, "settings");
     }
 
-    public static function getCRLStatus()
+    private static function getCRLStatus()
     {
-        $country = FileUtils::COUNTRY;
-
-        $uri = FileUtils::getCacheFilePath("{$country}-gov-dgc-drl-check.json");
-        return self::getJsonFromFile($uri, "drl-check");
+        $status = static::getUvciStatus();
+        $params = array(
+            'version' => $status->version
+        );
+        $uri = FileUtils::getCacheFilePath(self::DRL_CHECK_FILE);
+        return self::getJsonFromFile($uri, "drl-check", $params);
     }
 
     private static function updateRevokedList(VerificaC19DB $db)
-    {  
-        $country = FileUtils::COUNTRY;
-        
-        $uri = FileUtils::getCacheFilePath("{$country}-gov-dgc-drl-revokes.json");
-        $chunk = self::getJsonFromFile($uri, "drl-revokes");
+    {
+        $status = static::getUvciStatus();
+        $params = array(
+            'version' => $status->version
+        );
 
-        foreach($chunk->revokedUcvi as $revokedUcvi){
-            $db->addRevokedUcviToUcviList($revokedUcvi);
+        $drl = self::getJsonFromUrl("drl-revokes", $params);
+
+        if (isset($drl->revokedUcvi)) {
+            foreach ($drl->revokedUcvi as $revokedUcvi) {
+                $db->addRevokedUcviToUcviList($revokedUcvi);
+            }
         }
+        if (isset($drl->delta->insertions)) {
+            foreach ($drl->delta->insertions as $revokedUcvi) {
+                $db->addRevokedUcviToUcviList($revokedUcvi);
+            }
+        }
+        if (isset($drl->delta->deletions)) {
+            foreach ($drl->delta->deletions as $revokedUcvi) {
+                $db->removeRevokedUcviFromUcviList($revokedUcvi);
+            }
+        }
+
+        static::saveUvciStatus($drl->chunk, $drl->version);
+
+        $uri = FileUtils::getCacheFilePath(self::DRL_CHECK_FILE);
+
+        $params = array(
+            'version' => $drl->version
+        );
+        self::getJsonFromFile($uri, "drl-check", $params, true);
     }
 
     public static function getRevokeList()
     {
+        $check = self::getCRLStatus();
+
         try {
             $db = new VerificaC19DB();
             $db->initUCVI();
         } catch (\PDOException $e) {
             throw new \InvalidArgumentException("Cant connect to DB" . $e);
         }
-        
-        self::updateRevokedList($db);
+
+        if ($check->fromVersion < $check->version) {
+            self::updateRevokedList($db);
+        }
+
         return $db->getRevokedUcviList();
-        
     }
 }
