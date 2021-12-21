@@ -211,11 +211,11 @@ class GreenPassCovid19Checker
 
     private static function checkInDrl(string $kid): bool
     {
-        /*TODO
+        /*
+         * TODO
          * Implementare le logiche di check
          */
-        
-        $revoke_list = ValidationRules::getRevokeList();
+        $revoke_list = CertificateRevocationList::getRevokeList();
 
         return false;
     }
