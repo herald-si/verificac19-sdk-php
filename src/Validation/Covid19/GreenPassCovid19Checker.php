@@ -215,7 +215,6 @@ class GreenPassCovid19Checker
          * Implementare le logiche di check
          */
         
-        $status = ValidationRules::getCRLStatus();
         $revoke_list = ValidationRules::getRevokeList();
 
         return false;
