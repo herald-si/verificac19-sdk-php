@@ -23,8 +23,17 @@ class VerificaC19DB
 
     public function initUcvi()
     {
-        if (! $this->checkUcviTable()) {
+        if (! $this->checkUcviTable("ucvi")) {
             $this->createUcviTable();
+        }
+    }
+
+    public function emptyList()
+    {
+        if ($this->checkUcviTable("ucvi")) {
+            $sql = 'DELETE FROM ucvi';
+            $stmt = $this->pdo->prepare($sql);
+            $stmt->execute();
         }
     }
 
@@ -43,15 +52,15 @@ class VerificaC19DB
     {
         $command = 'CREATE TABLE IF NOT EXISTS ucvi (
                         revokedUcvi VARCHAR PRIMARY KEY
-                      )';
+                      );';
         // execute the sql commands to create new table
         $this->pdo->exec($command);
     }
 
-    private function checkUcviTable(): bool
+    private function checkUcviTable($name): bool
     {
         $tables = $this->getTableList();
-        if (in_array("ucvi", $tables)) {
+        if (in_array($name, $tables)) {
             return TRUE;
         }
         return FALSE;
@@ -83,7 +92,7 @@ class VerificaC19DB
 
     public function removeRevokedUcviFromUcviList($revokedUcvi)
     {
-        $sql = 'DELETE FROM ucvi WHERE revokedUcvi = :revokedUcvi)';
+        $sql = 'DELETE FROM ucvi WHERE revokedUcvi = :revokedUcvi';
         $stmt = $this->pdo->prepare($sql);
         $stmt->bindValue(':revokedUcvi', $revokedUcvi);
         $stmt->execute();
