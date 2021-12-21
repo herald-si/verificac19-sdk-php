@@ -215,7 +215,8 @@ class GreenPassCovid19Checker
          * TODO
          * Implementare le logiche di check
          */
-        $revoke_list = CertificateRevocationList::getRevokeList();
+        $revoke_list = new CertificateRevocationList();
+        $crl = $revoke_list->getRevokeList();
 
         return false;
     }
