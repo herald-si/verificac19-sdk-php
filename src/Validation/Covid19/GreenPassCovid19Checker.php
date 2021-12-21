@@ -211,14 +211,8 @@ class GreenPassCovid19Checker
 
     private static function checkInDrl(string $kid): bool
     {
-        /*
-         * TODO
-         * Implementare le logiche di check
-         */
-        $revoke_list = new CertificateRevocationList();
-        $crl = $revoke_list->getRevokeList();
-
-        return false;
+        $crl = new CertificateRevocationList();
+        return $crl->isUVCIRevoked($kid);
     }
 
     private static function extractUVCI(GreenPass $greenPass): string

@@ -11,13 +11,13 @@ class CertificateRevocationList
     const DRL_SYNC_ACTIVE = "DRL_SYNC_ACTIVE";
 
     const MAX_RETRY = "MAX_RETRY";
-    
+
     private const DRL_CHECK_FILE = FileUtils::COUNTRY . "-gov-dgc-drl-check.json";
 
     private const DRL_STATUS_FILE = FileUtils::COUNTRY . "-gov-dgc-drl-status.json";
 
     private $db = null;
-    
+
     public function __construct()
     {
         try {
@@ -26,13 +26,13 @@ class CertificateRevocationList
         } catch (\PDOException $e) {
             throw new \InvalidArgumentException("Cant connect to DB" . $e);
         }
-        
     }
+
     private function getUvciStatus()
     {
         $uri = FileUtils::getCacheFilePath(self::DRL_STATUS_FILE);
         if (! file_exists($uri)) {
-            $json = static::saveUvciStatus(1, 0);
+            $json = $this->saveUvciStatus(1, 0);
         } else {
             $json = FileUtils::readDataFromFile($uri);
         }
@@ -62,7 +62,7 @@ class CertificateRevocationList
 
     private function updateRevokedList()
     {
-        $status = static::getUvciStatus();
+        $status = $this->getUvciStatus();
         $params = array(
             'version' => $status->version
         );
@@ -85,7 +85,7 @@ class CertificateRevocationList
             }
         }
 
-        static::saveUvciStatus($drl->chunk, $drl->version);
+        $this->saveUvciStatus($drl->chunk, $drl->version);
 
         $uri = FileUtils::getCacheFilePath(self::DRL_CHECK_FILE);
 
@@ -97,12 +97,10 @@ class CertificateRevocationList
 
     public function getRevokeList()
     {
-        $check = self::getCRLStatus();
-
-        
+        $check = $this->getCRLStatus();
 
         if ($check->fromVersion < $check->version) {
-            self::updateRevokedList($this->db);
+            $this->updateRevokedList($this->db);
         }
 
         return $this->db->getRevokedUcviList();
@@ -111,6 +109,21 @@ class CertificateRevocationList
     public function cleanCRL()
     {
         $this->db->emptyList();
-        static::saveUvciStatus(1, 0);
+        $this->saveUvciStatus(1, 0);
+    }
+
+    public function isUVCIRevoked($kid)
+    {
+        
+        $revoked = $this->getRevokeList();
+        /*
+         * TODO
+         * Implementare le logiche di check
+         */
+        if(in_array($kid, $revoked)){
+            return true;
+        }
+        return false;
+        
     }
 }
