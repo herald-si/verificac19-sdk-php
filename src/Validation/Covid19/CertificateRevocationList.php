@@ -28,7 +28,7 @@ class CertificateRevocationList
         }
     }
 
-    private function getUvciStatus()
+    private function getCurrentCRLStatus()
     {
         $uri = FileUtils::getCacheFilePath(self::DRL_STATUS_FILE);
         if (! file_exists($uri)) {
@@ -39,7 +39,7 @@ class CertificateRevocationList
         return json_decode($json);
     }
 
-    private function saveUvciStatus($chunk, $version)
+    private function saveCurrentStatus($chunk, $version)
     {
         $data = <<<JSON
         {"chunk":"$chunk","version":"$version"}
@@ -52,7 +52,7 @@ class CertificateRevocationList
 
     private function getCRLStatus()
     {
-        $status = static::getUvciStatus();
+        $status = $this->getCurrentCRLStatus();
         $params = array(
             'version' => $status->version
         );
@@ -62,7 +62,7 @@ class CertificateRevocationList
 
     private function updateRevokedList()
     {
-        $status = $this->getUvciStatus();
+        $status = $this->getCurrentCRLStatus();
         $params = array(
             'version' => $status->version
         );
@@ -85,7 +85,7 @@ class CertificateRevocationList
             }
         }
 
-        $this->saveUvciStatus($drl->chunk, $drl->version);
+        $this->saveCurrentStatus($drl->chunk, $drl->version);
 
         $uri = FileUtils::getCacheFilePath(self::DRL_CHECK_FILE);
 
