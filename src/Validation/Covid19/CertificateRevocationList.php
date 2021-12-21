@@ -114,16 +114,21 @@ class CertificateRevocationList
 
     public function isUVCIRevoked($kid)
     {
-        
         $revoked = $this->getRevokeList();
-        /*
-         * TODO
-         * Implementare le logiche di check
-         */
-        if(in_array($kid, $revoked)){
-            return true;
+
+        $hashedKid = $this->kidHash($kid);
+
+        foreach ($revoked as $bl_item) {
+            if ($hashedKid == $bl_item['revokedUcvi']) {
+                return true;
+            }
         }
         return false;
-        
+    }
+
+    private function kidHash($kid)
+    {
+        $hash = hash('sha256', $kid, true);
+        return base64_encode($hash);
     }
 }
