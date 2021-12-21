@@ -105,7 +105,6 @@ class CertificateRevocationList
     {
         try {
             $db = new VerificaC19DB();
-            $db->initUCVI();
         } catch (\PDOException $e) {
             throw new \InvalidArgumentException("Cant connect to DB" . $e);
         }
