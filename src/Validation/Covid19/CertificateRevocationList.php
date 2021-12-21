@@ -100,4 +100,16 @@ class CertificateRevocationList
 
         return $db->getRevokedUcviList();
     }
+
+    public static function cleanCRL()
+    {
+        try {
+            $db = new VerificaC19DB();
+            $db->initUCVI();
+        } catch (\PDOException $e) {
+            throw new \InvalidArgumentException("Cant connect to DB" . $e);
+        }
+        $db->emptyList();
+        static::saveUvciStatus(1, 0);
+    }
 }
