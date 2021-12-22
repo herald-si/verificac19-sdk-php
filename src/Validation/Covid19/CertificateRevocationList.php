@@ -14,8 +14,6 @@ class CertificateRevocationList
 
     const MAX_RETRY = 3;
 
-    private const DRL_CHECK_FILE = FileUtils::COUNTRY . "-gov-dgc-drl-check.json";
-
     private const DRL_STATUS_FILE = FileUtils::COUNTRY . "-gov-dgc-drl-status.json";
 
     private $db = null;
