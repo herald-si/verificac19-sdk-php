@@ -29,7 +29,7 @@ class DecoderTest extends \PHPUnit\Framework\TestCase
         $invalidKidCert = GPDataTest::$qrcode_de_test_kid_invalid;
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage('Public key not found list');
-        $greenPass = Decoder::qrcode($invalidKidCert);
+        Decoder::qrcode($invalidKidCert);
     }
 
     public function testChCert()
