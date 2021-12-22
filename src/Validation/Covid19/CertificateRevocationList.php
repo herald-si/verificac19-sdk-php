@@ -4,19 +4,23 @@ namespace Herald\GreenPass\Validation\Covid19;
 use Herald\GreenPass\Utils\FileUtils;
 use Herald\GreenPass\Utils\VerificaC19DB;
 use Herald\GreenPass\Utils\EndpointService;
+use Herald\GreenPass\Exceptions\DownloadFailedException;
+use Herald\GreenPass\Exceptions\NoCertificateListException;
 
 class CertificateRevocationList
 {
 
-    const DRL_SYNC_ACTIVE = "DRL_SYNC_ACTIVE";
+    const DRL_SYNC_ACTIVE = TRUE;
 
-    const MAX_RETRY = "MAX_RETRY";
+    const MAX_RETRY = 3;
 
     private const DRL_CHECK_FILE = FileUtils::COUNTRY . "-gov-dgc-drl-check.json";
 
     private const DRL_STATUS_FILE = FileUtils::COUNTRY . "-gov-dgc-drl-status.json";
 
     private $db = null;
+
+    private $error_counter = 0;
 
     public function __construct()
     {
@@ -32,17 +36,17 @@ class CertificateRevocationList
     {
         $uri = FileUtils::getCacheFilePath(self::DRL_STATUS_FILE);
         if (! file_exists($uri)) {
-            $json = $this->saveUvciStatus(1, 0);
+            $json = $this->saveCurrentStatus(1, 0);
         } else {
             $json = FileUtils::readDataFromFile($uri);
         }
         return json_decode($json);
     }
 
-    private function saveCurrentStatus($chunk, $version)
+    private function saveCurrentStatus($chunk, $version, $valid = true)
     {
         $data = <<<JSON
-        {"chunk":"$chunk","version":"$version"}
+        {"chunk":$chunk,"version":$version,"valid":$valid}
         JSON;
 
         $uri = FileUtils::getCacheFilePath(self::DRL_STATUS_FILE);
@@ -50,21 +54,19 @@ class CertificateRevocationList
         return $data;
     }
 
-    private function getCRLStatus()
+    private function getCRLStatus($version)
     {
-        $status = $this->getCurrentCRLStatus();
         $params = array(
-            'version' => $status->version
+            'version' => $version
         );
-        $uri = FileUtils::getCacheFilePath(self::DRL_CHECK_FILE);
-        return EndpointService::getJsonFromFile($uri, "drl-check", $params);
+        return EndpointService::getJsonFromUrl("drl-check", $params);
     }
 
-    private function updateRevokedList()
+    private function updateRevokedList($version, $chunk)
     {
-        $status = $this->getCurrentCRLStatus();
         $params = array(
-            'version' => $status->version
+            'version' => $version,
+            'chunk' => $chunk
         );
 
         $drl = EndpointService::getJsonFromUrl("drl-revokes", $params);
@@ -74,47 +76,99 @@ class CertificateRevocationList
                 $this->db->addRevokedUcviToUcviList($revokedUcvi);
             }
         }
-        if (isset($drl->delta->insertions)) {
-            foreach ($drl->delta->insertions as $revokedUcvi) {
-                $this->db->addRevokedUcviToUcviList($revokedUcvi);
-            }
-        }
         if (isset($drl->delta->deletions)) {
             foreach ($drl->delta->deletions as $revokedUcvi) {
                 $this->db->removeRevokedUcviFromUcviList($revokedUcvi);
             }
         }
 
-        $this->saveCurrentStatus($drl->chunk, $drl->version);
+        if (isset($drl->delta->insertions)) {
+            foreach ($drl->delta->insertions as $revokedUcvi) {
+                $this->db->addRevokedUcviToUcviList($revokedUcvi);
+            }
+        }
 
-        $uri = FileUtils::getCacheFilePath(self::DRL_CHECK_FILE);
-
-        $params = array(
-            'version' => $drl->version
-        );
-        EndpointService::getJsonFromFile($uri, "drl-check", $params, true);
+        $this->saveCurrentStatus($chunk, $version);
     }
 
     public function getRevokeList()
     {
-        $check = $this->getCRLStatus();
-
-        if ($check->fromVersion < $check->version) {
-            $this->updateRevokedList($this->db);
+        // error counter >= MAX_ALLOWED_RETRY
+        if ($this->error_counter >= self::MAX_RETRY) {
+            $this->saveCurrentStatus(1, 0, false);
+            throw new DownloadFailedException();
         }
 
-        return $this->db->getRevokedUcviList();
+        // CRL Status
+        $status = $this->getCurrentCRLStatus();
+        $check = $this->getCRLStatus($status->version);
+
+        $incosistent_download = false;
+
+        // outdated version
+        if ($status->version < $check->version) {
+
+            $initChunk = $check->chunk;
+            $endChunk = $check->totalChunk;
+            for ($chunk = $initChunk; $chunk <= $endChunk; $chunk ++) {
+                try {
+                    $this->updateRevokedList($check->fromVersion, $chunk);
+                } catch (NoCertificateListException $e) {
+                    // inconsistent download
+                    $incosistent_download = true;
+                    break;
+                }
+            }
+            // all chunk downloaded
+            if (! $incosistent_download) {
+                // update currentVersion
+                $this->saveCurrentStatus(1, $check->version);
+
+                // Restart CRL status check
+                return $this->getRevokeList();
+            }
+        } else {
+
+            // same remote-local db size
+            $list = $this->db->getRevokedUcviList();
+            $totalNumberUCVI = $check->totalNumberUCVI;
+
+            if (count($list) == $totalNumberUCVI) {
+                // update latest check date
+                $this->saveCurrentStatus(1, $check->version);
+                $this->error_counter = 0;
+                // return revokedUcvi list
+                return $list;
+            }
+        }
+
+        // Clean DB + reset progress + error counter++
+        $this->resetCRLWithError();
+
+        // Restart CRL status check from scratch
+        return $this->getRevokeList();
     }
 
-    public function cleanCRL()
+    private function cleanCRL()
     {
         $this->db->emptyList();
-        $this->saveUvciStatus(1, 0);
+        $this->saveCurrentStatus(1, 0);
+    }
+
+    private function resetCRLWithError()
+    {
+        $this->cleanCRL();
+        $this->error_counter ++;
     }
 
     public function isUVCIRevoked($kid)
     {
-        $revoked = $this->getRevokeList();
+        // Timer 24h
+        if (FileUtils::checkFileNotExistOrExpired(FileUtils::getCacheFilePath(self::DRL_STATUS_FILE), FileUtils::HOUR_BEFORE_DOWNLOAD_LIST * 3600) || ! $this->getCurrentCRLStatus()->valid) {
+            $revoked = $this->getRevokeList();
+        } else {
+            $revoked = $this->db->getRevokedUcviList();
+        }
 
         $hashedKid = $this->kidHash($kid);
 
