@@ -32,7 +32,7 @@ class GreenPassCovid19Checker
             return ValidationStatus::NOT_VALID;
         }
 
-        if (self::checkInDrl($certificateId)) {
+        if (CertificateRevocationList::DRL_SYNC_ACTIVE && self::checkInDrl($certificateId)) {
             return ValidationStatus::NOT_VALID;
         }
 
