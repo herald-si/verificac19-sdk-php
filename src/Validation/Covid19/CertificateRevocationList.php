@@ -13,8 +13,16 @@ class CertificateRevocationList
     const DRL_SYNC_ACTIVE = TRUE;
 
     const MAX_RETRY = 3;
+    
+    private const MAX_WAIT_SECONDS = 60;
 
     private const DRL_STATUS_FILE = FileUtils::COUNTRY . "-gov-dgc-drl-status.json";
+
+    private const DRL_STATUS_VALID = 'valid';
+
+    private const DRL_STATUS_INCONSISTENT = 'inconsistent';
+
+    private const DRL_STATUS_UPDATING = 'download_in_progress';
 
     private $db = null;
 
@@ -34,17 +42,17 @@ class CertificateRevocationList
     {
         $uri = FileUtils::getCacheFilePath(self::DRL_STATUS_FILE);
         if (! file_exists($uri)) {
-            $json = $this->saveCurrentStatus(1, 0);
+            $json = $this->saveCurrentStatus(1, 0, self::DRL_STATUS_VALID);
         } else {
             $json = FileUtils::readDataFromFile($uri);
         }
         return json_decode($json);
     }
 
-    private function saveCurrentStatus($chunk, $version, $valid = true)
+    private function saveCurrentStatus($chunk, $version, $validity)
     {
         $data = <<<JSON
-        {"chunk":$chunk,"version":$version,"valid":$valid}
+        {"chunk":$chunk,"version":$version,"validity":"$validity"}
         JSON;
 
         $uri = FileUtils::getCacheFilePath(self::DRL_STATUS_FILE);
@@ -86,14 +94,14 @@ class CertificateRevocationList
             }
         }
 
-        $this->saveCurrentStatus($chunk, $version);
+        $this->saveCurrentStatus($chunk, $version, self::DRL_STATUS_UPDATING);
     }
 
     public function getRevokeList()
     {
         // error counter >= MAX_ALLOWED_RETRY
         if ($this->error_counter >= self::MAX_RETRY) {
-            $this->saveCurrentStatus(1, 0, false);
+            $this->saveCurrentStatus(1, 0, self::DRL_STATUS_INCONSISTENT);
             throw new DownloadFailedException();
         }
 
@@ -110,6 +118,7 @@ class CertificateRevocationList
             $endChunk = $check->totalChunk;
             for ($chunk = $initChunk; $chunk <= $endChunk; $chunk ++) {
                 try {
+                    $this->saveCurrentStatus($status->chunk, $status->version, self::DRL_STATUS_UPDATING);
                     $this->updateRevokedList($check->fromVersion, $chunk);
                 } catch (NoCertificateListException $e) {
                     // inconsistent download
@@ -120,7 +129,7 @@ class CertificateRevocationList
             // all chunk downloaded
             if (! $incosistent_download) {
                 // update currentVersion
-                $this->saveCurrentStatus(1, $check->version);
+                $this->saveCurrentStatus(1, $check->version, self::DRL_STATUS_UPDATING);
 
                 // Restart CRL status check
                 return $this->getRevokeList();
@@ -133,7 +142,7 @@ class CertificateRevocationList
 
             if (count($list) == $totalNumberUCVI) {
                 // update latest check date
-                $this->saveCurrentStatus(1, $check->version);
+                $this->saveCurrentStatus(1, $check->version, self::DRL_STATUS_VALID);
                 $this->error_counter = 0;
                 // return revokedUcvi list
                 return $list;
@@ -150,7 +159,7 @@ class CertificateRevocationList
     private function cleanCRL()
     {
         $this->db->emptyList();
-        $this->saveCurrentStatus(1, 0);
+        $this->saveCurrentStatus(1, 0, self::DRL_STATUS_INCONSISTENT);
     }
 
     private function resetCRLWithError()
@@ -162,9 +171,17 @@ class CertificateRevocationList
     public function isUVCIRevoked($kid)
     {
         // Timer 24h
-        if (FileUtils::checkFileNotExistOrExpired(FileUtils::getCacheFilePath(self::DRL_STATUS_FILE), FileUtils::HOUR_BEFORE_DOWNLOAD_LIST * 3600) || ! $this->getCurrentCRLStatus()->valid) {
+        if (FileUtils::checkFileNotExistOrExpired(FileUtils::getCacheFilePath(self::DRL_STATUS_FILE), FileUtils::HOUR_BEFORE_DOWNLOAD_LIST * 3600) || $this->getCurrentCRLStatus()->validity == self::DRL_STATUS_INCONSISTENT) {
             $revoked = $this->getRevokeList();
         } else {
+            $retry = 0;
+            while($this->getCurrentCRLStatus()->validity == self::DRL_STATUS_UPDATING && $retry < self::MAX_WAIT_SECONDS){
+                $retry++;
+                sleep(1);
+            }
+            if($retry >= self::MAX_WAIT_SECONDS){
+                throw new DownloadFailedException("Server busy, give up");
+            }
             $revoked = $this->db->getRevokedUcviList();
         }
 
