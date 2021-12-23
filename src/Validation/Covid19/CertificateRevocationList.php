@@ -114,7 +114,7 @@ class CertificateRevocationList
                 try {
                     $this->saveCurrentStatus($status->chunk, $status->version, self::DRL_STATUS_UPDATING);
                     $this->updateRevokedList($check->fromVersion, $chunk);
-                } catch (NoCertificateListException $e) {
+                } catch (\Exception $e) {
                     // inconsistent download
                     $incosistent_download = true;
                     break;
