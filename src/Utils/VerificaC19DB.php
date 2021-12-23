@@ -80,7 +80,7 @@ class VerificaC19DB
         return $tables;
     }
 
-    public function addRevokedUcviToUcviList($revokedUcvi)
+    public function addRevokedUcviToUcviList(string $revokedUcvi)
     {
         $sql = 'INSERT OR IGNORE INTO ucvi(revokedUcvi) VALUES(:revokedUcvi)';
         $stmt = $this->pdo->prepare($sql);
@@ -88,6 +88,37 @@ class VerificaC19DB
         $stmt->execute();
 
         return $this->pdo->lastInsertId();
+    }
+
+    public function addAllRevokedUcviToUcviList(array $revokedUcvi)
+    {
+        $this->pdo->beginTransaction();
+        $insert_values = array();
+        foreach ($revokedUcvi as $d) {
+            $question_marks[] = '(' . $this->placeholders('?', is_array($d) ? sizeof($d) : 1) . ')';
+            if (is_array($d)) {
+                $insert_values = array_merge($insert_values, array_values($d));
+            } else {
+                $insert_values[] = $d;
+            }
+        }
+        $sql = 'INSERT OR IGNORE INTO ucvi(revokedUcvi) VALUES ' . implode(',', $question_marks);
+
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute($insert_values);
+        $this->pdo->commit();
+    }
+
+    private function placeholders($text, $count = 0, $separator = ",")
+    {
+        $result = array();
+        if ($count > 0) {
+            for ($x = 0; $x < $count; $x ++) {
+                $result[] = $text;
+            }
+        }
+
+        return implode($separator, $result);
     }
 
     public function removeRevokedUcviFromUcviList($revokedUcvi)

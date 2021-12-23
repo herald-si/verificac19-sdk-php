@@ -13,7 +13,7 @@ class CertificateRevocationList
     const DRL_SYNC_ACTIVE = TRUE;
 
     const MAX_RETRY = 3;
-    
+
     private const MAX_WAIT_SECONDS = 60;
 
     private const DRL_STATUS_FILE = FileUtils::COUNTRY . "-gov-dgc-drl-status.json";
@@ -76,22 +76,16 @@ class CertificateRevocationList
         );
 
         $drl = EndpointService::getJsonFromUrl("drl-revokes", $params);
-
         if (isset($drl->revokedUcvi)) {
-            foreach ($drl->revokedUcvi as $revokedUcvi) {
-                $this->db->addRevokedUcviToUcviList($revokedUcvi);
-            }
+            $this->db->addAllRevokedUcviToUcviList($drl->revokedUcvi);
         }
         if (isset($drl->delta->deletions)) {
             foreach ($drl->delta->deletions as $revokedUcvi) {
                 $this->db->removeRevokedUcviFromUcviList($revokedUcvi);
             }
         }
-
         if (isset($drl->delta->insertions)) {
-            foreach ($drl->delta->insertions as $revokedUcvi) {
-                $this->db->addRevokedUcviToUcviList($revokedUcvi);
-            }
+            $this->db->addAllRevokedUcviToUcviList($drl->delta->insertions);
         }
 
         $this->saveCurrentStatus($chunk, $version, self::DRL_STATUS_UPDATING);
@@ -175,11 +169,11 @@ class CertificateRevocationList
             $revoked = $this->getRevokeList();
         } else {
             $retry = 0;
-            while($this->getCurrentCRLStatus()->validity == self::DRL_STATUS_UPDATING && $retry < self::MAX_WAIT_SECONDS){
-                $retry++;
+            while ($this->getCurrentCRLStatus()->validity == self::DRL_STATUS_UPDATING && $retry < self::MAX_WAIT_SECONDS) {
+                $retry ++;
                 sleep(1);
             }
-            if($retry >= self::MAX_WAIT_SECONDS){
+            if ($retry >= self::MAX_WAIT_SECONDS) {
                 throw new DownloadFailedException("Server busy, give up");
             }
             $revoked = $this->db->getRevokedUcviList();
