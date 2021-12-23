@@ -24,6 +24,8 @@ class CertificateRevocationList
 
     private const DRL_STATUS_UPDATING = 'UPDATE_IN_PROGRESS';
 
+    private const DRL_STATUS_PENDING = 'PENDING_DOWNLOAD';
+
     private $db = null;
 
     private $error_counter = 0;
@@ -49,11 +51,15 @@ class CertificateRevocationList
         return json_decode($json);
     }
 
-    private function saveCurrentStatus($chunk, $version, $validity)
+    private function saveCurrentStatus($chunk, $version, $validity, $additional_info = null)
     {
-        $data = <<<JSON
-        {"chunk":$chunk,"version":$version,"validity":"$validity"}
-        JSON;
+        $config = array(
+            "chunk" => $chunk,
+            "version" => $version,
+            "validity" => $validity,
+            "info" => $additional_info
+        );
+        $data = json_encode($config, JSON_FORCE_OBJECT);
 
         $uri = FileUtils::getCacheFilePath(self::DRL_STATUS_FILE);
         FileUtils::saveDataToFile($uri, $data);
@@ -68,7 +74,7 @@ class CertificateRevocationList
         return EndpointService::getJsonFromUrl("drl-check", $params);
     }
 
-    private function updateRevokedList($version, $chunk)
+    private function updateRevokedList($chunk, $version)
     {
         $params = array(
             'version' => $version,
@@ -87,8 +93,7 @@ class CertificateRevocationList
         if (isset($drl->delta->insertions)) {
             $this->db->addAllRevokedUcviToUcviList($drl->delta->insertions);
         }
-
-        $this->saveCurrentStatus($chunk, $version, self::DRL_STATUS_NEED_VALIDATION );
+        
     }
 
     public function getRevokeList()
@@ -97,45 +102,49 @@ class CertificateRevocationList
         if ($this->error_counter >= self::MAX_RETRY) {
             $this->saveCurrentStatus(1, 0, self::DRL_STATUS_NEED_VALIDATION);
             throw new DownloadFailedException();
-        }
+        } 
 
         // CRL Status
         $status = $this->getCurrentCRLStatus();
         $check = $this->getCRLStatus($status->version);
 
-        $incosistent_download = false;
-
         // outdated version
         if ($status->version < $check->version) {
 
-            $initChunk = $check->chunk;
-            $endChunk = $check->totalChunk;
-            for ($chunk = $initChunk; $chunk <= $endChunk; $chunk ++) {
-                try {
-                    $this->saveCurrentStatus($status->chunk, $check->fromVersion, self::DRL_STATUS_UPDATING);
-                    $this->updateRevokedList($check->fromVersion, $chunk);
-                } catch (\Exception $e) {
-                    // inconsistent download
-                    $incosistent_download = true;
-                    break;
-                }
-            }
-            // all chunk downloaded
-            if (! $incosistent_download) {
-                // update currentVersion
-                $this->saveCurrentStatus(1, $check->version, self::DRL_STATUS_NEED_VALIDATION);
+            $download_pending = ($status->validity == self::DRL_STATUS_PENDING);
+            // if no pending download OR pending download with same version requested / same chunk size
+            if (! $download_pending || ($download_pending && $status->info->version == $check->version && $status->info->totalChunk == $check->totalChunk)) {
+                // get first chunk from status
+                $initChunk = $status->chunk;
+                $endChunk = $check->totalChunk;
+                for ($chunk = $initChunk; $chunk <= $endChunk; $chunk ++) {
+                    try {
+                        $this->saveCurrentStatus($status->chunk, $check->fromVersion, self::DRL_STATUS_UPDATING);
+                        $this->updateRevokedList($chunk, $check->fromVersion);
 
-                // Restart CRL status check
-                return $this->getRevokeList();
+                        if ($endChunk > $chunk) {
+                            // not last chunk -> set next chunk to download
+                            $this->saveCurrentStatus($chunk + 1, $check->fromVersion, self::DRL_STATUS_PENDING, $check);
+                        } else {
+                            // is last chunk -> update currentVersion
+                            $this->saveCurrentStatus(1, $check->version, self::DRL_STATUS_NEED_VALIDATION);
+                            // restart validation for this version
+                            return $this->getRevokeList();
+                        }
+                    } catch (\Exception $e) {
+                        // inconsistent download, reset drl
+                        break;
+                    }
+                }
             }
         } else {
 
-            // same remote-local db size
             $list = $this->db->getRevokedUcviList();
             $totalNumberUCVI = $check->totalNumberUCVI;
 
+            // same remote-local db size
             if (count($list) == $totalNumberUCVI) {
-                // update latest check date
+                // set drl valid
                 $this->saveCurrentStatus(1, $check->version, self::DRL_STATUS_VALID);
                 $this->error_counter = 0;
                 // return revokedUcvi list
@@ -164,11 +173,12 @@ class CertificateRevocationList
 
     public function isUVCIRevoked($kid)
     {
-        // Timer 24h
-        if (FileUtils::checkFileNotExistOrExpired(FileUtils::getCacheFilePath(self::DRL_STATUS_FILE), FileUtils::HOUR_BEFORE_DOWNLOAD_LIST * 3600) || $this->getCurrentCRLStatus()->validity == self::DRL_STATUS_NEED_VALIDATION) {
+        // Timer 24h or VALIDATION/RESUME DOWNLOAD NEEDED
+        if (FileUtils::checkFileNotExistOrExpired(FileUtils::getCacheFilePath(self::DRL_STATUS_FILE), FileUtils::HOUR_BEFORE_DOWNLOAD_LIST * 3600) || $this->getCurrentCRLStatus()->validity == self::DRL_STATUS_NEED_VALIDATION || $this->getCurrentCRLStatus()->validity == self::DRL_STATUS_PENDING) {
             $revoked = $this->getRevokeList();
         } else {
             $retry = 0;
+            // Check update already started and wait
             while ($this->getCurrentCRLStatus()->validity == self::DRL_STATUS_UPDATING && $retry < self::MAX_WAIT_SECONDS) {
                 $retry ++;
                 sleep(1);
