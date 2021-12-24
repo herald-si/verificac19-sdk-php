@@ -7,6 +7,7 @@ use Herald\GreenPass\Utils\EndpointService;
 use Herald\GreenPass\Exceptions\DownloadFailedException;
 use Herald\GreenPass\Exceptions\NoCertificateListException;
 
+// https://github.com/ministero-salute/it-dgc-documentation/blob/master/DRL.md
 class CertificateRevocationList
 {
 
@@ -173,6 +174,7 @@ class CertificateRevocationList
 
     public function isUVCIRevoked($kid)
     {
+        // DRL validation flow: https://github.com/ministero-salute/it-dgc-documentation/blob/master/DRL.md#flusso-applicativo
         // Timer 24h or VALIDATION/RESUME DOWNLOAD NEEDED
         if (FileUtils::checkFileNotExistOrExpired(FileUtils::getCacheFilePath(self::DRL_STATUS_FILE), FileUtils::HOUR_BEFORE_DOWNLOAD_LIST * 3600) || $this->getCurrentCRLStatus()->validity == self::DRL_STATUS_NEED_VALIDATION || $this->getCurrentCRLStatus()->validity == self::DRL_STATUS_PENDING) {
             $revoked = $this->getRevokeList();
@@ -201,6 +203,7 @@ class CertificateRevocationList
 
     private function kidHash($kid)
     {
+        //Hash docs: https://github.com/ministero-salute/it-dgc-documentation/blob/master/DRL.md#panoramica
         $hash = hash('sha256', $kid, true);
         return base64_encode($hash);
     }
