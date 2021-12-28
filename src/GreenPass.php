@@ -35,7 +35,7 @@ class GreenPass
 
     public $signingCertInfo;
 
-    public function __construct($data, string $signingCert)
+    public function __construct($data, string $signingCert = "")
     {
         $this->version = $data["ver"] ?? null;
 
@@ -53,7 +53,9 @@ class GreenPass
             $this->certificate = new RecoveryStatement($data);
         }
 
-        $this->signingCertInfo = openssl_x509_parse($signingCert);
+        if(!empty($signingCert)){
+            $this->signingCertInfo = openssl_x509_parse($signingCert);
+        }
     }
 
     public function checkValid(String $scanMode)

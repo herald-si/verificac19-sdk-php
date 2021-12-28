@@ -263,11 +263,9 @@ class GreenPassCovid19Checker
     private static function isRecoveryBis(CertificateType $cert, $signingCertificate)
     {
         if ($cert->country == Country::ITALY) {
-            if (isset($signingCertificate["extensions"]["extendedKeyUsage"])) {
-                $eku = $signingCertificate["extensions"]["extendedKeyUsage"];
-                if ($eku == CertCode::OID_RECOVERY || $eku == CertCode::OID_ALT_RECOVERY) {
-                    return true;
-                }
+            $eku = isset($signingCertificate["extensions"]["extendedKeyUsage"]) ? $signingCertificate["extensions"]["extendedKeyUsage"] : "";
+            if ($eku == CertCode::OID_RECOVERY || $eku == CertCode::OID_ALT_RECOVERY) {
+                return true;
             }
         }
         return false;
