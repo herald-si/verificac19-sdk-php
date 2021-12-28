@@ -4,7 +4,7 @@ namespace Herald\GreenPass\GreenPassEntities;
 class Country
 {
 
-    const Italy = "IT";
+    const ITALY = "IT";
 
-    const SanMarino = "SM";
+    const SAN_MARINO = "SM";
 }

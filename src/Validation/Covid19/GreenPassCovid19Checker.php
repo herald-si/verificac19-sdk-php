@@ -86,7 +86,7 @@ class GreenPassCovid19Checker
             return ValidationStatus::NOT_RECOGNIZED;
         }
         // isSputnikNotFromSanMarino ( https://github.com/ministero-salute/it-dgc-verificac19-sdk-android/commit/fee61a8ab86c6f4598afd6bbb48553081933f813 )
-        $isSputnikNotFromSanMarino = ($cert->product == MedicinalProduct::SPUTNIK && $cert->country != Country::SanMarino);
+        $isSputnikNotFromSanMarino = ($cert->product == MedicinalProduct::SPUTNIK && $cert->country != Country::SAN_MARINO);
         if ($isSputnikNotFromSanMarino) {
             return ValidationStatus::NOT_VALID;
         }
@@ -261,7 +261,7 @@ class GreenPassCovid19Checker
 
     private static function isRecoveryBis(RecoveryStatement $cert, $certificate)
     {
-        if ($cert->country == Country::Italy) {
+        if ($cert->country == Country::ITALY) {
         /**
          * TODO:
          * https://github.com/ministero-salute/it-dgc-verificac19-sdk-android/blob/cb669a952b6e5e33bbd45cead6c86ee8ba5827b7/sdk/src/main/java/it/ministerodellasalute/verificaC19sdk/model/VerificationViewModel.kt
