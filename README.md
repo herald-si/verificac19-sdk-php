@@ -54,7 +54,7 @@ E' necessario settare i permessi della cartella `sdk_repo_folder\assets` in modo
 il webserver possa leggere, creare ed editare i file contenuti in essa.
 
 Nel caso in cui non fosse possibile cambiare i permessi della cartella,
-dalla release `1.0.5` esiste la possibilità di modificare il path di salvataggio dei 
+dalla release `1.0.5` esiste la possibilità di modificare il path di salvataggio dei
 file, vedi [Cache Folder](#cache-folder).
 
 
@@ -78,6 +78,10 @@ use Herald\GreenPass\Utils\CertificateValidator;
 
 $gp_string = 'HC1:6BF.......';
 $gp_reader = new CertificateValidator($gp_string);
+
+// Debug (Commentare in Produzione)
+$gp_reader->debug = True;
+
 $gp_info = $gp_reader->getCertificateSimple();
 
 // Mostro la struttura dell'esito validazione
@@ -97,7 +101,7 @@ stato della verifica del DCC.
 
 ## Cache Folder
 
-Dalla release `1.0.5` esiste la possilità di modificare il path di salvataggio dei 
+Dalla release `1.0.5` esiste la possilità di modificare il path di salvataggio dei
 file, utilizzando il metodo `overrideCacheFilePath` della classe `FileUtils`:
 
 ```php
