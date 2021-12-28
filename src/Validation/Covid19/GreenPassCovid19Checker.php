@@ -33,7 +33,7 @@ class GreenPassCovid19Checker
         }
 
         if (CertificateRevocationList::DRL_SYNC_ACTIVE && self::checkInDrl($certificateId)) {
-            return ValidationStatus::NOT_VALID;
+            return ValidationStatus::REVOKED;
         }
 
         // vaccino effettuato
