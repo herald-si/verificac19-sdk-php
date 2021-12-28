@@ -8,8 +8,12 @@ class ValidationRules
 {
 
     const RECOVERY_CERT_START_DAY = "recovery_cert_start_day";
+    
+    const RECOVERY_CERT_PV_START_DAY = "recovery_pv_cert_start_day";
 
     const RECOVERY_CERT_END_DAY = "recovery_cert_end_day";
+    
+    const RECOVERY_CERT_PV_END_DAY = "recovery_pv_cert_end_day");
 
     const MOLECULAR_TEST_START_HOUR = "molecular_test_start_hours";
 
