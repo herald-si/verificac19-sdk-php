@@ -27,7 +27,7 @@ class CertificateValidator
             $this->greenPassSimple = new CertificateSimple($person, $greenPass->holder->dateOfBirth, $greenPass->checkValid($this->scanMode));
         }catch (\Exception $e){
             if ($this->debug){
-              echo($e);
+              echo $e;
             }
             $this->greenPassSimple = new CertificateSimple(null, null, ValidationStatus::NOT_EU_DCC);
         }
