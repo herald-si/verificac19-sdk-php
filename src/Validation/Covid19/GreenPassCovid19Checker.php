@@ -26,7 +26,7 @@ class GreenPassCovid19Checker
         $certificateId = self::extractUVCI($greenPass);
 
         if (empty($certificateId)) {
-            return ValidationStatus::NOT_VALID;
+            return ValidationStatus::NOT_EU_DCC;
         }
 
         if (self::checkInBlackList($certificateId)) {
@@ -39,7 +39,7 @@ class GreenPassCovid19Checker
 
         // vaccino effettuato
         if ($cert instanceof VaccinationDose) {
-            return self::verifyVaccinationDose($cert, $data_oggi);
+            return self::verifyVaccinationDose($cert, $data_oggi, $scanMode);
         }
 
         // tampone effettuato
@@ -53,7 +53,9 @@ class GreenPassCovid19Checker
 
         // guarigione avvenuta
         if ($cert instanceof RecoveryStatement) {
-            return self::verifyRecoveryStatement($cert, $data_oggi);
+            // TODO: retrieve cert.certificate
+            $certificate = null;
+            return self::verifyRecoveryStatement($cert, $data_oggi, $scanMode, $certificate);
         }
 
         return ValidationStatus::NOT_RECOGNIZED;
@@ -77,7 +79,7 @@ class GreenPassCovid19Checker
         return ($agent instanceof Covid19);
     }
 
-    private static function verifyVaccinationDose(VaccinationDose $cert, \DateTime $validation_date)
+    private static function verifyVaccinationDose(VaccinationDose $cert, \DateTime $validation_date, string $scanMode)
     {
         $esiste_vaccino = self::getValueFromValidationRules(ValidationRules::VACCINE_END_DAY_COMPLETE, $cert->product);
         if ($esiste_vaccino == ValidationStatus::NOT_FOUND) {
@@ -102,7 +104,9 @@ class GreenPassCovid19Checker
             if ($validation_date > $data_fine_validita) {
                 return ValidationStatus::EXPIRED;
             }
-
+            if ($scanMode == ValidationScanMode::BOOSTER_DGP) {
+                return ValidationStatus::NOT_VALID;
+            }
             return ValidationStatus::PARTIALLY_VALID;
         }
 
@@ -113,11 +117,28 @@ class GreenPassCovid19Checker
             $giorni_max_valido = self::getValueFromValidationRules(ValidationRules::VACCINE_END_DAY_COMPLETE, $cert->product);
             $data_fine_validita = $cert->date->modify("+$giorni_max_valido days");
 
+            // j&j booster
+            if (($cert->product == MedicinalProduct::JOHNSON) && ($cert->doseGiven > $cert->totalDoses)) {
+                $data_inizio_validita = $cert->date;
+            }
+
             if ($validation_date < $data_inizio_validita) {
                 return ValidationStatus::NOT_VALID_YET;
             }
             if ($validation_date > $data_fine_validita) {
                 return ValidationStatus::EXPIRED;
+            }
+
+            if ($scanMode == ValidationScanMode::BOOSTER_DGP) {
+                if ($cert->product == MedicinalProduct::JOHNSON) {
+                    if ($cert->doseGiven == $cert->totalDoses && $cert->doseGiven < 2) {
+                        return ValidationStatus::TEST_NEEDED;
+                    }
+                } else {
+                    if ($cert->doseGiven == $cert->totalDoses && $cert->doseGiven < 3) {
+                        return ValidationStatus::TEST_NEEDED;
+                    }
+                }
             }
 
             return ValidationStatus::VALID;
@@ -171,10 +192,11 @@ class GreenPassCovid19Checker
         return ValidationStatus::NOT_RECOGNIZED;
     }
 
-    private static function verifyRecoveryStatement(RecoveryStatement $cert, \DateTime $validation_date)
+    private static function verifyRecoveryStatement(RecoveryStatement $cert, \DateTime $validation_date, string $scanMode, $certificate)
     {
-        $start_day = self::getValueFromValidationRules(ValidationRules::RECOVERY_CERT_START_DAY, "GENERIC");
-        $end_day = self::getValueFromValidationRules(ValidationRules::RECOVERY_CERT_END_DAY, "GENERIC");
+        $isRecoveryBis = self::isRecoveryBis($cert, $certificate);
+        $start_day = $isRecoveryBis ? self::getValueFromValidationRules(ValidationRules::RECOVERY_CERT_PV_START_DAY, "GENERIC") : self::getValueFromValidationRules(ValidationRules::RECOVERY_CERT_START_DAY, "GENERIC");
+        $end_day = $isRecoveryBis ? self::getValueFromValidationRules(ValidationRules::RECOVERY_CERT_PV_END_DAY, "GENERIC") : self::getValueFromValidationRules(ValidationRules::RECOVERY_CERT_END_DAY, "GENERIC");
 
         $valid_from = $cert->validFrom;
 
@@ -191,6 +213,10 @@ class GreenPassCovid19Checker
 
         if ($validation_date > $end_date) {
             return ValidationStatus::PARTIALLY_VALID;
+        }
+        
+        if($scanMode == ValidationScanMode::BOOSTER_DGP){
+            return ValidationStatus::TEST_NEEDED;
         }
 
         return ValidationStatus::VALID;
@@ -231,5 +257,23 @@ class GreenPassCovid19Checker
             $certificateIdentifier = $cert->id;
         }
         return $certificateIdentifier;
+    }
+
+    private static function isRecoveryBis(RecoveryStatement $cert, $certificate)
+    {
+        if ($cert->country == Country::Italy) {
+        /**
+         * TODO:
+         * https://github.com/ministero-salute/it-dgc-verificac19-sdk-android/blob/cb669a952b6e5e33bbd45cead6c86ee8ba5827b7/sdk/src/main/java/it/ministerodellasalute/verificaC19sdk/model/VerificationViewModel.kt
+         * Verificare in "eku" del certificato se presenti CertCode::OID_RECOVERY/CertCode::OID_ALT_RECOVERY
+         * cert?.let {
+         * (cert as X509Certificate).extendedKeyUsage?.find { keyUsage -> CertCode.OID_RECOVERY.value == keyUsage || CertCode.OID_ALT_RECOVERY.value == keyUsage }
+         * ?.let {
+         * return true
+         * }
+         * }
+         */
+        }
+        return false;
     }
 }
