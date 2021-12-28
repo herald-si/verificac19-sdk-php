@@ -1,7 +1,7 @@
 <?php
 namespace Herald\GreenPass\Validation\Covid19;
 
-use Herald\GreenPass\Exceptions\NoCertificateListException;
+use Herald\GreenPass\Utils\EndpointService;
 use Herald\GreenPass\Utils\FileUtils;
 
 class ValidationRules
@@ -29,46 +29,11 @@ class ValidationRules
 
     const BLACK_LIST_UVCI = "black_list_uvci";
 
-    const DRL_SYNC_ACTIVE = "DRL_SYNC_ACTIVE";
-
-    const MAX_RETRY = "MAX_RETRY";
-
-    private static function getValidationFromUri($country)
-    {
-        $client = new \GuzzleHttp\Client();
-        $uri = "";
-        switch ($country) {
-            case "it":
-                $uri = "https://get.dgc.gov.it/v1/dgc/settings";
-                break;
-            case "other_country":
-                $uri = "set_country_uri_there";
-                break;
-            default:
-                throw new \InvalidArgumentException("No country selected");
-        }
-        $res = $client->request('GET', $uri);
-
-        if (empty($res) || empty($res->getBody())) {
-            throw new NoCertificateListException("rules");
-        }
-
-        return $res->getBody();
-    }
+    private const SETTINGS_FILE = FileUtils::COUNTRY . "-gov-dgc-settings.json";
 
     public static function getValidationRules()
     {
-        $country = FileUtils::COUNTRY;
-
-        $uri = FileUtils::getCacheFilePath("{$country}-gov-dgc-settings.json");
-        $rules = "";
-
-        if (FileUtils::checkFileNotExistOrExpired($uri, FileUtils::HOUR_BEFORE_DOWNLOAD_LIST * 3600)) {
-            $rules = self::getValidationFromUri($country);
-            FileUtils::saveDataToFile($uri, $rules);
-        } else {
-            $rules = FileUtils::readDataFromFile($uri);
-        }
-        return json_decode($rules);
+        $uri = FileUtils::getCacheFilePath(static::SETTINGS_FILE);
+        return EndpointService::getJsonFromFile($uri, "settings");
     }
 }

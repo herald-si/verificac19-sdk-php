@@ -32,6 +32,10 @@ class GreenPassCovid19Checker
             return ValidationStatus::NOT_VALID;
         }
 
+        if (CertificateRevocationList::DRL_SYNC_ACTIVE && self::checkInDrl($certificateId)) {
+            return ValidationStatus::NOT_VALID;
+        }
+
         // vaccino effettuato
         if ($cert instanceof VaccinationDose) {
             return self::verifyVaccinationDose($cert, $data_oggi);
@@ -205,7 +209,13 @@ class GreenPassCovid19Checker
         return false;
     }
 
-    private static function extractUVCI(GreenPass $greenPass)
+    private static function checkInDrl(string $kid): bool
+    {
+        $crl = new CertificateRevocationList();
+        return $crl->isUVCIRevoked($kid);
+    }
+
+    private static function extractUVCI(GreenPass $greenPass): string
     {
         $certificateIdentifier = "";
         $cert = $greenPass->certificate;
