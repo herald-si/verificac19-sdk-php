@@ -33,6 +33,8 @@ esito ai controlli, come indicato nel DPCM 12 ottobre 2021
 
 # Requisiti
 - PHP >= 7.3
+- COSE-lib requires the GMP or bcmath extension [vedi issue #31](https://github.com/herald-si/verificac19-sdk-php/issues/31#issuecomment-993470072)
+- SQLite per la gestione delle DCC Revoke List
 
 # Installazione
 E' necessario clonare questo progetto, nel seguente modo:

@@ -67,11 +67,10 @@ class FileUtils
             $cache_uri = join(DIRECTORY_SEPARATOR, $current_dir);
         }
 
-        $uri = join(DIRECTORY_SEPARATOR, array(
+        return join(DIRECTORY_SEPARATOR, array(
             $cache_uri,
             $fileName
         ));
 
-        return $uri;
     }
 }
