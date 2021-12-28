@@ -33,7 +33,9 @@ class GreenPass
      */
     public $certificate;
 
-    public function __construct($data)
+    public $signingCertInfo;
+
+    public function __construct($data, string $signingCert)
     {
         $this->version = $data["ver"] ?? null;
 
@@ -50,11 +52,12 @@ class GreenPass
         if (array_key_exists('r', $data)) {
             $this->certificate = new RecoveryStatement($data);
         }
+
+        $this->signingCertInfo = openssl_x509_parse($signingCert);
     }
 
     public function checkValid(String $scanMode)
     {
-        return ValidationStatus::greenpassStatusAnonymizer(GreenPassCovid19Checker::verifyCert($this,$scanMode));
+        return ValidationStatus::greenpassStatusAnonymizer(GreenPassCovid19Checker::verifyCert($this, $scanMode));
     }
-
 }

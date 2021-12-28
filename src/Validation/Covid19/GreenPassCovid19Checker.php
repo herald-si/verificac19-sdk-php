@@ -1,6 +1,8 @@
 <?php
 namespace Herald\GreenPass\Validation\Covid19;
 
+use Herald\GreenPass\GreenPassEntities\CertCode;
+use Herald\GreenPass\GreenPassEntities\CertificateType;
 use Herald\GreenPass\GreenPassEntities\Country;
 use Herald\GreenPass\GreenPassEntities\VaccinationDose;
 use Herald\GreenPass\GreenPassEntities\TestResult;
@@ -53,9 +55,7 @@ class GreenPassCovid19Checker
 
         // guarigione avvenuta
         if ($cert instanceof RecoveryStatement) {
-            // TODO: retrieve cert.certificate
-            $certificate = null;
-            return self::verifyRecoveryStatement($cert, $data_oggi, $scanMode, $certificate);
+            return self::verifyRecoveryStatement($cert, $data_oggi, $scanMode, $greenPass->signingCertInfo);
         }
 
         return ValidationStatus::NOT_RECOGNIZED;
@@ -260,20 +260,15 @@ class GreenPassCovid19Checker
         return $certificateIdentifier;
     }
 
-    private static function isRecoveryBis(RecoveryStatement $cert, $certificate)
+    private static function isRecoveryBis(CertificateType $cert, $signingCertificate)
     {
         if ($cert->country == Country::ITALY) {
-        /**
-         * TODO:
-         * https://github.com/ministero-salute/it-dgc-verificac19-sdk-android/blob/cb669a952b6e5e33bbd45cead6c86ee8ba5827b7/sdk/src/main/java/it/ministerodellasalute/verificaC19sdk/model/VerificationViewModel.kt
-         * Verificare in "eku" del certificato se presenti CertCode::OID_RECOVERY/CertCode::OID_ALT_RECOVERY
-         * cert?.let {
-         * (cert as X509Certificate).extendedKeyUsage?.find { keyUsage -> CertCode.OID_RECOVERY.value == keyUsage || CertCode.OID_ALT_RECOVERY.value == keyUsage }
-         * ?.let {
-         * return true
-         * }
-         * }
-         */
+            if (isset($signingCertificate["extensions"]["extendedKeyUsage"])) {
+                $eku = $signingCertificate["extensions"]["extendedKeyUsage"];
+                if ($eku == CertCode::OID_RECOVERY || $eku == CertCode::OID_ALT_RECOVERY) {
+                    return true;
+                }
+            }
         }
         return false;
     }
