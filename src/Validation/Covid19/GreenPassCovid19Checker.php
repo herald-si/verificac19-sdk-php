@@ -1,6 +1,7 @@
 <?php
 namespace Herald\GreenPass\Validation\Covid19;
 
+use Herald\GreenPass\GreenPassEntities\Country;
 use Herald\GreenPass\GreenPassEntities\VaccinationDose;
 use Herald\GreenPass\GreenPassEntities\TestResult;
 use Herald\GreenPass\GreenPassEntities\RecoveryStatement;
@@ -83,7 +84,7 @@ class GreenPassCovid19Checker
             return ValidationStatus::NOT_RECOGNIZED;
         }
         // isSputnikNotFromSanMarino ( https://github.com/ministero-salute/it-dgc-verificac19-sdk-android/commit/fee61a8ab86c6f4598afd6bbb48553081933f813 )
-        $isSputnikNotFromSanMarino = ($cert->product == MedicinalProduct::SPUTNIK && $cert->country != "SM");
+        $isSputnikNotFromSanMarino = ($cert->product == MedicinalProduct::SPUTNIK && $cert->country != Country::SanMarino);
         if ($isSputnikNotFromSanMarino) {
             return ValidationStatus::NOT_VALID;
         }
