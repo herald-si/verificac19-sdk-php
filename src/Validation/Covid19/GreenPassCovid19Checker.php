@@ -118,7 +118,8 @@ class GreenPassCovid19Checker
             $data_fine_validita = $cert->date->modify("+$giorni_max_valido days");
 
             // j&j booster
-            if (($cert->product == MedicinalProduct::JOHNSON) && ($cert->doseGiven > $cert->totalDoses)) {
+            // https://github.com/ministero-salute/it-dgc-verificac19-sdk-android/commit/6812542889b28343acace7780e536fac9bf637a9
+            if (($cert->product == MedicinalProduct::JOHNSON) && (($cert->doseGiven > $cert->totalDoses) || ($cert->doseGiven == $cert->totalDoses && $cert->doseGiven >= 2))) {
                 $data_inizio_validita = $cert->date;
             }
 
@@ -214,8 +215,8 @@ class GreenPassCovid19Checker
         if ($validation_date > $end_date) {
             return ValidationStatus::PARTIALLY_VALID;
         }
-        
-        if($scanMode == ValidationScanMode::BOOSTER_DGP){
+
+        if ($scanMode == ValidationScanMode::BOOSTER_DGP) {
             return ValidationStatus::TEST_NEEDED;
         }
 
