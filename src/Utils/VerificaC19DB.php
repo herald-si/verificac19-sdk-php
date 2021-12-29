@@ -93,20 +93,13 @@ class VerificaC19DB
     public function addAllRevokedUcviToUcviList(array $revokedUcvi)
     {
         $this->pdo->beginTransaction();
-        $insert_values = array();
         $sql = 'INSERT OR IGNORE INTO ucvi(revokedUcvi) VALUES (?)';
         $stmt = $this->pdo->prepare($sql);
 
         foreach ($revokedUcvi as $d) {
-            $question_marks[] = '(' . $this->placeholders('?', is_array($d) ? sizeof($d) : 1) . ')';
-            if (is_array($d)) {
-                $insert_values = array_merge($insert_values, array_values($d));
-            } else {
-                $insert_values[] = $d;
-            }
             $stmt->execute([$d]);
         }
-        
+
         $this->pdo->commit();
     }
 
