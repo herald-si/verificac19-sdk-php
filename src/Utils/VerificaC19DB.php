@@ -94,6 +94,9 @@ class VerificaC19DB
     {
         $this->pdo->beginTransaction();
         $insert_values = array();
+        $sql = 'INSERT OR IGNORE INTO ucvi(revokedUcvi) VALUES (?)';
+        $stmt = $this->pdo->prepare($sql);
+
         foreach ($revokedUcvi as $d) {
             $question_marks[] = '(' . $this->placeholders('?', is_array($d) ? sizeof($d) : 1) . ')';
             if (is_array($d)) {
@@ -101,11 +104,9 @@ class VerificaC19DB
             } else {
                 $insert_values[] = $d;
             }
+            $stmt->execute([$d]);
         }
-        $sql = 'INSERT OR IGNORE INTO ucvi(revokedUcvi) VALUES ' . implode(',', $question_marks);
-
-        $stmt = $this->pdo->prepare($sql);
-        $stmt->execute($insert_values);
+        
         $this->pdo->commit();
     }
 
