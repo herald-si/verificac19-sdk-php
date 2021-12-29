@@ -97,22 +97,12 @@ class VerificaC19DB
         $stmt = $this->pdo->prepare($sql);
 
         foreach ($revokedUcvi as $d) {
-            $stmt->execute([$d]);
+            $stmt->execute([
+                $d
+            ]);
         }
 
         $this->pdo->commit();
-    }
-
-    private function placeholders($text, $count = 0, $separator = ",")
-    {
-        $result = array();
-        if ($count > 0) {
-            for ($x = 0; $x < $count; $x ++) {
-                $result[] = $text;
-            }
-        }
-
-        return implode($separator, $result);
     }
 
     public function removeRevokedUcviFromUcviList($revokedUcvi)
