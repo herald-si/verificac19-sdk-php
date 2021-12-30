@@ -5,7 +5,6 @@ use Herald\GreenPass\Utils\FileUtils;
 use Herald\GreenPass\Utils\VerificaC19DB;
 use Herald\GreenPass\Utils\EndpointService;
 use Herald\GreenPass\Exceptions\DownloadFailedException;
-use Herald\GreenPass\Exceptions\NoCertificateListException;
 
 // https://github.com/ministero-salute/it-dgc-documentation/blob/master/DRL.md
 class CertificateRevocationList
