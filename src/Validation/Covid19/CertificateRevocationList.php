@@ -5,7 +5,6 @@ use Herald\GreenPass\Utils\FileUtils;
 use Herald\GreenPass\Utils\VerificaC19DB;
 use Herald\GreenPass\Utils\EndpointService;
 use Herald\GreenPass\Exceptions\DownloadFailedException;
-use Herald\GreenPass\Exceptions\NoCertificateListException;
 
 // https://github.com/ministero-salute/it-dgc-documentation/blob/master/DRL.md
 class CertificateRevocationList
@@ -94,7 +93,6 @@ class CertificateRevocationList
         if (isset($drl->delta->insertions)) {
             $this->db->addAllRevokedUcviToUcviList($drl->delta->insertions);
         }
-        
     }
 
     public function getRevokeList()
@@ -103,7 +101,7 @@ class CertificateRevocationList
         if ($this->error_counter >= self::MAX_RETRY) {
             $this->saveCurrentStatus(1, 0, self::DRL_STATUS_NEED_VALIDATION);
             throw new DownloadFailedException();
-        } 
+        }
 
         // CRL Status
         $status = $this->getCurrentCRLStatus();
@@ -120,7 +118,6 @@ class CertificateRevocationList
                 $endChunk = $check->totalChunk;
                 for ($chunk = $initChunk; $chunk <= $endChunk; $chunk ++) {
                     try {
-                        $this->saveCurrentStatus($status->chunk, $check->fromVersion, self::DRL_STATUS_UPDATING);
                         $this->updateRevokedList($chunk, $check->fromVersion);
 
                         if ($endChunk > $chunk) {
@@ -179,15 +176,6 @@ class CertificateRevocationList
         if (FileUtils::checkFileNotExistOrExpired(FileUtils::getCacheFilePath(self::DRL_STATUS_FILE), FileUtils::HOUR_BEFORE_DOWNLOAD_LIST * 3600) || $this->getCurrentCRLStatus()->validity == self::DRL_STATUS_NEED_VALIDATION || $this->getCurrentCRLStatus()->validity == self::DRL_STATUS_PENDING) {
             $revoked = $this->getRevokeList();
         } else {
-            $retry = 0;
-            // Check update already started and wait
-            while ($this->getCurrentCRLStatus()->validity == self::DRL_STATUS_UPDATING && $retry < self::MAX_WAIT_SECONDS) {
-                $retry ++;
-                sleep(1);
-            }
-            if ($retry >= self::MAX_WAIT_SECONDS) {
-                throw new DownloadFailedException("Server busy, give up");
-            }
             $revoked = $this->db->getRevokedUcviList();
         }
 
@@ -203,7 +191,7 @@ class CertificateRevocationList
 
     private function kidHash($kid)
     {
-        //Hash docs: https://github.com/ministero-salute/it-dgc-documentation/blob/master/DRL.md#panoramica
+        // Hash docs: https://github.com/ministero-salute/it-dgc-documentation/blob/master/DRL.md#panoramica
         $hash = hash('sha256', $kid, true);
         return base64_encode($hash);
     }
