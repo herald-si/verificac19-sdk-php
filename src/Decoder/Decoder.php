@@ -19,10 +19,6 @@ use Herald\GreenPass\Utils\FileUtils;
 class Decoder
 {
 
-    private const STATUS_FILE = FileUtils::COUNTRY . "-gov-dgc-status.json";
-
-    private const CERTS_FILE = FileUtils::COUNTRY . "-gov-dgc-certs.json";
-
     // https://github.com/ehn-dcc-development/hcert-spec/blob/main/hcert_spec.md#332-signature-algorithm
     public const SUPPORTED_ALGO = [
         ES256::ID,
@@ -162,18 +158,6 @@ class Decoder
         throw new \InvalidArgumentException('Public key not found in list');
     }
 
-    public static function getCertificatesStatus()
-    {
-        $uri = FileUtils::getCacheFilePath(self::STATUS_FILE);
-        return EndpointService::getJsonFromFile($uri, "certificate-status");
-    }
-
-    public static function getCertificates()
-    {
-        $uri = FileUtils::getCacheFilePath(self::CERTS_FILE);
-        return EndpointService::getJsonFromFile($uri, "certificate-list");
-    }
-
     public static function qrcode(string $qrcode)
     {
         if (substr($qrcode, 0, 4) === 'HC1:') {
@@ -188,13 +172,13 @@ class Decoder
         $alg = static::retrieveAlgorithmFromCBOR($cbor);
         $keyId = static::retrieveKidFromCBOR($cbor);
 
-        $certs_list = static::getCertificatesStatus();
+        $certs_list = EndpointService::getCertificatesStatus();
 
         if (! in_array($keyId, $certs_list)) {
             throw new \InvalidArgumentException('Public key not found list');
         }
 
-        $certificates = static::getCertificates();
+        $certificates = EndpointService::getCertificates();
 
         $signingCertificate = static::validateKidList($keyId, $certificates);
         $pem = chunk_split($signingCertificate, 64, PHP_EOL);

@@ -2,10 +2,16 @@
 namespace Herald\GreenPass\Utils;
 
 use Herald\GreenPass\Exceptions\NoCertificateListException;
+use Herald\GreenPass\Decoder\Decoder;
 
 class EndpointService
 {
-
+    private const STATUS_FILE = FileUtils::COUNTRY . "-gov-dgc-status.json";
+    
+    private const CERTS_FILE = FileUtils::COUNTRY . "-gov-dgc-certs.json";
+    
+    private const SETTINGS_FILE = FileUtils::COUNTRY . "-gov-dgc-settings.json";
+    
     private static function getValidationFromUri(string $type, array $params = null)
     {
         $uri = "";
@@ -121,4 +127,22 @@ class EndpointService
         return json_decode($json);
     }
     
+    public static function getCertificatesStatus()
+    {
+        $uri = FileUtils::getCacheFilePath(self::STATUS_FILE);
+        return EndpointService::getJsonFromFile($uri, "certificate-status");
+    }
+    
+    public static function getCertificates()
+    {
+        $uri = FileUtils::getCacheFilePath(self::CERTS_FILE);
+        return EndpointService::getJsonFromFile($uri, "certificate-list");
+    }
+        
+    public static function getValidationRules()
+    {
+        $uri = FileUtils::getCacheFilePath(static::SETTINGS_FILE);
+        return EndpointService::getJsonFromFile($uri, "settings");
+    }
+        
 }

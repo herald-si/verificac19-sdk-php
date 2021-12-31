@@ -171,22 +171,27 @@ class CertificateRevocationList
 
     public function isUVCIRevoked($kid)
     {
-        // DRL validation flow: https://github.com/ministero-salute/it-dgc-documentation/blob/master/DRL.md#flusso-applicativo
-        // Timer 24h or VALIDATION/RESUME DOWNLOAD NEEDED
-        if (FileUtils::checkFileNotExistOrExpired(FileUtils::getCacheFilePath(self::DRL_STATUS_FILE), FileUtils::HOUR_BEFORE_DOWNLOAD_LIST * 3600) || $this->getCurrentCRLStatus()->validity == self::DRL_STATUS_NEED_VALIDATION || $this->getCurrentCRLStatus()->validity == self::DRL_STATUS_PENDING) {
-            $revoked = $this->getRevokeList();
-        } else {
-            $revoked = $this->db->getRevokedUcviList();
-        }
-
         $hashedKid = $this->kidHash($kid);
-
+        $revoked = $this->getUpdatedRevokeList();
         foreach ($revoked as $bl_item) {
             if ($hashedKid == $bl_item['revokedUcvi']) {
                 return true;
             }
         }
         return false;
+    }
+
+    public function getUpdatedRevokeList()
+    {
+        // DRL validation flow: https://github.com/ministero-salute/it-dgc-documentation/blob/master/DRL.md#flusso-applicativo
+        // Timer 24h or VALIDATION/RESUME DOWNLOAD NEEDED
+        $revoked = "";
+        if (FileUtils::checkFileNotExistOrExpired(FileUtils::getCacheFilePath(self::DRL_STATUS_FILE), FileUtils::HOUR_BEFORE_DOWNLOAD_LIST * 3600) || $this->getCurrentCRLStatus()->validity == self::DRL_STATUS_NEED_VALIDATION || $this->getCurrentCRLStatus()->validity == self::DRL_STATUS_PENDING) {
+            $revoked = $this->getRevokeList();
+        } else {
+            $revoked = $this->db->getRevokedUcviList();
+        }
+        return $revoked;
     }
 
     private function kidHash($kid)
