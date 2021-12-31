@@ -264,8 +264,10 @@ class GreenPassCovid19Checker
     {
         if ($cert->country == Country::ITALY) {
             $eku = isset($signingCertificate["extensions"]["extendedKeyUsage"]) ? $signingCertificate["extensions"]["extendedKeyUsage"] : "";
-            if ($eku == CertCode::OID_RECOVERY || $eku == CertCode::OID_ALT_RECOVERY) {
-                return true;
+            foreach (explode(', ', $eku) as $keyUsage) {
+                if (CertCode::OID_RECOVERY == $keyUsage || CertCode::OID_ALT_RECOVERY == $keyUsage) {
+                    return true;
+                }
             }
         }
         return false;
