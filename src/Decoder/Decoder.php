@@ -13,17 +13,15 @@ use Cose\Key\Ec2Key;
 use Cose\Key\Key;
 use Cose\Key\RsaKey;
 use Herald\GreenPass\GreenPass;
-use Herald\GreenPass\Exceptions\NoCertificateListException;
+use Herald\GreenPass\Utils\EndpointService;
 use Herald\GreenPass\Utils\FileUtils;
 
 class Decoder
 {
 
-    const LIST = 'list';
+    private const STATUS_FILE = FileUtils::COUNTRY . "-gov-dgc-status.json";
 
-    const JSON = 'json';
-
-    const GET_CERTIFICATE_FROM = 'list';
+    private const CERTS_FILE = FileUtils::COUNTRY . "-gov-dgc-certs.json";
 
     // https://github.com/ehn-dcc-development/hcert-spec/blob/main/hcert_spec.md#332-signature-algorithm
     public const SUPPORTED_ALGO = [
@@ -106,81 +104,6 @@ class Decoder
         return $decoded;
     }
 
-    // Retrieve from RESUME-TOKEN KID
-    private static function retrieveCertificateFromList($list, $resume_token = "")
-    {
-        // We retrieve the public keys
-        $ch = curl_init('https://get.dgc.gov.it/v1/dgc/signercertificate/update');
-
-        curl_setopt($ch, CURLOPT_HEADER, true);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-
-        if (! empty($resume_token)) {
-            curl_setopt($ch, CURLOPT_HTTPHEADER, array(
-                "X-RESUME-TOKEN: $resume_token"
-            ));
-        }
-
-        $response = curl_exec($ch);
-        $info = curl_getinfo($ch);
-
-        // Then, after your curl_exec call:
-        $header_size = curl_getinfo($ch, CURLINFO_HEADER_SIZE);
-        $headers = substr($response, 0, $header_size);
-        $body = substr($response, $header_size);
-
-        // Convert the $headers string to an indexed array
-        $headers_indexed_arr = explode("\r\n", $headers);
-
-        // Define as array before using in loop
-        $headers_arr = array();
-
-        // Create an associative array containing the response headers
-        foreach ($headers_indexed_arr as $value) {
-            if (false !== ($matches = array_pad(explode(':', $value), 2, null))) {
-                $headers_arr["{$matches[0]}"] = trim($matches[1]);
-            }
-        }
-
-        if (empty($info['http_code'])) {
-            throw new \InvalidArgumentException("No HTTP code was returned");
-        }
-
-        if ($info['http_code'] == 200) {
-            $list[$headers_arr['X-KID']] = $body;
-            return static::retrieveCertificateFromList($list, $headers_arr['X-RESUME-TOKEN']);
-        } else {
-            return $list;
-        }
-    }
-
-    // Retrieve from RESUME-TOKEN KID
-    private static function retrieveCertificatesStatus()
-    {
-        // We retrieve the public keys
-        $ch = curl_init('https://get.dgc.gov.it/v1/dgc/signercertificate/status');
-
-        curl_setopt($ch, CURLOPT_HEADER, true);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-
-        $response = curl_exec($ch);
-        $info = curl_getinfo($ch);
-
-        // Then, after your curl_exec call:
-        $header_size = curl_getinfo($ch, CURLINFO_HEADER_SIZE);
-        $body = substr($response, $header_size);
-
-        if (empty($info['http_code'])) {
-            throw new \InvalidArgumentException("No HTTP code was returned");
-        }
-
-        if ($info['http_code'] == 200) {
-            return $body;
-        }
-
-        throw new NoCertificateListException("status");
-    }
-
     private static function retrieveKidFromCBOR($cbor)
     {
 
@@ -239,6 +162,18 @@ class Decoder
         throw new \InvalidArgumentException('Public key not found in list');
     }
 
+    public static function getCertificatesStatus()
+    {
+        $uri = FileUtils::getCacheFilePath(self::STATUS_FILE);
+        return EndpointService::getJsonFromFile($uri, "certificate-status");
+    }
+
+    public static function getCertificates()
+    {
+        $uri = FileUtils::getCacheFilePath(self::CERTS_FILE);
+        return EndpointService::getJsonFromFile($uri, "certificate-list");
+    }
+
     public static function qrcode(string $qrcode)
     {
         if (substr($qrcode, 0, 4) === 'HC1:') {
@@ -248,49 +183,21 @@ class Decoder
         $cose = static::cose(static::zlib($zlib));
         $cbor = static::cbor($cose);
 
-        $certificateKeys = array();
-
         $pem = "";
 
         $alg = static::retrieveAlgorithmFromCBOR($cbor);
         $keyId = static::retrieveKidFromCBOR($cbor);
 
-        if (static::GET_CERTIFICATE_FROM == static::LIST) {
+        $certs_list = static::getCertificatesStatus();
 
-            $locale = FileUtils::COUNTRY;
-
-            // Check if kid in certificate list status
-            $uri_status = FileUtils::getCacheFilePath("$locale-gov-dgc-status.json");
-            $certs_list = "";
-
-            if (FileUtils::checkFileNotExistOrExpired($uri_status, FileUtils::HOUR_BEFORE_DOWNLOAD_LIST * 3600)) {
-                $certificate_status = static::retrieveCertificatesStatus();
-                FileUtils::saveDataToFile($uri_status, $certificate_status);
-                $certs_list = json_decode($certificate_status);
-            } else {
-                $certs_list = json_decode(FileUtils::readDataFromFile($uri_status));
-            }
-
-            if (! in_array($keyId, $certs_list)) {
-                throw new \InvalidArgumentException('Public key not found list');
-            }
-
-            // Check if kid in certificate list status
-            $uri = FileUtils::getCacheFilePath("$locale-gov-dgc-certs.json");
-            $certificates = "";
-
-            if (FileUtils::checkFileNotExistOrExpired($uri, FileUtils::HOUR_BEFORE_DOWNLOAD_LIST * 3600)) {
-                $certificates = static::retrieveCertificateFromList($certificateKeys);
-                if (! FileUtils::saveDataToFile($uri, json_encode($certificates))) {
-                    throw new NoCertificateListException("update");
-                }
-            } else {
-                $certificates = json_decode(FileUtils::readDataFromFile($uri));
-            }
-
-            $signingCertificate = static::validateKidList($keyId, $certificates);
-            $pem = chunk_split($signingCertificate, 64, PHP_EOL);
+        if (! in_array($keyId, $certs_list)) {
+            throw new \InvalidArgumentException('Public key not found list');
         }
+
+        $certificates = static::getCertificates();
+
+        $signingCertificate = static::validateKidList($keyId, $certificates);
+        $pem = chunk_split($signingCertificate, 64, PHP_EOL);
 
         // We convert the raw data into a PEM encoded certificate
         $pem = '-----BEGIN CERTIFICATE-----' . PHP_EOL . $pem . '-----END CERTIFICATE-----' . PHP_EOL;
