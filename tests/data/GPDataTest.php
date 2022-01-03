@@ -3,7 +3,12 @@ namespace Herald\GreenPass;
 
 class GPDataTest
 {
+    private const GP_CERTIFICATORE = 'Ministero della Salute';
+    
+    private const GP_VERSION = "1.0.0";
 
+    private const GP_TG = "840539006";
+    
     public static $qrcode_certificate_valid_but_revoked = 'HC1:6BFOXN%TSMAHN-H3YS1IK47ES6IXJR4E47X5*T917VF+UOGIS1RYZV:X9:IMJZTCV4*XUA2PSGH.+H$NI4L6HUC%UG/YL WO*Z7ON13:LHNG7H8H%BFP8FG4T 9OKGUXI$NIUZUK*RIMI4UUIMI.J9WVHWVH+ZEOV1AT1HRI2UHD4TR/S09T./08H0AT1EYHEQMIE9WT0K3M9UVZSVV*001HW%8UE9.955B9-NT0 2$$0X4PCY0+-CVYCRMTB*05*9O%0HJP7NVDEBO584DKH78$ZJ*DJWP42W5P0QMO6C8PL353X7H1RU0P48PCA7T5MCH5:ZJ::AKU2UM97H98$QP3R8BH9LV3*O-+DV8QJHHY4I4GWU-LU7T9.V+ T%UNUWUG+M.1KG%VWE94%ALU47$71MFZJU*HFW.6$X50*MSYOJT1MR96/1Z%FV3O-0RW/Q.GMCQS%NE';
 
     public static $qrcode_without_hc1 = '6BFOXN%TSMAHN-H3YS1IK47ES6IXJR4E47X5*T917VF+UOGIS1RYZV:X9:IMJZTCV4*XUA2PSGH.+H$NI4L6HUC%UG/YL WO*Z7ON13:LHNG7H8H%BFP8FG4T 9OKGUXI$NIUZUK*RIMI4UUIMI.J9WVHWVH+ZEOV1AT1HRI2UHD4TR/S09T./08H0AT1EYHEQMIE9WT0K3M9UVZSVV*001HW%8UE9.955B9-NT0 2$$0X4PCY0+-CVYCRMTB*05*9O%0HJP7NVDEBO584DKH78$ZJ*DJWP42W5P0QMO6C8PL353X7H1RU0P48PCA7T5MCH5:ZJ::AKU2UM97H98$QP3R8BH9LV3*O-+DV8QJHHY4I4GWU-LU7T9.V+ T%UNUWUG+M.1KG%VWE94%ALU47$71MFZJU*HFW.6$X50*MSYOJT1MR96/1Z%FV3O-0RW/Q.GMCQS%NE';
@@ -24,9 +29,9 @@ class GPDataTest
                 "co" => 'IT',
                 "ci" => 'FAKEID#0',
                 "mp" => 'EU/1/20/1507',
-                "is" => 'Ministero della Salute',
+                "is" => self::GP_CERTIFICATORE,
                 "sd" => '2',
-                "tg" => '840539006'
+                "tg" => self::GP_TG
             )
         ),
         "nam" => Array(
@@ -35,7 +40,7 @@ class GPDataTest
             "gnt" => 'TEST',
             "gn" => 'TEST'
         ),
-        "ver" => "1.0.0",
+        "ver" => self::GP_VERSION,
         "dob" => "1999-12-12"
     );
 
@@ -48,8 +53,8 @@ class GPDataTest
                 "co" => "IT",
                 "tc" => "PROVA SNC",
                 "ci" => "TESTIDFAKE#2",
-                "is" => "Ministero della Salute",
-                "tg" => "840539006",
+                "is" => self::GP_CERTIFICATORE,
+                "tg" => self::GP_TG,
                 "tr" => "260415000"
             )
         ),
@@ -59,8 +64,8 @@ class GPDataTest
             "gnt" => 'TEST',
             "gn" => 'TEST'
         ),
-        "ver" => "1.0.0",
-        "dob" => "1999-12-12"
+        "ver" => self::GP_VERSION,
+        "dob" => "1989-11-15"
     );
 
     public static $recovery = Array(
@@ -71,8 +76,8 @@ class GPDataTest
                 "du" => "2021-12-13",
                 "co" => "IT",
                 "ci" => "TESTIDFAKERECOVERY#2",
-                "is" => "Ministero della Salute",
-                "tg" => "840539006"
+                "is" => self::GP_CERTIFICATORE,
+                "tg" => self::GP_TG
             )
         ),
         "nam" => Array(
@@ -81,7 +86,7 @@ class GPDataTest
             "gnt" => 'TEST',
             "gn" => 'TEST'
         ),
-        "ver" => "1.0.0",
-        "dob" => "1999-12-12"
+        "ver" => self::GP_VERSION,
+        "dob" => "1955-01-20"
     );
 }
