@@ -107,10 +107,30 @@ oppure su Windows:
 ```php
 Herald\GreenPass\Utils\FileUtils::overrideCacheFilePath("c:\path\to\cache\folder");
 ```
+Dalla release `1.2.0` è possibile aggiornare i file contenuti nella cache utilizzando il metodo `update*()` della classe `UpdateService`:
+```php
+//aggiorna lo status dei certificati
+Herald\GreenPass\Utils\UpdateService::updateCertificatesStatus();
+//aggiorna la lista dei certificati
+Herald\GreenPass\Utils\UpdateService::updateCertificateList();
+//aggiorna le regole di validazione
+Herald\GreenPass\Utils\UpdateService::updateValidationRules();
+//aggiorna le liste di revoca
+Herald\GreenPass\Utils\UpdateService::updateRevokeList();
+```
+oppure per aggiornare tutte le liste:
+```php
+Herald\GreenPass\Utils\UpdateService::updateAll();
+```
+In ogni caso, queste liste vengono aggiornate solo se sono passate 24 ore dall'ultimo aggiornamento, non viene forzato l'update.
+
+E', quindi, possibile all'interno dell'applicativo che utilizza questo SDK creare un cron che viene chiamato periodicamente (orario/6 ore/giornaliero) per il download delle regole.
+
+In questo modo durante la verifica della stringa del GreenPass è probabile che le stesse siano già aggiornate, riducendo i tempi di verifica.
 
 ## Scan Mode
 Dalla versione `1.0.5` è necessario definire una delle due modalità di verifica della Certificazione verde Covid-19: BASE o RAFFORZATA.
-Dalla versione `1.1.1` è possibile definire una nuova modalità, BOOSTER.
+Dalla versione `1.2.0` è possibile definire una nuova modalità, BOOSTER.
 
 * Tipologia BASE: l'sdk considera valide le certificazioni verdi generate da vaccinazione, da guarigione, da tampone.
 * Tipologia RAFFORZATA: l'sdk considera valide solo le certificazioni verdi generate da vaccinazione o da guarigione.
