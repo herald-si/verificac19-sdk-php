@@ -10,4 +10,6 @@ class ValidationScanMode
     const SUPER_DGP = "2G";
 
     const CLASSIC_DGP = "3G";
+    
+    const BOOSTER_DGP = "BOOSTED";
 }

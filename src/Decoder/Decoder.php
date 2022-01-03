@@ -302,6 +302,7 @@ class Decoder
             $cert = openssl_x509_read($pem);
             $publicKey = openssl_pkey_get_public($cert);
             $publicKeyData = openssl_pkey_get_details($publicKey);
+            
         } catch (\Exception $exception) {
             throw new \InvalidArgumentException('Failed to parse cert data');
         }
@@ -338,6 +339,6 @@ class Decoder
             throw new \InvalidArgumentException("The signature is NOT valid");
         }
 
-        return new GreenPass($cbor['data'][- 260][1]);
+        return new GreenPass($cbor['data'][- 260][1], $pem);
     }
 }
