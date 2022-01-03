@@ -1,9 +1,6 @@
 <?php
 namespace Herald\GreenPass\Validation\Covid19;
 
-use Herald\GreenPass\Utils\EndpointService;
-use Herald\GreenPass\Utils\FileUtils;
-
 class ValidationRules
 {
 
@@ -33,11 +30,4 @@ class ValidationRules
 
     const BLACK_LIST_UVCI = "black_list_uvci";
 
-    private const SETTINGS_FILE = FileUtils::COUNTRY . "-gov-dgc-settings.json";
-
-    public static function getValidationRules()
-    {
-        $uri = FileUtils::getCacheFilePath(static::SETTINGS_FILE);
-        return EndpointService::getJsonFromFile($uri, "settings");
-    }
 }

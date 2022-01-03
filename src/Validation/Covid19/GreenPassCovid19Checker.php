@@ -11,6 +11,7 @@ use Herald\GreenPass\GreenPassEntities\Covid19;
 use Herald\GreenPass\GreenPassEntities\TestResultType;
 use Herald\GreenPass\GreenPassEntities\TestType;
 use Herald\GreenPass\GreenPass;
+use Herald\GreenPass\Utils\EndpointService;
 
 class GreenPassCovid19Checker
 {
@@ -63,7 +64,7 @@ class GreenPassCovid19Checker
 
     private static function getValueFromValidationRules($rule, $type)
     {
-        $validity_rules = ValidationRules::getValidationRules();
+        $validity_rules = EndpointService::getValidationRules();
         $value = ValidationStatus::NOT_FOUND;
         foreach ($validity_rules as $item) {
             if (($item->name == $rule) && ($item->type == $type)) {
