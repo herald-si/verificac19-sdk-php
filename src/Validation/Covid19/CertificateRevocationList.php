@@ -91,6 +91,13 @@ class CertificateRevocationList
         }
     }
 
+    /**
+     * update revoked list from ministero-salute
+     * return true on success, throws DownloadFailedException otherwise
+     *
+     * @throws DownloadFailedException
+     * @return boolean
+     */
     public function getRevokeList()
     {
         // error counter >= MAX_ALLOWED_RETRY
@@ -133,16 +140,16 @@ class CertificateRevocationList
             }
         } else {
 
-            $list = $this->db->getRevokedUcviList();
+            $totalInList = $this->db->countRevokedUcviInList();
             $totalNumberUCVI = $check->totalNumberUCVI;
 
             // same remote-local db size
-            if (count($list) == $totalNumberUCVI) {
+            if ($totalInList == $totalNumberUCVI) {
                 // set drl valid
                 $this->saveCurrentStatus(1, $check->version, self::DRL_STATUS_VALID);
                 $this->error_counter = 0;
                 // return revokedUcvi list
-                return $list;
+                return true;
             }
         }
 
@@ -170,19 +177,12 @@ class CertificateRevocationList
         // DRL validation flow: https://github.com/ministero-salute/it-dgc-documentation/blob/master/DRL.md#flusso-applicativo
         // Timer 24h or VALIDATION/RESUME DOWNLOAD NEEDED
         if (FileUtils::checkFileNotExistOrExpired(FileUtils::getCacheFilePath(self::DRL_STATUS_FILE), FileUtils::HOUR_BEFORE_DOWNLOAD_LIST * 3600) || $this->getCurrentCRLStatus()->validity == self::DRL_STATUS_NEED_VALIDATION || $this->getCurrentCRLStatus()->validity == self::DRL_STATUS_PENDING) {
-            $revoked = $this->getRevokeList();
-        } else {
-            $revoked = $this->db->getRevokedUcviList();
+            $this->getRevokeList();
         }
 
         $hashedKid = $this->kidHash($kid);
 
-        foreach ($revoked as $bl_item) {
-            if ($hashedKid == $bl_item['revokedUcvi']) {
-                return true;
-            }
-        }
-        return false;
+        return $this->db->isInRevokedUvciList($hashedKid);
     }
 
     private function kidHash($kid)
