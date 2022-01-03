@@ -43,12 +43,33 @@ class RecoveryCheckerTest extends GreenPassCovid19CheckerTest
         $testgp["r"][0]["du"] = $data_scadenza_gp->format("Y-m-d");
 
         $greenpass = new GreenPass($testgp);
-        
+
         $esito = GreenPassCovid19Checker::verifyCert($greenpass, "3G");
         $this->assertEquals("VALID", $esito);
 
         $esito = GreenPassCovid19Checker::verifyCert($greenpass, "2G");
         $this->assertEquals("VALID", $esito);
+    }
+
+    /**
+     * Test Booster Scan mode
+     */
+    public function testBoosterScanMode()
+    {
+        $testgp = GPDataTest::$recovery;
+        $data_greenpass = $this->data_oggi->modify(self::DATE_A_MONTH_AGO);
+        $data_scadenza_gp = $this->data_oggi->modify(self::DATE_IN_5_MONTHS);
+        $testgp["r"][0]["fr"] = $data_greenpass->format("Y-m-d");
+        $testgp["r"][0]["df"] = $data_greenpass->format("Y-m-d");
+        $testgp["r"][0]["du"] = $data_scadenza_gp->format("Y-m-d");
+
+        $greenpass = new GreenPass($testgp);
+
+        $esito = GreenPassCovid19Checker::verifyCert($greenpass, "3G");
+        $this->assertEquals("VALID", $esito);
+
+        $esito = GreenPassCovid19Checker::verifyCert($greenpass, "BOOSTED");
+        $this->assertEquals("TEST_NEEDED", $esito);
     }
 
     /**

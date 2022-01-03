@@ -28,20 +28,23 @@ class TamponeCheckerTest extends GreenPassCovid19CheckerTest
     }
 
     /**
-     * Test super GreenPass
+     * Test scan mode GreenPass
      */
-    public function testSuperGreenPassTampone()
+    public function testScanModeTampone()
     {
         $testgp = GPDataTest::$testresult;
 
         $data_greenpass = $this->data_oggi->modify("-12 hour");
         $testgp["t"][0]["sc"] = $data_greenpass->format(\DateTime::ATOM);
         $greenpass = new GreenPass($testgp);
-        
+
         $esito = GreenPassCovid19Checker::verifyCert($greenpass, "3G");
         $this->assertEquals("VALID", $esito);
 
         $esito = GreenPassCovid19Checker::verifyCert($greenpass, "2G");
+        $this->assertEquals("NOT_VALID", $esito);
+
+        $esito = GreenPassCovid19Checker::verifyCert($greenpass, "BOOSTED");
         $this->assertEquals("NOT_VALID", $esito);
     }
 
