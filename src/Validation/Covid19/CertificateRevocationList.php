@@ -14,15 +14,11 @@ class CertificateRevocationList
 
     const MAX_RETRY = 3;
 
-    private const MAX_WAIT_SECONDS = 60;
-
     private const DRL_STATUS_FILE = FileUtils::COUNTRY . "-gov-dgc-drl-status.json";
 
     private const DRL_STATUS_VALID = 'VALID';
 
     private const DRL_STATUS_NEED_VALIDATION = 'NEED_VALIDATION';
-
-    private const DRL_STATUS_UPDATING = 'UPDATE_IN_PROGRESS';
 
     private const DRL_STATUS_PENDING = 'PENDING_DOWNLOAD';
 
