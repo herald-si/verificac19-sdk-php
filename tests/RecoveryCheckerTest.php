@@ -43,6 +43,9 @@ class RecoveryCheckerTest extends GreenPassCovid19CheckerTest
         $testgp["r"][0]["du"] = $data_scadenza_gp->format("Y-m-d");
 
         $greenpass = new GreenPass($testgp);
+        
+        $esito = GreenPassCovid19Checker::verifyCert($greenpass, "3G");
+        $this->assertEquals("VALID", $esito);
 
         $esito = GreenPassCovid19Checker::verifyCert($greenpass, "2G");
         $this->assertEquals("VALID", $esito);

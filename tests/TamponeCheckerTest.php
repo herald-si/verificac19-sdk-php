@@ -37,6 +37,9 @@ class TamponeCheckerTest extends GreenPassCovid19CheckerTest
         $data_greenpass = $this->data_oggi->modify("-12 hour");
         $testgp["t"][0]["sc"] = $data_greenpass->format(\DateTime::ATOM);
         $greenpass = new GreenPass($testgp);
+        
+        $esito = GreenPassCovid19Checker::verifyCert($greenpass, "3G");
+        $this->assertEquals("VALID", $esito);
 
         $esito = GreenPassCovid19Checker::verifyCert($greenpass, "2G");
         $this->assertEquals("NOT_VALID", $esito);

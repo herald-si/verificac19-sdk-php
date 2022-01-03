@@ -50,10 +50,14 @@ class VaccineCheckerTest extends GreenPassCovid19CheckerTest
         $data_greenpass = $this->data_oggi->modify(self::DATE_A_MONTH_AGO);
         $testgp["v"][0]["dt"] = $data_greenpass->format("Y-m-d");
         $greenpass = new GreenPass($testgp);
+        
+        $esito = GreenPassCovid19Checker::verifyCert($greenpass);
+        $this->assertEquals("VALID", $esito);
 
         $esito = GreenPassCovid19Checker::verifyCert($greenpass, "2G");
         $this->assertEquals("VALID", $esito);
     }
+    
 
     /*
      * Test vaccino Sputnik-V dopo un mese non a San Marino
