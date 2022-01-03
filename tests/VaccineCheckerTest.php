@@ -18,8 +18,6 @@ class VaccineCheckerTest extends GreenPassCovid19CheckerTest
      */
     public function testUnknownVaccine()
     {
-        $data_oggi = new \DateTimeImmutable();
-
         $testgp = GPDataTest::$vaccine;
         $testgp["v"][0]["mp"] = "FakeVaccine";
         $greenpass = new GreenPass($testgp);
@@ -99,7 +97,6 @@ class VaccineCheckerTest extends GreenPassCovid19CheckerTest
     public function testCompleteMoreThanAYear()
     {
         $testgp = GPDataTest::$vaccine;
-        $data_oggi = new \DateTimeImmutable();
         $data_greenpass = $this->data_oggi->modify(self::DATE_MORE_THAN_A_YEAR);
         $testgp["v"][0]["dt"] = $data_greenpass->format("Y-m-d");
         $greenpass = new GreenPass($testgp);
