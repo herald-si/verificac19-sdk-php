@@ -48,7 +48,7 @@ class GreenPassCovid19Checker
         // tampone effettuato
         if ($cert instanceof TestResult) {
             // if scan mode Super Green Pass, TestResult is non a valid GP
-            if ($scanMode == ValidationScanMode::SUPER_DGP) {
+            if ($scanMode == ValidationScanMode::SUPER_DGP || $scanMode == ValidationScanMode::BOOSTER_DGP) {
                 return ValidationStatus::NOT_VALID;
             }
             return self::verifyTestResults($cert, $data_oggi);
