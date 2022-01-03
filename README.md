@@ -6,7 +6,7 @@
   - [Permessi cartella assets](#permessi-cartella-assets)
 - [Uso](#uso)
   - [Cache Folder](#cache-folder)
-  - [Green Pass Rafforzato](#green-pass-rafforzato)
+  - [Modalità di scansione](#scan-mode)
 - [Licenza](#licenza)
   - [Dettaglio licenza](#dettaglio-licenza)
 
@@ -107,11 +107,36 @@ oppure su Windows:
 ```php
 Herald\GreenPass\Utils\FileUtils::overrideCacheFilePath("c:\path\to\cache\folder");
 ```
+Dalla release `1.2.0` è possibile aggiornare i file contenuti nella cache utilizzando il metodo `update*()` della classe `UpdateService`:
+```php
+//aggiorna lo status dei certificati
+Herald\GreenPass\Utils\UpdateService::updateCertificatesStatus();
+//aggiorna la lista dei certificati
+Herald\GreenPass\Utils\UpdateService::updateCertificateList();
+//aggiorna le regole di validazione
+Herald\GreenPass\Utils\UpdateService::updateValidationRules();
+//aggiorna le liste di revoca
+Herald\GreenPass\Utils\UpdateService::updateRevokeList();
+```
+oppure per aggiornare tutte le liste:
+```php
+Herald\GreenPass\Utils\UpdateService::updateAll();
+```
+In ogni caso, queste liste vengono aggiornate solo se sono passate 24 ore dall'ultimo aggiornamento, non viene forzato l'update.
 
-## Green Pass Rafforzato
+E', quindi, possibile all'interno dell'applicativo che utilizza questo SDK creare un cron che viene chiamato periodicamente (orario/6 ore/giornaliero) per il download delle regole.
+
+In questo modo durante la verifica della stringa del GreenPass è probabile che le stesse siano già aggiornate, riducendo i tempi di verifica.
+
+## Scan Mode
 Dalla versione `1.0.5` è necessario definire una delle due modalità di verifica della Certificazione verde Covid-19: BASE o RAFFORZATA.
-* Tipologia BASE `3G`: l'sdk considera valide le certificazioni verdi generate da vaccinazione, da guarigione, da tampone.
-* Tipologia RAFFORZATA `2G`: l'sdk considera valide solo le certificazioni verdi generate da vaccinazione o da guarigione.
+Dalla versione `1.2.0` è possibile definire una nuova modalità, BOOSTER.
+
+* Tipologia BASE: l'sdk considera valide le certificazioni verdi generate da vaccinazione, da guarigione, da tampone.
+* Tipologia RAFFORZATA: l'sdk considera valide solo le certificazioni verdi generate da vaccinazione o da guarigione.
+* Tipologia BOOSTER: l'sdk app considera valide le certificazioni verdi generate dopo dose di richiamo vaccinale. Considera valide, inoltre, le certificazioni verdi generate dopo ciclo vaccinale primario o guarigione con la contestuale presentazione di un documento, cartaceo o digitale, che attesti l’esito negativo di un test al SARS-CoV-2.
+
+Indicazioni di dettaglio sulle attività consentite senza/con green pass BASE, RAFFORZATO, BOOSTER (link https://www.governo.it/sites/governo.it/files/documenti/documenti/Notizie-allegati/tabella_attivita_consentite.pdf)
 
 Per selezionare la tipologia, è possibile passare al costruttore del validatore un parametro di tipo `Herald\GreenPass\Validation\Covid19\ValidationScanMode`.
 
@@ -122,6 +147,8 @@ Nel caso in cui non venisse scelto, viene impostata di default la tipologia BASE
 $scanMode = ValidationScanMode::CLASSIC_DGP;
 // or set scan mode to 2G (RAFFORZATO)
 $scanMode = ValidationScanMode::SUPER_DGP;
+// or set scan mode to BOOSTED
+$scanMode = ValidationScanMode::BOOSTER_DGP;
 
 $gp_reader = new CertificateValidator($gp_string, $scanMode);
 ```

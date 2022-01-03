@@ -126,10 +126,10 @@ class VerificaC19DB
         }
         return $revokedUcvis;
     }
-    
+
     /**
      * Count number of revokedUcvi in database
-     * 
+     *
      * @return int the number of revokedUcvi in database
      */
     public function countRevokedUcviInList()
@@ -140,19 +140,24 @@ class VerificaC19DB
         }
         return $revokedUcvis;
     }
-    
+
     /**
      * Check if the revokedUcvi is in the Revoked Uvci List
-     * 
-     * @param string $hashedRevokedUcvi the hash of revokedUcvi to check
+     *
+     * @param string $hashedRevokedUcvi
+     *            the hash of revokedUcvi to check
      * @return boolean true if in revoke list, false otherwise
      */
-    public function isInRevokedUvciList(string $hashedRevokedUcvi){
-        $sql = 'SELECT revokedUcvi FROM ucvi WHERE revokedUcvi = :revokedUcvi';
+    public function isInRevokedUvciList(string $hashedRevokedUcvi)
+    {
+        $sql = 'SELECT COUNT(revokedUcvi) as contatore FROM ucvi WHERE revokedUcvi = :revokedUcvi';
         $stmt = $this->pdo->prepare($sql);
         $stmt->bindValue(':revokedUcvi', $hashedRevokedUcvi);
         $stmt->execute();
-        
-        return ($stmt->rowCount() > 0) ? true : false;
+        while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
+            $conta = $row['contatore'];
+        }
+
+        return ($conta > 0) ? true : false;
     }
 }

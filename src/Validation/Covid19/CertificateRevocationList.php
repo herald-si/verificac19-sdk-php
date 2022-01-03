@@ -174,15 +174,18 @@ class CertificateRevocationList
 
     public function isUVCIRevoked($kid)
     {
+        $this->getUpdatedRevokeList();
+        $hashedKid = $this->kidHash($kid);
+        return $this->db->isInRevokedUvciList($hashedKid);
+    }
+
+    public function getUpdatedRevokeList()
+    {
         // DRL validation flow: https://github.com/ministero-salute/it-dgc-documentation/blob/master/DRL.md#flusso-applicativo
         // Timer 24h or VALIDATION/RESUME DOWNLOAD NEEDED
         if (FileUtils::checkFileNotExistOrExpired(FileUtils::getCacheFilePath(self::DRL_STATUS_FILE), FileUtils::HOUR_BEFORE_DOWNLOAD_LIST * 3600) || $this->getCurrentCRLStatus()->validity == self::DRL_STATUS_NEED_VALIDATION || $this->getCurrentCRLStatus()->validity == self::DRL_STATUS_PENDING) {
             $this->getRevokeList();
         }
-
-        $hashedKid = $this->kidHash($kid);
-
-        return $this->db->isInRevokedUvciList($hashedKid);
     }
 
     private function kidHash($kid)

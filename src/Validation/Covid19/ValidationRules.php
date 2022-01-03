@@ -1,15 +1,16 @@
 <?php
 namespace Herald\GreenPass\Validation\Covid19;
 
-use Herald\GreenPass\Utils\EndpointService;
-use Herald\GreenPass\Utils\FileUtils;
-
 class ValidationRules
 {
 
     const RECOVERY_CERT_START_DAY = "recovery_cert_start_day";
+    
+    const RECOVERY_CERT_PV_START_DAY = "recovery_pv_cert_start_day";
 
     const RECOVERY_CERT_END_DAY = "recovery_cert_end_day";
+    
+    const RECOVERY_CERT_PV_END_DAY = "recovery_pv_cert_end_day";
 
     const MOLECULAR_TEST_START_HOUR = "molecular_test_start_hours";
 
@@ -29,11 +30,4 @@ class ValidationRules
 
     const BLACK_LIST_UVCI = "black_list_uvci";
 
-    private const SETTINGS_FILE = FileUtils::COUNTRY . "-gov-dgc-settings.json";
-
-    public static function getValidationRules()
-    {
-        $uri = FileUtils::getCacheFilePath(static::SETTINGS_FILE);
-        return EndpointService::getJsonFromFile($uri, "settings");
-    }
 }

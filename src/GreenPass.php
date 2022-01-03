@@ -33,7 +33,9 @@ class GreenPass
      */
     public $certificate;
 
-    public function __construct($data)
+    public $signingCertInfo;
+
+    public function __construct($data, string $signingCert = "")
     {
         $this->version = $data["ver"] ?? null;
 
@@ -50,25 +52,14 @@ class GreenPass
         if (array_key_exists('r', $data)) {
             $this->certificate = new RecoveryStatement($data);
         }
+
+        if(!empty($signingCert)){
+            $this->signingCertInfo = openssl_x509_parse($signingCert);
+        }
     }
 
     public function checkValid(String $scanMode)
     {
-        return self::_greenpassStatusAnonymizer(GreenPassCovid19Checker::verifyCert($this,$scanMode));
-    }
-
-    // vedi it-dgc-verificac19-sdk-android/sdk/src/main/java/it/ministerodellasalute/verificaC19sdk/model/VerificationViewModel.kt fullModel
-    private function _greenpassStatusAnonymizer($stato)
-    {
-        switch ($stato) {
-            
-            case ValidationStatus::NOT_VALID_YET:
-            case ValidationStatus::EXPIRED:
-                return "NOT_VALID";
-            case ValidationStatus::PARTIALLY_VALID:
-                return "VALID";
-            default:
-                return $stato;
-        }
+        return ValidationStatus::greenpassStatusAnonymizer(GreenPassCovid19Checker::verifyCert($this, $scanMode));
     }
 }
