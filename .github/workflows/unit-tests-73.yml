@@ -1,4 +1,4 @@
-name: Unit tests 7.4
+name: Unit tests 7.3
 
 on:
   [pull_request]
