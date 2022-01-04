@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "095986a77f01338c5450c2b3cdfac4d1",
+    "content-hash": "0d677722290e138187d9fac574a57dc5",
     "packages": [
         {
             "name": "beberlei/assert",
@@ -737,16 +737,16 @@
         },
         {
             "name": "spomky-labs/cbor-php",
-            "version": "dev-string-encode-fix",
+            "version": "v2.1.0",
             "source": {
                 "type": "git",
-                "url": "https://github.com/herald-si/cbor-php.git",
-                "reference": "56f7bf0d4ab8c9aace15d9965a4540df86d57a2c"
+                "url": "https://github.com/Spomky-Labs/cbor-php.git",
+                "reference": "28e2712cfc0b48fae661a48ffc6896d7abe83684"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/herald-si/cbor-php/zipball/56f7bf0d4ab8c9aace15d9965a4540df86d57a2c",
-                "reference": "56f7bf0d4ab8c9aace15d9965a4540df86d57a2c",
+                "url": "https://api.github.com/repos/Spomky-Labs/cbor-php/zipball/28e2712cfc0b48fae661a48ffc6896d7abe83684",
+                "reference": "28e2712cfc0b48fae661a48ffc6896d7abe83684",
                 "shasum": ""
             },
             "require": {
@@ -779,11 +779,7 @@
                     "CBOR\\": "src/"
                 }
             },
-            "autoload-dev": {
-                "psr-4": {
-                    "CBOR\\Test\\": "tests/"
-                }
-            },
+            "notification-url": "https://packagist.org/downloads/",
             "license": [
                 "MIT"
             ],
@@ -799,24 +795,25 @@
             ],
             "description": "CBOR Encoder/Decoder for PHP",
             "keywords": [
-                "CBOR",
                 "Concise Binary Object Representation",
-                "RFC7049"
+                "RFC7049",
+                "cbor"
             ],
             "support": {
-                "source": "https://github.com/herald-si/cbor-php/tree/string-encode-fix"
+                "issues": "https://github.com/Spomky-Labs/cbor-php/issues",
+                "source": "https://github.com/Spomky-Labs/cbor-php/tree/v2.1.0"
             },
             "funding": [
                 {
-                    "type": "github",
-                    "url": "https://github.com/Spomky"
+                    "url": "https://github.com/Spomky",
+                    "type": "github"
                 },
                 {
-                    "type": "patreon",
-                    "url": "https://www.patreon.com/FlorentMorselli"
+                    "url": "https://www.patreon.com/FlorentMorselli",
+                    "type": "patreon"
                 }
             ],
-            "time": "2021-12-13T13:41:11+00:00"
+            "time": "2021-12-13T12:46:26+00:00"
         },
         {
             "name": "symfony/deprecation-contracts",
@@ -3046,9 +3043,7 @@
     ],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": {
-        "spomky-labs/cbor-php": 20
-    },
+    "stability-flags": [],
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {
