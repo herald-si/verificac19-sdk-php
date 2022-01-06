@@ -13,6 +13,13 @@ class EndpointService
     
     private const SETTINGS_FILE = FileUtils::COUNTRY . "-gov-dgc-settings.json";
     
+    private static $proxy;
+
+    public static function setProxy($proxy) 
+    { 
+        self::$proxy = $proxy; 
+    } 
+
     private static function getValidationFromUri(string $type, array $params = null)
     {
         $uri = "";
@@ -58,7 +65,10 @@ class EndpointService
 
         try 
         { 
-            $res = $client->request('GET', $uri); 
+            if(empty(self::$proxy))
+                $res = $client->request('GET', $uri);
+            else
+                $res = $client->request('GET', $uri, ['proxy' => self::$proxy]); 
         } 
         catch(\Exception $e) 
         { 
@@ -84,6 +94,9 @@ class EndpointService
 
         curl_setopt($ch, CURLOPT_HEADER, true);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+        if(!empty(self::$proxy))
+            curl_setopt($ch, CURLOPT_PROXY, self::$proxy);
 
         if (! empty($resume_token)) {
             curl_setopt($ch, CURLOPT_HTTPHEADER, array(
