@@ -21,10 +21,10 @@ class UpdateService
         EndpointService::getValidationRules($force_update);
     }
 
-    public static function updateRevokeList()
+    public static function updateRevokeList($force_update = false)
     {
         $crl = new CertificateRevocationList();
-        $crl->getUpdatedRevokeList();
+        $crl->getUpdatedRevokeList($force_update);
     }
 
     public static function updateAll($force_update = false)
@@ -32,6 +32,6 @@ class UpdateService
         self::updateCertificatesStatus($force_update);
         self::updateCertificateList($force_update);
         self::updateValidationRules($force_update);
-        self::updateRevokeList();
+        self::updateRevokeList($force_update);
     }
 }
