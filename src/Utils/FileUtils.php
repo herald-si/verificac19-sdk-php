@@ -35,7 +35,10 @@ class FileUtils
     public static function saveDataToFile($file, $data): bool
     {
         if (! empty($data)) {
-            $fp = fopen($file, 'w');
+            if(!$fp = fopen($file, 'w')) 
+            { 
+                throw new \RuntimeException("Error while saving data to file"); 
+            }
             fwrite($fp, $data);
             fclose($fp);
             return true;
