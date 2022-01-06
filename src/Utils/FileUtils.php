@@ -37,7 +37,7 @@ class FileUtils
         if (! empty($data)) {
             if(!$fp = fopen($file, 'w')) 
             { 
-                throw new \RuntimeException("Error while saving data to file"); 
+                throw new \ErrorException("Error while saving data to file"); 
             }
             fwrite($fp, $data);
             fclose($fp);
