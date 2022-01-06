@@ -2,6 +2,7 @@
 namespace Herald\GreenPass\Utils;
 
 use Herald\GreenPass\Exceptions\NoCertificateListException;
+use Herald\GreenPass\Exceptions\DownloadFailedException;
 use Herald\GreenPass\Decoder\Decoder;
 
 class EndpointService
@@ -41,6 +42,8 @@ class EndpointService
                 $uri = 'https://get.dgc.gov.it/v1/dgc/signercertificate/update' . $querystring;
                 $certificates = array();
                 $list = static::retrieveCertificateFromList($uri, $certificates);
+                if(empty($list))//the list signer certificate can't is empty 
+                    throw new DownloadFailedException("List empty, no data was returned from url ".$uri);
                 $return = json_encode($list);
                 break;
             default:
@@ -53,7 +56,18 @@ class EndpointService
     {
         $client = new \GuzzleHttp\Client();
 
-        $res = $client->request('GET', $uri);
+        try 
+        { 
+            $res = $client->request('GET', $uri); 
+        } 
+        catch(\Exception $e) 
+        { 
+            throw new DownloadFailedException("No response was returned from website ".$uri); 
+        } 
+ 
+        if (empty($res) || empty($res->getBody())) { 
+            throw new NoCertificateListException($type); 
+        }
 
         if (empty($res) || empty($res->getBody())) {
             throw new NoCertificateListException($type);
@@ -77,8 +91,17 @@ class EndpointService
             ));
         }
 
-        $response = curl_exec($ch);
-        $info = curl_getinfo($ch);
+        $response = curl_exec($ch); 
+        if(empty($response)) 
+            throw new DownloadFailedException("No response was returned from website ".$url); 
+         
+        $info = curl_getinfo($ch); 
+        if (empty($info['http_code'])) // if http_code is empty there war an error 
+            throw new \InvalidArgumentException("No HTTP code was returned  from website ".$url); 
+        else if ($info['http_code'] >= 400) // if http_code >= 400 there was a server error  
+            throw new DownloadFailedException("No response was returned from website ".$url); 
+        else if ($info['http_code'] != 200) // if http_code is different from 200 return list, it's useless to continue 
+            return $list;
 
         // Then, after your curl_exec call:
         $header_size = curl_getinfo($ch, CURLINFO_HEADER_SIZE);
@@ -98,16 +121,9 @@ class EndpointService
             }
         }
 
-        if (empty($info['http_code'])) {
-            throw new \InvalidArgumentException("No HTTP code was returned");
-        }
-
-        if ($info['http_code'] == 200) {
-            $list[$headers_arr['X-KID']] = $body;
-            return static::retrieveCertificateFromList($url, $list, $headers_arr['X-RESUME-TOKEN']);
-        } else {
-            return $list;
-        }
+        $list[$headers_arr['X-KID']] = $body;
+        return static::retrieveCertificateFromList($url, $list, $headers_arr['X-RESUME-TOKEN']);
+        
     }
 
     public static function getJsonFromFile(string $filename, string $type, $params = null, $force_update = false)
