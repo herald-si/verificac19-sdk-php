@@ -1,5 +1,6 @@
 <?php
 namespace Herald\GreenPass\Utils;
+use Herald\GreenPass\Exceptions\FileException;
 
 class FileUtils
 {
@@ -37,7 +38,7 @@ class FileUtils
         if (! empty($data)) {
             if(!$fp = fopen($file, 'w')) 
             { 
-                throw new \ErrorException("Error while saving data to file"); 
+                throw new FileException("Error on saving data to file"); 
             }
             fwrite($fp, $data);
             fclose($fp);
