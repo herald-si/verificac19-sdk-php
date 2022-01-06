@@ -40,7 +40,7 @@ class CertificateRevocationList
     {
         $uri = FileUtils::getCacheFilePath(self::DRL_STATUS_FILE);
         if (! file_exists($uri)) {
-            $json = $this->saveCurrentStatus(1, 0, self::DRL_STATUS_VALID);
+            $json = $this->saveCurrentStatus(1, 0, self::DRL_STATUS_NEED_VALIDATION);
         } else {
             $json = FileUtils::readDataFromFile($uri);
         }
