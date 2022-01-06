@@ -127,22 +127,22 @@ class EndpointService
         return json_decode($json);
     }
     
-    public static function getCertificatesStatus()
+    public static function getCertificatesStatus($force_update = false)
     {
         $uri = FileUtils::getCacheFilePath(self::STATUS_FILE);
-        return EndpointService::getJsonFromFile($uri, "certificate-status");
+        return EndpointService::getJsonFromFile($uri, "certificate-status", null, $force_update);
     }
     
-    public static function getCertificates()
+    public static function getCertificates($force_update = false)
     {
         $uri = FileUtils::getCacheFilePath(self::CERTS_FILE);
-        return EndpointService::getJsonFromFile($uri, "certificate-list");
+        return EndpointService::getJsonFromFile($uri, "certificate-list", null, $force_update);
     }
         
-    public static function getValidationRules()
+    public static function getValidationRules($force_update = false)
     {
-        $uri = FileUtils::getCacheFilePath(static::SETTINGS_FILE);
-        return EndpointService::getJsonFromFile($uri, "settings");
+        $uri = FileUtils::getCacheFilePath(self::SETTINGS_FILE);
+        return EndpointService::getJsonFromFile($uri, "settings", null, $force_update);
     }
         
 }

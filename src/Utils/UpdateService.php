@@ -6,32 +6,32 @@ use Herald\GreenPass\Validation\Covid19\CertificateRevocationList;
 class UpdateService
 {
 
-    public static function updateCertificatesStatus()
+    public static function updateCertificatesStatus($force_update = false)
     {
-        EndpointService::getCertificatesStatus();
+        EndpointService::getCertificatesStatus($force_update);
     }
 
-    public static function updateCertificateList()
+    public static function updateCertificateList($force_update = false)
     {
-        EndpointService::getCertificates();
+        EndpointService::getCertificates($force_update);
     }
 
-    public static function updateValidationRules()
+    public static function updateValidationRules($force_update = false)
     {
-        EndpointService::getValidationRules();
+        EndpointService::getValidationRules($force_update);
     }
 
-    public static function updateRevokeList()
+    public static function updateRevokeList($force_update = false)
     {
         $crl = new CertificateRevocationList();
-        $crl->getUpdatedRevokeList();
+        $crl->getUpdatedRevokeList($force_update);
     }
 
-    public static function updateAll()
+    public static function updateAll($force_update = false)
     {
-        self::updateCertificatesStatus();
-        self::updateCertificateList();
-        self::updateValidationRules();
-        self::updateRevokeList();
+        self::updateCertificatesStatus($force_update);
+        self::updateCertificateList($force_update);
+        self::updateValidationRules($force_update);
+        self::updateRevokeList($force_update);
     }
 }
