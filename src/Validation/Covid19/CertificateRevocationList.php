@@ -4,6 +4,7 @@ namespace Herald\GreenPass\Validation\Covid19;
 use Herald\GreenPass\Utils\FileUtils;
 use Herald\GreenPass\Utils\VerificaC19DB;
 use Herald\GreenPass\Utils\EndpointService;
+use Herald\GreenPass\Utils\EnvConfig;
 use Herald\GreenPass\Exceptions\DownloadFailedException;
 
 // https://github.com/ministero-salute/it-dgc-documentation/blob/master/DRL.md
@@ -177,9 +178,15 @@ class CertificateRevocationList
         return $this->db->isInRevokedUvciList($hashedKid);
     }
 
-    public function getUpdatedRevokeList()
+    public function getUpdatedRevokeList($force_update = false)
     {
         // DRL validation flow: https://github.com/ministero-salute/it-dgc-documentation/blob/master/DRL.md#flusso-applicativo
+
+        // force update -> empty list (only in debug mode)
+        if ($force_update && EnvConfig::isDebugEnabled()) {
+            $this->cleanCRL();
+        }
+        
         // Timer 24h or VALIDATION/RESUME DOWNLOAD NEEDED
         if (FileUtils::checkFileNotExistOrExpired(FileUtils::getCacheFilePath(self::DRL_STATUS_FILE), FileUtils::HOUR_BEFORE_DOWNLOAD_LIST * 3600) || $this->getCurrentCRLStatus()->validity == self::DRL_STATUS_NEED_VALIDATION || $this->getCurrentCRLStatus()->validity == self::DRL_STATUS_PENDING) {
             $this->getRevokeList();
