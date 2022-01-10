@@ -82,9 +82,7 @@ class CertificateRevocationList
             $this->db->addAllRevokedUcviToUcviList($drl->revokedUcvi);
         }
         if (isset($drl->delta->deletions)) {
-            foreach ($drl->delta->deletions as $revokedUcvi) {
-                $this->db->removeRevokedUcviFromUcviList($revokedUcvi);
-            }
+            $this->db->removeAllRevokedUcviFromUcviList($drl->delta->deletions);
         }
         if (isset($drl->delta->insertions)) {
             $this->db->addAllRevokedUcviToUcviList($drl->delta->insertions);
