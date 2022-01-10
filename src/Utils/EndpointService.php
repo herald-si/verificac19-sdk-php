@@ -94,7 +94,7 @@ class EndpointService
         // Create an associative array containing the response headers
         foreach ($headers_indexed_arr as $value) {
             if (false !== ($matches = array_pad(explode(':', $value), 2, null))) {
-                $headers_arr["{$matches[0]}"] = trim($matches[1]);
+                $headers_arr["{$matches[0]}"] = trim((string)$matches[1]);
             }
         }
 
