@@ -69,10 +69,6 @@ class EndpointService
             throw new NoCertificateListException($type); 
         }
 
-        if (empty($res) || empty($res->getBody())) {
-            throw new NoCertificateListException($type);
-        }
-
         return $res->getBody();
     }
 
