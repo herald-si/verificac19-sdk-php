@@ -14,6 +14,13 @@ class EndpointService
 
     private const SETTINGS_FILE = FileUtils::COUNTRY . "-gov-dgc-settings.json";
 
+    private static $proxy;
+
+    public static function setProxy($proxy)
+    {
+        self::$proxy = $proxy;
+    }
+
     private static function getValidationFromUri(string $type, array $params = null)
     {
         $uri = "";
@@ -60,7 +67,13 @@ class EndpointService
         $client = new \GuzzleHttp\Client();
 
         try {
-            $res = $client->request('GET', $uri);
+            if (empty(self::$proxy)) {
+                $res = $client->request('GET', $uri);
+            } else {
+                $res = $client->request('GET', $uri, [
+                    'proxy' => self::$proxy
+                ]);
+            }
         } catch (\Exception $e) {
             throw new DownloadFailedException(DownloadFailedException::NO_WEBSITE_RESPONSE . " " . $uri);
         }
@@ -81,6 +94,9 @@ class EndpointService
         curl_setopt($ch, CURLOPT_HEADER, true);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 
+        if (! empty(self::$proxy)) {
+            curl_setopt($ch, CURLOPT_PROXY, self::$proxy);
+        }
         if (! empty($resume_token)) {
             curl_setopt($ch, CURLOPT_HTTPHEADER, array(
                 "X-RESUME-TOKEN: $resume_token"
@@ -118,7 +134,7 @@ class EndpointService
         // Create an associative array containing the response headers
         foreach ($headers_indexed_arr as $value) {
             if (false !== ($matches = array_pad(explode(':', $value), 2, null))) {
-                $headers_arr["{$matches[0]}"] = trim((string)$matches[1]);
+                $headers_arr["{$matches[0]}"] = trim((string) $matches[1]);
             }
         }
 
