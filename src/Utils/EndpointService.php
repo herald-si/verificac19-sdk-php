@@ -67,12 +67,13 @@ class EndpointService
         $client = new \GuzzleHttp\Client();
 
         try {
-            if (empty(self::$proxy))
+            if (empty(self::$proxy)) {
                 $res = $client->request('GET', $uri);
-            else
+            } else {
                 $res = $client->request('GET', $uri, [
                     'proxy' => self::$proxy
                 ]);
+            }
         } catch (\Exception $e) {
             throw new DownloadFailedException(DownloadFailedException::NO_WEBSITE_RESPONSE . " " . $uri);
         }
@@ -93,9 +94,9 @@ class EndpointService
         curl_setopt($ch, CURLOPT_HEADER, true);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 
-        if (! empty(self::$proxy))
+        if (! empty(self::$proxy)) {
             curl_setopt($ch, CURLOPT_PROXY, self::$proxy);
-
+        }
         if (! empty($resume_token)) {
             curl_setopt($ch, CURLOPT_HTTPHEADER, array(
                 "X-RESUME-TOKEN: $resume_token"
