@@ -2,16 +2,25 @@
 namespace Herald\GreenPass\Utils;
 
 use Herald\GreenPass\Exceptions\NoCertificateListException;
+use Herald\GreenPass\Exceptions\DownloadFailedException;
 use Herald\GreenPass\Decoder\Decoder;
 
 class EndpointService
 {
+
     private const STATUS_FILE = FileUtils::COUNTRY . "-gov-dgc-status.json";
-    
+
     private const CERTS_FILE = FileUtils::COUNTRY . "-gov-dgc-certs.json";
-    
+
     private const SETTINGS_FILE = FileUtils::COUNTRY . "-gov-dgc-settings.json";
-    
+
+    private static $proxy;
+
+    public static function setProxy($proxy)
+    {
+        self::$proxy = $proxy;
+    }
+
     private static function getValidationFromUri(string $type, array $params = null)
     {
         $uri = "";
@@ -41,6 +50,10 @@ class EndpointService
                 $uri = 'https://get.dgc.gov.it/v1/dgc/signercertificate/update' . $querystring;
                 $certificates = array();
                 $list = static::retrieveCertificateFromList($uri, $certificates);
+                // the list signer certificate can't is empty
+                if (empty($list)) {
+                    throw new DownloadFailedException(DownloadFailedException::NO_DATA_RESPONSE . " " . $uri);
+                }
                 $return = json_encode($list);
                 break;
             default:
@@ -53,7 +66,17 @@ class EndpointService
     {
         $client = new \GuzzleHttp\Client();
 
-        $res = $client->request('GET', $uri);
+        try {
+            if (empty(self::$proxy)) {
+                $res = $client->request('GET', $uri);
+            } else {
+                $res = $client->request('GET', $uri, [
+                    'proxy' => self::$proxy
+                ]);
+            }
+        } catch (\Exception $e) {
+            throw new DownloadFailedException(DownloadFailedException::NO_WEBSITE_RESPONSE . " " . $uri);
+        }
 
         if (empty($res) || empty($res->getBody())) {
             throw new NoCertificateListException($type);
@@ -71,6 +94,9 @@ class EndpointService
         curl_setopt($ch, CURLOPT_HEADER, true);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 
+        if (! empty(self::$proxy)) {
+            curl_setopt($ch, CURLOPT_PROXY, self::$proxy);
+        }
         if (! empty($resume_token)) {
             curl_setopt($ch, CURLOPT_HTTPHEADER, array(
                 "X-RESUME-TOKEN: $resume_token"
@@ -78,7 +104,21 @@ class EndpointService
         }
 
         $response = curl_exec($ch);
+        if (empty($response)) {
+            throw new DownloadFailedException(DownloadFailedException::NO_WEBSITE_RESPONSE . " " . $url);
+        }
+
         $info = curl_getinfo($ch);
+        // if http_code is empty there war an error
+        if (empty($info['http_code'])) {
+            throw new \InvalidArgumentException("No HTTP code was returned  from website " . $url);
+        } // if http_code >= 400 there was a server error
+        else if ($info['http_code'] >= 400) {
+            throw new DownloadFailedException(DownloadFailedException::NO_WEBSITE_RESPONSE . " " . $url);
+        } // if http_code is different from 200 return list, it's useless to continue
+        else if ($info['http_code'] != 200) {
+            return $list;
+        }
 
         // Then, after your curl_exec call:
         $header_size = curl_getinfo($ch, CURLINFO_HEADER_SIZE);
@@ -94,25 +134,17 @@ class EndpointService
         // Create an associative array containing the response headers
         foreach ($headers_indexed_arr as $value) {
             if (false !== ($matches = array_pad(explode(':', $value), 2, null))) {
-                $headers_arr["{$matches[0]}"] = trim($matches[1]);
+                $headers_arr["{$matches[0]}"] = trim((string) $matches[1]);
             }
         }
 
-        if (empty($info['http_code'])) {
-            throw new \InvalidArgumentException("No HTTP code was returned");
-        }
-
-        if ($info['http_code'] == 200) {
-            $list[$headers_arr['X-KID']] = $body;
-            return static::retrieveCertificateFromList($url, $list, $headers_arr['X-RESUME-TOKEN']);
-        } else {
-            return $list;
-        }
+        $list[$headers_arr['X-KID']] = $body;
+        return static::retrieveCertificateFromList($url, $list, $headers_arr['X-RESUME-TOKEN']);
     }
 
     public static function getJsonFromFile(string $filename, string $type, $params = null, $force_update = false)
     {
-        if (FileUtils::checkFileNotExistOrExpired($filename, FileUtils::HOUR_BEFORE_DOWNLOAD_LIST * 3600) || $force_update) {
+        if (FileUtils::checkFileNotExistOrExpired($filename, FileUtils::HOUR_BEFORE_DOWNLOAD_LIST * 3600) || ($force_update && EnvConfig::isDebugEnabled())) {
             $json = self::getValidationFromUri($type, $params);
             FileUtils::saveDataToFile($filename, $json);
         } else {
@@ -126,23 +158,22 @@ class EndpointService
         $json = self::getValidationFromUri($type, $params);
         return json_decode($json);
     }
-    
-    public static function getCertificatesStatus()
+
+    public static function getCertificatesStatus($force_update = false)
     {
         $uri = FileUtils::getCacheFilePath(self::STATUS_FILE);
-        return EndpointService::getJsonFromFile($uri, "certificate-status");
+        return EndpointService::getJsonFromFile($uri, "certificate-status", null, $force_update);
     }
-    
-    public static function getCertificates()
+
+    public static function getCertificates($force_update = false)
     {
         $uri = FileUtils::getCacheFilePath(self::CERTS_FILE);
-        return EndpointService::getJsonFromFile($uri, "certificate-list");
+        return EndpointService::getJsonFromFile($uri, "certificate-list", null, $force_update);
     }
-        
-    public static function getValidationRules()
+
+    public static function getValidationRules($force_update = false)
     {
-        $uri = FileUtils::getCacheFilePath(static::SETTINGS_FILE);
-        return EndpointService::getJsonFromFile($uri, "settings");
+        $uri = FileUtils::getCacheFilePath(self::SETTINGS_FILE);
+        return EndpointService::getJsonFromFile($uri, "settings", null, $force_update);
     }
-        
 }
