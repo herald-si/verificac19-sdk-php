@@ -1,5 +1,6 @@
 <?php
 namespace Herald\GreenPass\Utils;
+use Herald\GreenPass\Exceptions\FileException;
 
 class FileUtils
 {
@@ -35,7 +36,10 @@ class FileUtils
     public static function saveDataToFile($file, $data): bool
     {
         if (! empty($data)) {
-            $fp = fopen($file, 'w');
+            if(!$fp = fopen($file, 'w')) 
+            { 
+                throw new FileException("Error on saving data to file"); 
+            }
             fwrite($fp, $data);
             fclose($fp);
             return true;
