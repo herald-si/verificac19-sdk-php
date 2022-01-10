@@ -114,6 +114,21 @@ class VerificaC19DB
 
         return $stmt->rowCount();
     }
+    
+    public function removeAllRevokedUcviFromUcviList(array $revokedUcvi)
+    {
+        $this->pdo->beginTransaction();
+        $sql = 'DELETE FROM ucvi WHERE revokedUcvi = ?';
+        $stmt = $this->pdo->prepare($sql);
+        
+        foreach ($revokedUcvi as $d) {
+            $stmt->execute([
+                $d
+            ]);
+        }
+        
+        $this->pdo->commit();
+    }
 
     public function getRevokedUcviList()
     {
