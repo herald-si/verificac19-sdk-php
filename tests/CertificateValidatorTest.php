@@ -11,12 +11,6 @@ class CertificateValidatorTest extends \PHPUnit\Framework\TestCase
 {
 
     /**
-     *
-     * @var GreenPass
-     */
-    private $greenPass;
-
-    /**
      * Tests name
      */
     public function testCertificateValidatorDecoder()
