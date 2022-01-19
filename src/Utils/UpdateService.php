@@ -6,6 +6,11 @@ use Herald\GreenPass\Validation\Covid19\CertificateRevocationList;
 class UpdateService
 {
 
+    public static function setProxy($proxy) 
+    { 
+        EndpointService::setProxy($proxy);
+    }
+
     public static function updateCertificatesStatus()
     {
         EndpointService::getCertificatesStatus();

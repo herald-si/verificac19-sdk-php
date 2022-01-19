@@ -40,7 +40,7 @@ class CertificateRevocationList
     {
         $uri = FileUtils::getCacheFilePath(self::DRL_STATUS_FILE);
         if (! file_exists($uri)) {
-            $json = $this->saveCurrentStatus(1, 0, self::DRL_STATUS_VALID);
+            $json = $this->saveCurrentStatus(1, 0, self::DRL_STATUS_NEED_VALIDATION);
         } else {
             $json = FileUtils::readDataFromFile($uri);
         }
@@ -82,9 +82,7 @@ class CertificateRevocationList
             $this->db->addAllRevokedUcviToUcviList($drl->revokedUcvi);
         }
         if (isset($drl->delta->deletions)) {
-            foreach ($drl->delta->deletions as $revokedUcvi) {
-                $this->db->removeRevokedUcviFromUcviList($revokedUcvi);
-            }
+            $this->db->removeAllRevokedUcviFromUcviList($drl->delta->deletions);
         }
         if (isset($drl->delta->insertions)) {
             $this->db->addAllRevokedUcviToUcviList($drl->delta->insertions);

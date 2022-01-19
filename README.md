@@ -6,6 +6,7 @@
   - [Permessi cartella assets](#permessi-cartella-assets)
 - [Uso](#uso)
   - [Cache Folder](#cache-folder)
+  - [Proxy](#proxy)
   - [Modalità di scansione](#scan-mode)
 - [Licenza](#licenza)
   - [Dettaglio licenza](#dettaglio-licenza)
@@ -97,7 +98,7 @@ stato della verifica del DCC.
 
 ## Cache Folder
 
-Dalla release `1.0.5` esiste la possilità di modificare il path di salvataggio dei 
+Dalla release `1.0.5` esiste la possibilità di modificare il path di salvataggio dei 
 file, utilizzando il metodo `overrideCacheFilePath` della classe `FileUtils`:
 
 ```php
@@ -128,6 +129,14 @@ E', quindi, possibile all'interno dell'applicativo che utilizza questo SDK crear
 
 In questo modo durante la verifica della stringa del GreenPass è probabile che le stesse siano già aggiornate, riducendo i tempi di verifica.
 
+## Proxy
+(thanks to [@darpins](https://github.com/darpins))
+
+Dalla release `1.2.3` è possibile utilizzare un proxy per le chiamate agli endpoint per il download delle regole/liste di certificato, utilizzando il metodo `setProxy` della classe `EndpointService`:
+
+```php
+Herald\GreenPass\Utils\EndpointService::setProxy("https://username:password@192.168.0.1:8000");
+```
 ## Scan Mode
 Dalla versione `1.0.5` è necessario definire una delle due modalità di verifica della Certificazione verde Covid-19: BASE o RAFFORZATA.
 Dalla versione `1.2.0` è possibile definire una nuova modalità, BOOSTER.
