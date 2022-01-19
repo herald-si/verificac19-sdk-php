@@ -1,17 +1,15 @@
 <?php
+
 namespace Herald\GreenPass\Validation\Covid19;
 
-use Herald\GreenPass\GreenPass;
 use Herald\GreenPass\GPDataTest;
-use Herald\GreenPass\Decoder\Decoder;
-use Herald\GreenPass\Validation\Covid19\GreenPassCovid19CheckerTest;
+use Herald\GreenPass\GreenPass;
 
 /**
  * RecoveryCheckerTest test case.
  */
 class RecoveryCheckerTest extends GreenPassCovid19CheckerTest
 {
-
     /*
      * Test recovery dopo un mese
      */
@@ -20,14 +18,14 @@ class RecoveryCheckerTest extends GreenPassCovid19CheckerTest
         $testgp = GPDataTest::$recovery;
         $data_greenpass = $this->data_oggi->modify(self::DATE_A_MONTH_AGO);
         $data_scadenza_gp = $this->data_oggi->modify(self::DATE_IN_5_MONTHS);
-        $testgp["r"][0]["fr"] = $data_greenpass->format("Y-m-d");
-        $testgp["r"][0]["df"] = $data_greenpass->format("Y-m-d");
-        $testgp["r"][0]["du"] = $data_scadenza_gp->format("Y-m-d");
+        $testgp['r'][0]['fr'] = $data_greenpass->format('Y-m-d');
+        $testgp['r'][0]['df'] = $data_greenpass->format('Y-m-d');
+        $testgp['r'][0]['du'] = $data_scadenza_gp->format('Y-m-d');
 
         $greenpass = new GreenPass($testgp);
 
         $esito = GreenPassCovid19Checker::verifyCert($greenpass);
-        $this->assertEquals("VALID", $esito);
+        $this->assertEquals('VALID', $esito);
     }
 
     /*
@@ -38,52 +36,52 @@ class RecoveryCheckerTest extends GreenPassCovid19CheckerTest
         $testgp = GPDataTest::$recovery;
         $data_greenpass = $this->data_oggi->modify(self::DATE_A_MONTH_AGO);
         $data_scadenza_gp = $this->data_oggi->modify(self::DATE_IN_5_MONTHS);
-        $testgp["r"][0]["fr"] = $data_greenpass->format("Y-m-d");
-        $testgp["r"][0]["df"] = $data_greenpass->format("Y-m-d");
-        $testgp["r"][0]["du"] = $data_scadenza_gp->format("Y-m-d");
+        $testgp['r'][0]['fr'] = $data_greenpass->format('Y-m-d');
+        $testgp['r'][0]['df'] = $data_greenpass->format('Y-m-d');
+        $testgp['r'][0]['du'] = $data_scadenza_gp->format('Y-m-d');
 
         $greenpass = new GreenPass($testgp);
 
-        $esito = GreenPassCovid19Checker::verifyCert($greenpass, "3G");
-        $this->assertEquals("VALID", $esito);
+        $esito = GreenPassCovid19Checker::verifyCert($greenpass, '3G');
+        $this->assertEquals('VALID', $esito);
 
-        $esito = GreenPassCovid19Checker::verifyCert($greenpass, "2G");
-        $this->assertEquals("VALID", $esito);
+        $esito = GreenPassCovid19Checker::verifyCert($greenpass, '2G');
+        $this->assertEquals('VALID', $esito);
     }
 
     /**
-     * Test Booster Scan mode
+     * Test Booster Scan mode.
      */
     public function testBoosterScanMode()
     {
         $testgp = GPDataTest::$recovery;
         $data_greenpass = $this->data_oggi->modify(self::DATE_A_MONTH_AGO);
         $data_scadenza_gp = $this->data_oggi->modify(self::DATE_IN_5_MONTHS);
-        $testgp["r"][0]["fr"] = $data_greenpass->format("Y-m-d");
-        $testgp["r"][0]["df"] = $data_greenpass->format("Y-m-d");
-        $testgp["r"][0]["du"] = $data_scadenza_gp->format("Y-m-d");
+        $testgp['r'][0]['fr'] = $data_greenpass->format('Y-m-d');
+        $testgp['r'][0]['df'] = $data_greenpass->format('Y-m-d');
+        $testgp['r'][0]['du'] = $data_scadenza_gp->format('Y-m-d');
 
         $greenpass = new GreenPass($testgp);
 
-        $esito = GreenPassCovid19Checker::verifyCert($greenpass, "3G");
-        $this->assertEquals("VALID", $esito);
+        $esito = GreenPassCovid19Checker::verifyCert($greenpass, '3G');
+        $this->assertEquals('VALID', $esito);
 
-        $esito = GreenPassCovid19Checker::verifyCert($greenpass, "BOOSTED");
-        $this->assertEquals("TEST_NEEDED", $esito);
+        $esito = GreenPassCovid19Checker::verifyCert($greenpass, 'BOOSTED');
+        $this->assertEquals('TEST_NEEDED', $esito);
     }
 
     /**
-     * Test recovery da domani
+     * Test recovery da domani.
      */
     public function testTomorrow()
     {
         $testgp = GPDataTest::$recovery;
         $data_greenpass = $this->data_oggi->modify(self::DATE_TOMORROW);
-        $testgp["r"][0]["df"] = $data_greenpass->format("Y-m-d");
+        $testgp['r'][0]['df'] = $data_greenpass->format('Y-m-d');
         $greenpass = new GreenPass($testgp);
 
         $esito = GreenPassCovid19Checker::verifyCert($greenpass);
-        $this->assertEquals("NOT_VALID_YET", $esito);
+        $this->assertEquals('NOT_VALID_YET', $esito);
     }
 
     /*
@@ -93,14 +91,17 @@ class RecoveryCheckerTest extends GreenPassCovid19CheckerTest
     {
         $testgp = GPDataTest::$recovery;
         $data_greenpass = $this->data_oggi->modify(self::DATE_5_MONTHS_AGO);
-        $testgp["r"][0]["fr"] = $data_greenpass->format("Y-m-d");
-        $testgp["r"][0]["df"] = $data_greenpass->format("Y-m-d");
+        $testgp['r'][0]['fr'] = $data_greenpass->format('Y-m-d');
+        $testgp['r'][0]['df'] = $data_greenpass->format('Y-m-d');
         $data_fine_validita = $this->data_oggi->modify(self::DATE_A_DAY_AGO);
-        $testgp["r"][0]["du"] = $data_fine_validita->format("Y-m-d");
+        $testgp['r'][0]['du'] = $data_fine_validita->format('Y-m-d');
         $greenpass = new GreenPass($testgp);
 
         $esito = GreenPassCovid19Checker::verifyCert($greenpass);
-        $this->assertEquals("PARTIALLY_VALID", $esito);
+        $this->assertEquals('VALID', $esito);
+
+        $esito = GreenPassCovid19Checker::verifyCert($greenpass, 'BOOSTED');
+        $this->assertEquals('TEST_NEEDED', $esito);
     }
 
     /*
@@ -110,12 +111,11 @@ class RecoveryCheckerTest extends GreenPassCovid19CheckerTest
     {
         $testgp = GPDataTest::$recovery;
         $data_greenpass = $this->data_oggi->modify(self::DATE_7_MONTHS_AGO);
-        $testgp["r"][0]["fr"] = $data_greenpass->format("Y-m-d");
-        $testgp["r"][0]["df"] = $data_greenpass->format("Y-m-d");
+        $testgp['r'][0]['fr'] = $data_greenpass->format('Y-m-d');
+        $testgp['r'][0]['df'] = $data_greenpass->format('Y-m-d');
         $greenpass = new GreenPass($testgp);
 
         $esito = GreenPassCovid19Checker::verifyCert($greenpass);
-        $this->assertEquals("NOT_VALID", $esito);
+        $this->assertEquals('NOT_VALID', $esito);
     }
 }
-
