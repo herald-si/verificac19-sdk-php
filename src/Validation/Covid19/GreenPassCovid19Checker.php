@@ -1,26 +1,26 @@
 <?php
+
 namespace Herald\GreenPass\Validation\Covid19;
 
+use Herald\GreenPass\GreenPass;
 use Herald\GreenPass\GreenPassEntities\CertCode;
 use Herald\GreenPass\GreenPassEntities\CertificateType;
 use Herald\GreenPass\GreenPassEntities\Country;
-use Herald\GreenPass\GreenPassEntities\VaccinationDose;
-use Herald\GreenPass\GreenPassEntities\TestResult;
-use Herald\GreenPass\GreenPassEntities\RecoveryStatement;
 use Herald\GreenPass\GreenPassEntities\Covid19;
+use Herald\GreenPass\GreenPassEntities\RecoveryStatement;
+use Herald\GreenPass\GreenPassEntities\TestResult;
 use Herald\GreenPass\GreenPassEntities\TestResultType;
 use Herald\GreenPass\GreenPassEntities\TestType;
-use Herald\GreenPass\GreenPass;
+use Herald\GreenPass\GreenPassEntities\VaccinationDose;
 use Herald\GreenPass\Utils\EndpointService;
 
 class GreenPassCovid19Checker
 {
-
-    public static function verifyCert(GreenPass $greenPass, String $scanMode = ValidationScanMode::CLASSIC_DGP)
+    public static function verifyCert(GreenPass $greenPass, string $scanMode = ValidationScanMode::CLASSIC_DGP)
     {
         $cert = $greenPass->certificate;
 
-        if (! self::verifyDiseaseAgent($cert->diseaseAgent)) {
+        if (!self::verifyDiseaseAgent($cert->diseaseAgent)) {
             return ValidationStatus::NOT_COVID_19;
         }
 
@@ -51,6 +51,7 @@ class GreenPassCovid19Checker
             if ($scanMode == ValidationScanMode::SUPER_DGP || $scanMode == ValidationScanMode::BOOSTER_DGP) {
                 return ValidationStatus::NOT_VALID;
             }
+
             return self::verifyTestResults($cert, $data_oggi);
         }
 
@@ -72,12 +73,13 @@ class GreenPassCovid19Checker
                 break;
             }
         }
+
         return $value;
     }
 
     private static function verifyDiseaseAgent($agent)
     {
-        return ($agent instanceof Covid19);
+        return $agent instanceof Covid19;
     }
 
     private static function verifyVaccinationDose(VaccinationDose $cert, \DateTime $validation_date, string $scanMode)
@@ -108,7 +110,8 @@ class GreenPassCovid19Checker
             if ($scanMode == ValidationScanMode::BOOSTER_DGP) {
                 return ValidationStatus::NOT_VALID;
             }
-            return ValidationStatus::PARTIALLY_VALID;
+
+            return ValidationStatus::VALID;
         }
 
         if ($cert->doseGiven >= $cert->totalDoses) {
@@ -156,11 +159,10 @@ class GreenPassCovid19Checker
         }
 
         if ($cert->type == TestType::MOLECULAR) {
-
-            $ore_min_valido = self::getValueFromValidationRules(ValidationRules::MOLECULAR_TEST_START_HOUR, "GENERIC");
+            $ore_min_valido = self::getValueFromValidationRules(ValidationRules::MOLECULAR_TEST_START_HOUR, 'GENERIC');
             $ora_inizio_validita = $cert->date->modify("+$ore_min_valido hours");
 
-            $ore_max_valido = self::getValueFromValidationRules(ValidationRules::MOLECULAR_TEST_END_HOUR, "GENERIC");
+            $ore_max_valido = self::getValueFromValidationRules(ValidationRules::MOLECULAR_TEST_END_HOUR, 'GENERIC');
             $ora_fine_validita = $cert->date->modify("+$ore_max_valido hours");
 
             if ($validation_date < $ora_inizio_validita) {
@@ -174,11 +176,10 @@ class GreenPassCovid19Checker
         }
 
         if ($cert->type == TestType::RAPID) {
-
-            $ore_min_valido = self::getValueFromValidationRules(ValidationRules::RAPID_TEST_START_HOUR, "GENERIC");
+            $ore_min_valido = self::getValueFromValidationRules(ValidationRules::RAPID_TEST_START_HOUR, 'GENERIC');
             $ora_inizio_validita = $cert->date->modify("+$ore_min_valido hours");
 
-            $ore_max_valido = self::getValueFromValidationRules(ValidationRules::RAPID_TEST_END_HOUR, "GENERIC");
+            $ore_max_valido = self::getValueFromValidationRules(ValidationRules::RAPID_TEST_END_HOUR, 'GENERIC');
             $ora_fine_validita = $cert->date->modify("+$ore_max_valido hours");
 
             if ($validation_date < $ora_inizio_validita) {
@@ -197,8 +198,8 @@ class GreenPassCovid19Checker
     private static function verifyRecoveryStatement(RecoveryStatement $cert, \DateTime $validation_date, string $scanMode, $certificate)
     {
         $isRecoveryBis = self::isRecoveryBis($cert, $certificate);
-        $start_day = $isRecoveryBis ? self::getValueFromValidationRules(ValidationRules::RECOVERY_CERT_PV_START_DAY, "GENERIC") : self::getValueFromValidationRules(ValidationRules::RECOVERY_CERT_START_DAY, "GENERIC");
-        $end_day = $isRecoveryBis ? self::getValueFromValidationRules(ValidationRules::RECOVERY_CERT_PV_END_DAY, "GENERIC") : self::getValueFromValidationRules(ValidationRules::RECOVERY_CERT_END_DAY, "GENERIC");
+        $start_day = $isRecoveryBis ? self::getValueFromValidationRules(ValidationRules::RECOVERY_CERT_PV_START_DAY, 'GENERIC') : self::getValueFromValidationRules(ValidationRules::RECOVERY_CERT_START_DAY, 'GENERIC');
+        $end_day = $isRecoveryBis ? self::getValueFromValidationRules(ValidationRules::RECOVERY_CERT_PV_END_DAY, 'GENERIC') : self::getValueFromValidationRules(ValidationRules::RECOVERY_CERT_END_DAY, 'GENERIC');
 
         $valid_from = $cert->validFrom;
 
@@ -213,10 +214,6 @@ class GreenPassCovid19Checker
             return ValidationStatus::NOT_VALID;
         }
 
-        if ($validation_date > $end_date) {
-            return ValidationStatus::PARTIALLY_VALID;
-        }
-
         if ($scanMode == ValidationScanMode::BOOSTER_DGP) {
             return ValidationStatus::TEST_NEEDED;
         }
@@ -228,25 +225,27 @@ class GreenPassCovid19Checker
     {
         $list = self::getValueFromValidationRules(ValidationRules::BLACK_LIST_UVCI, ValidationRules::BLACK_LIST_UVCI);
         if ($list != ValidationStatus::NOT_FOUND) {
-            $blacklisted = explode(";", $list);
+            $blacklisted = explode(';', $list);
             foreach ($blacklisted as $bl_item) {
                 if ($kid == $bl_item) {
                     return true;
                 }
             }
         }
+
         return false;
     }
 
     private static function checkInDrl(string $kid): bool
     {
         $crl = new CertificateRevocationList();
+
         return $crl->isUVCIRevoked($kid);
     }
 
     private static function extractUVCI(GreenPass $greenPass): string
     {
-        $certificateIdentifier = "";
+        $certificateIdentifier = '';
         $cert = $greenPass->certificate;
 
         if ($cert instanceof VaccinationDose) {
@@ -258,19 +257,21 @@ class GreenPassCovid19Checker
         if ($cert instanceof RecoveryStatement) {
             $certificateIdentifier = $cert->id;
         }
+
         return $certificateIdentifier;
     }
 
     private static function isRecoveryBis(CertificateType $cert, $signingCertificate)
     {
         if ($cert->country == Country::ITALY) {
-            $eku = isset($signingCertificate["extensions"]["extendedKeyUsage"]) ? $signingCertificate["extensions"]["extendedKeyUsage"] : "";
+            $eku = isset($signingCertificate['extensions']['extendedKeyUsage']) ? $signingCertificate['extensions']['extendedKeyUsage'] : '';
             foreach (explode(', ', $eku) as $keyUsage) {
                 if (CertCode::OID_RECOVERY == $keyUsage || CertCode::OID_ALT_RECOVERY == $keyUsage) {
                     return true;
                 }
             }
         }
+
         return false;
     }
 }
