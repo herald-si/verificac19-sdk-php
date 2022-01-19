@@ -60,6 +60,7 @@ class GreenPass
 
     public function checkValid(String $scanMode)
     {
-        return ValidationStatus::greenpassStatusAnonymizer(GreenPassCovid19Checker::verifyCert($this, $scanMode));
+        $statusCert = GreenPassCovid19Checker::verifyCert($this, $scanMode);
+        return ValidationStatus::greenpassStatusAnonymizer($statusCert, $scanMode);
     }
 }

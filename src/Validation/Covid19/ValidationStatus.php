@@ -1,6 +1,8 @@
 <?php
 namespace Herald\GreenPass\Validation\Covid19;
 
+use Herald\GreenPass\Validation\Covid19\ValidationScanMode;
+
 /*
  * https://ministero-salute.github.io/it-dgc-verificac19-sdk-android/documentation/-verifica-c19%20-s-d-k/it.ministerodellasalute.verificaC19sdk.model/-certificate-status/index.html
  */
@@ -32,15 +34,17 @@ class ValidationStatus
     const TEST_NEEDED = "TEST_NEEDED";
     
     // vedi it-dgc-verificac19-sdk-android/sdk/src/main/java/it/ministerodellasalute/verificaC19sdk/model/VerificationViewModel.kt fullModel
-    public static function greenpassStatusAnonymizer($stato)
+    public static function greenpassStatusAnonymizer($stato, $scanMode)
     {
         switch ($stato) {
             
             case ValidationStatus::NOT_VALID_YET:
             case ValidationStatus::EXPIRED:
                 return "NOT_VALID";
-            case ValidationStatus::PARTIALLY_VALID:
+            case ValidationStatus::PARTIALLY_VALID && $scanMode != ValidationScanMode::BOOSTER_DGP:
                 return "VALID";
+            case ValidationStatus::PARTIALLY_VALID && $scanMode == ValidationScanMode::BOOSTER_DGP:
+                return "TEST_NEEDED";
             default:
                 return $stato;
         }
