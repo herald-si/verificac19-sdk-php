@@ -204,7 +204,6 @@ class GreenPassCovid19Checker
         $valid_from = $cert->validFrom;
 
         $start_date = $valid_from->modify("+$start_day days");
-        $end_date = $cert->validUntil;
 
         if ($start_date > $validation_date) {
             return ValidationStatus::NOT_VALID_YET;
