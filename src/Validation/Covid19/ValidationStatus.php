@@ -37,16 +37,24 @@ class ValidationStatus
     public static function greenpassStatusAnonymizer($stato, $scanMode)
     {
         switch ($stato) {
-            
             case ValidationStatus::NOT_VALID_YET:
             case ValidationStatus::EXPIRED:
                 return ValidationStatus::NOT_VALID;
-            case ValidationStatus::PARTIALLY_VALID && $scanMode != ValidationScanMode::BOOSTER_DGP:
-                return ValidationStatus::VALID;
-            case ValidationStatus::PARTIALLY_VALID && $scanMode == ValidationScanMode::BOOSTER_DGP:
-                return ValidationStatus::TEST_NEEDED;
+            case ValidationStatus::PARTIALLY_VALID:
+                return self::convertStatusPartially($scanMode);
             default:
                 return $stato;
         }
     }
+    
+    private static function convertStatusPartially($scanMode)
+    {
+        if($scanMode == ValidationScanMode::BOOSTER_DGP){
+            return ValidationStatus::TEST_NEEDED;
+        }
+
+        return ValidationStatus::VALID;
+            
+    }
+
 }
