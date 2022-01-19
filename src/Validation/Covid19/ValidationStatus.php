@@ -40,13 +40,15 @@ class ValidationStatus
             
             case ValidationStatus::NOT_VALID_YET:
             case ValidationStatus::EXPIRED:
-                return "NOT_VALID";
+                $statusToReturn = ValidationStatus::NOT_VALID;
             case ValidationStatus::PARTIALLY_VALID && $scanMode != ValidationScanMode::BOOSTER_DGP:
-                return "VALID";
+                $statusToReturn = ValidationStatus::VALID;
             case ValidationStatus::PARTIALLY_VALID && $scanMode == ValidationScanMode::BOOSTER_DGP:
-                return "TEST_NEEDED";
+                $statusToReturn = ValidationStatus::TEST_NEEDED;
             default:
-                return $stato;
+                $statusToReturn = $stato;
         }
+
+        return $statusToReturn;
     }
 }
