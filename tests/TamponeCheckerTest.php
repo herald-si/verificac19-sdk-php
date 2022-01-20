@@ -80,6 +80,20 @@ class TamponeCheckerTest extends GreenPassCovid19CheckerTest
 
         $esito = GreenPassCovid19Checker::verifyCert($greenpass, 'WORK');
         $this->assertEquals('VALID', $esito);
+
+        // fixed young date
+        $testgp['dob'] = '2000-01-01';
+        $greenpass = new GreenPass($testgp);
+
+        $esito = GreenPassCovid19Checker::verifyCert($greenpass, 'WORK');
+        $this->assertEquals('VALID', $esito);
+
+        // fixed old date
+        $testgp['dob'] = '1930-01-01';
+        $greenpass = new GreenPass($testgp);
+
+        $esito = GreenPassCovid19Checker::verifyCert($greenpass, 'WORK');
+        $this->assertEquals('NOT_VALID', $esito);
     }
 
     /**
