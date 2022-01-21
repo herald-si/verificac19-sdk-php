@@ -8,6 +8,9 @@
   - [Cache Folder](#cache-folder)
   - [Proxy](#proxy)
   - [Modalità di scansione](#scan-mode)
+- [Debug mode](#debug-mode)
+  - [Force cache update](#force-cache-update)
+  - [Errori di scansione](#visualizza-errori-scansione)
 - [Licenza](#licenza)
   - [Dettaglio licenza](#dettaglio-licenza)
 
@@ -161,6 +164,35 @@ $scanMode = ValidationScanMode::BOOSTER_DGP;
 
 $gp_reader = new CertificateValidator($gp_string, $scanMode);
 ```
+# Debug mode
+Per aiutare l'implementazione di questo sdk, è stata introdotta una funzionalità di Debug.
+E' possibile abilitare la stessa utilizzando il metodo `enableDebugMode` della classe `EnvConfig` e disabilitarlo con il metodo `disableDebugMode`:
+
+```php
+Herald\GreenPass\Utils\EnvConfig::enableDebugMode();
+... do some test ...
+Herald\GreenPass\Utils\EnvConfig::disableDebugMode();
+```
+## Force cache update
+E' possibile, solo con debug mode attivo, forzare l'aggiornamento dei file nella cache, passando il parametro opzionale `force_update` a `true`.
+Esempi di funzionamento:
+```php
+//non viene forzato l'aggiornamento, manca debug mode
+Herald\GreenPass\Utils\UpdateService::updateCertificatesStatus(true); 
+---
+//non viene forzato l'aggiornamento, parametro force update a false
+Herald\GreenPass\Utils\EnvConfig::enableDebugMode();
+Herald\GreenPass\Utils\UpdateService::updateCertificatesStatus(); 
+---
+//viene forzato l'aggiornamento, non usare in produzione!
+Herald\GreenPass\Utils\EnvConfig::enableDebugMode();
+Herald\GreenPass\Utils\UpdateService::updateCertificatesStatus(true); 
+
+```
+## Visualizza errori scansione
+Abilitando il debug mode:
+- in tutti i casi in cui la risposta alla scansione avrebbe generato un esito `NOT_EU_DCC`, viene invece mostrato lo stack di errore che ha generato questo esito.
+- in tutti gli altri casi, viene mostrato l'esito della validazione, ma viene restituita la stringa `DISABLE-DEBUG-MODE-IN-PRODUCTION` al posto del nome e cognome contenuti nel greenpass (per evitare di mantenere abilitato il debug mode in produzione).
 
 # Licenza
 
