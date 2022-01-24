@@ -1,5 +1,4 @@
 <?php
-
 namespace Herald\GreenPass\Validation\Covid19;
 
 /*
@@ -7,11 +6,10 @@ namespace Herald\GreenPass\Validation\Covid19;
  */
 class ValidationScanMode
 {
-    const SUPER_DGP = '2G';
 
-    const CLASSIC_DGP = '3G';
+    const SUPER_DGP = "2G";
 
-    const BOOSTER_DGP = 'BOOSTED';
-
-    const WORK_DGP = 'WORK';
+    const CLASSIC_DGP = "3G";
+    
+    const BOOSTER_DGP = "BOOSTED";
 }
