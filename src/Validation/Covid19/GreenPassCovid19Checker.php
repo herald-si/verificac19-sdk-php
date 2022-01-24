@@ -7,6 +7,7 @@ use Herald\GreenPass\GreenPassEntities\CertCode;
 use Herald\GreenPass\GreenPassEntities\CertificateType;
 use Herald\GreenPass\GreenPassEntities\Country;
 use Herald\GreenPass\GreenPassEntities\Covid19;
+use Herald\GreenPass\GreenPassEntities\Exemption;
 use Herald\GreenPass\GreenPassEntities\RecoveryStatement;
 use Herald\GreenPass\GreenPassEntities\TestResult;
 use Herald\GreenPass\GreenPassEntities\TestResultType;
@@ -52,12 +53,17 @@ class GreenPassCovid19Checker
                 return ValidationStatus::NOT_VALID;
             }
 
-            return self::verifyTestResults($cert, $data_oggi, $scanMode, $greenPass->holder->dateOfBirth);
+            return self::verifyTestResults($cert, $data_oggi);
         }
 
         // guarigione avvenuta
         if ($cert instanceof RecoveryStatement) {
             return self::verifyRecoveryStatement($cert, $data_oggi, $scanMode, $greenPass->signingCertInfo);
+        }
+
+        // esenzione
+        if ($cert instanceof Exemption) {
+            return self::verifyExemption($cert, $data_oggi, $scanMode);
         }
 
         return ValidationStatus::NOT_RECOGNIZED;
@@ -152,7 +158,7 @@ class GreenPassCovid19Checker
         return ValidationStatus::NOT_RECOGNIZED;
     }
 
-    private static function verifyTestResults(TestResult $cert, \DateTime $validation_date, string $scanMode, \DateTimeImmutable $dob)
+    private static function verifyTestResults(TestResult $cert, \DateTime $validation_date)
     {
         if ($cert->result == TestResultType::DETECTED) {
             return ValidationStatus::NOT_VALID;
@@ -172,7 +178,7 @@ class GreenPassCovid19Checker
                 return ValidationStatus::EXPIRED;
             }
 
-            return self::checkVaccineMandatoryAge($validation_date, $scanMode, $dob) ? ValidationStatus::NOT_VALID : ValidationStatus::VALID;
+            return ValidationStatus::VALID;
         }
 
         if ($cert->type == TestType::RAPID) {
@@ -189,7 +195,7 @@ class GreenPassCovid19Checker
                 return ValidationStatus::EXPIRED;
             }
 
-            return self::checkVaccineMandatoryAge($validation_date, $scanMode, $dob) ? ValidationStatus::NOT_VALID : ValidationStatus::VALID;
+            return ValidationStatus::VALID;
         }
 
         return ValidationStatus::NOT_RECOGNIZED;
@@ -210,6 +216,26 @@ class GreenPassCovid19Checker
         }
 
         if ($validation_date > $start_date->modify("+$end_day days")) {
+            return ValidationStatus::NOT_VALID;
+        }
+
+        if ($scanMode == ValidationScanMode::BOOSTER_DGP) {
+            return ValidationStatus::TEST_NEEDED;
+        }
+
+        return ValidationStatus::VALID;
+    }
+
+    private static function verifyExemption(Exemption $cert, \DateTime $validation_date, string $scanMode)
+    {
+        $valid_from = $cert->validFrom;
+        $valid_until = $cert->validUntil;
+
+        if ($valid_from > $validation_date) {
+            return ValidationStatus::NOT_VALID_YET;
+        }
+
+        if ($validation_date > $valid_until) {
             return ValidationStatus::NOT_VALID;
         }
 
@@ -256,6 +282,9 @@ class GreenPassCovid19Checker
         if ($cert instanceof RecoveryStatement) {
             $certificateIdentifier = $cert->id;
         }
+        if ($cert instanceof Exemption) {
+            $certificateIdentifier = $cert->id;
+        }
 
         return $certificateIdentifier;
     }
@@ -269,17 +298,6 @@ class GreenPassCovid19Checker
                     return true;
                 }
             }
-        }
-
-        return false;
-    }
-
-    private static function checkVaccineMandatoryAge(\DateTime $validation_date, string $scanMode, \DateTimeImmutable $dob)
-    {
-        $age = $dob->diff($validation_date)->y;
-
-        if ($scanMode == ValidationScanMode::WORK_DGP && $age >= ValidationRules::VACCINE_MANDATORY_AGE) {
-            return true;
         }
 
         return false;
