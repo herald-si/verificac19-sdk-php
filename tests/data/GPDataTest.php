@@ -94,9 +94,8 @@ class GPDataTest
     public static $exemption = [
         'e' => [
             '0' => [
-                'fr' => '2021-01-13',
-                'df' => '2021-01-13',
-                'du' => '2021-12-13',
+                'df' => '2021-02-15',
+                'du' => '2021-12-15',
                 'co' => 'IT',
                 'ci' => 'TESTIDFAKEEXEMPTION#2',
                 'is' => self::GP_CERTIFICATORE,
