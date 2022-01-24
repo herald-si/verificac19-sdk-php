@@ -17,7 +17,7 @@ class TamponeCheckerTest extends GreenPassCovid19CheckerTest
     {
         $testgp = GPDataTest::$testresult;
 
-        $data_greenpass = $this->data_oggi->modify('-12 hour');
+        $data_greenpass = $this->data_oggi->modify(self::DATE_12_HOURS_AGO);
         $testgp['t'][0]['sc'] = $data_greenpass->format(\DateTime::ATOM);
         $greenpass = new GreenPass($testgp);
 
@@ -32,7 +32,7 @@ class TamponeCheckerTest extends GreenPassCovid19CheckerTest
     {
         $testgp = GPDataTest::$testresult;
 
-        $data_greenpass = $this->data_oggi->modify('-12 hour');
+        $data_greenpass = $this->data_oggi->modify(self::DATE_12_HOURS_AGO);
         $testgp['t'][0]['sc'] = $data_greenpass->format(\DateTime::ATOM);
         $greenpass = new GreenPass($testgp);
 
@@ -53,7 +53,7 @@ class TamponeCheckerTest extends GreenPassCovid19CheckerTest
     {
         $testgp = GPDataTest::$testresult;
 
-        $data_greenpass = $this->data_oggi->modify('-12 hour');
+        $data_greenpass = $this->data_oggi->modify(self::DATE_12_HOURS_AGO);
         $testgp['t'][0]['sc'] = $data_greenpass->format(\DateTime::ATOM);
 
         $today_50_birthday = $this->data_oggi->modify(self::DATE_50_YEARS);
@@ -66,7 +66,7 @@ class TamponeCheckerTest extends GreenPassCovid19CheckerTest
         $this->assertEquals('NOT_VALID', $esito);
 
         // the day after 50 years old birthday
-        $today_50_birthday_plus_one = $today_50_birthday->modify('-1 day');
+        $today_50_birthday_plus_one = $today_50_birthday->modify(self::DATE_A_DAY_AGO);
         $testgp['dob'] = $today_50_birthday_plus_one->format(\DateTime::ATOM);
         $greenpass = new GreenPass($testgp);
 
@@ -74,7 +74,7 @@ class TamponeCheckerTest extends GreenPassCovid19CheckerTest
         $this->assertEquals('NOT_VALID', $esito);
 
         // the day before 50 years old birthday
-        $today_49_years_old = $today_50_birthday->modify('+1 day');
+        $today_49_years_old = $today_50_birthday->modify(self::DATE_TOMORROW);
         $testgp['dob'] = $today_49_years_old->format(\DateTime::ATOM);
         $greenpass = new GreenPass($testgp);
 

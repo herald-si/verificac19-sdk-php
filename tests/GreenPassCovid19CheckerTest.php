@@ -30,6 +30,8 @@ class GreenPassCovid19CheckerTest extends \PHPUnit\Framework\TestCase
 
     const DATE_50_YEARS = '-50 year';
 
+    const DATE_12_HOURS_AGO = '-12 hour';
+
     protected $data_oggi;
 
     protected function setUp(): void
