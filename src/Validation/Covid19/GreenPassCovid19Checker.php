@@ -52,7 +52,7 @@ class GreenPassCovid19Checker
                 return ValidationStatus::NOT_VALID;
             }
 
-            return self::verifyTestResults($cert, $data_oggi, $scanMode, $greenPass->holder->dateOfBirth);
+            return self::verifyTestResults($cert, $data_oggi);
         }
 
         // guarigione avvenuta
@@ -152,7 +152,7 @@ class GreenPassCovid19Checker
         return ValidationStatus::NOT_RECOGNIZED;
     }
 
-    private static function verifyTestResults(TestResult $cert, \DateTime $validation_date, string $scanMode, \DateTimeImmutable $dob)
+    private static function verifyTestResults(TestResult $cert, \DateTime $validation_date)
     {
         if ($cert->result == TestResultType::DETECTED) {
             return ValidationStatus::NOT_VALID;
@@ -172,7 +172,7 @@ class GreenPassCovid19Checker
                 return ValidationStatus::EXPIRED;
             }
 
-            return self::checkVaccineMandatoryAge($validation_date, $scanMode, $dob) ? ValidationStatus::NOT_VALID : ValidationStatus::VALID;
+            return ValidationStatus::VALID;
         }
 
         if ($cert->type == TestType::RAPID) {
@@ -189,7 +189,7 @@ class GreenPassCovid19Checker
                 return ValidationStatus::EXPIRED;
             }
 
-            return self::checkVaccineMandatoryAge($validation_date, $scanMode, $dob) ? ValidationStatus::NOT_VALID : ValidationStatus::VALID;
+            return ValidationStatus::VALID;
         }
 
         return ValidationStatus::NOT_RECOGNIZED;
@@ -269,17 +269,6 @@ class GreenPassCovid19Checker
                     return true;
                 }
             }
-        }
-
-        return false;
-    }
-
-    private static function checkVaccineMandatoryAge(\DateTime $validation_date, string $scanMode, \DateTimeImmutable $dob)
-    {
-        $age = $dob->diff($validation_date)->y;
-
-        if ($scanMode == ValidationScanMode::WORK_DGP && $age >= ValidationRules::VACCINE_MANDATORY_AGE) {
-            return true;
         }
 
         return false;
