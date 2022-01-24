@@ -282,6 +282,9 @@ class GreenPassCovid19Checker
         if ($cert instanceof RecoveryStatement) {
             $certificateIdentifier = $cert->id;
         }
+        if ($cert instanceof Exemption) {
+            $certificateIdentifier = $cert->id;
+        }
 
         return $certificateIdentifier;
     }
