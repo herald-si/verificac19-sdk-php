@@ -124,16 +124,27 @@ class GreenPassCovid19Checker
         if ($cert->doseGiven >= $cert->totalDoses) {
             // j&j booster
             // https://github.com/ministero-salute/it-dgc-verificac19-sdk-android/commit/6812542889b28343acace7780e536fac9bf637a9
-            if (($cert->product == MedicinalProduct::JOHNSON) && (($cert->doseGiven > $cert->totalDoses) || ($cert->doseGiven == $cert->totalDoses && $cert->doseGiven >= 2))) {
+            $check_jj_booster = $cert->product == MedicinalProduct::JOHNSON && (($cert->doseGiven > $cert->totalDoses) || ($cert->doseGiven == $cert->totalDoses && $cert->doseGiven >= 2));
+            $check_other_booster = $cert->doseGiven > $cert->totalDoses || ($cert->doseGiven == $cert->totalDoses && $cert->doseGiven > 2);
+            $check_booster_dose = $check_jj_booster || $check_other_booster;
+
+            if ($check_jj_booster) {
                 $data_inizio_validita = $cert->date;
             } else {
                 $giorni_min_valido = self::getValueFromValidationRules(ValidationRules::VACCINE_START_DAY_COMPLETE, $cert->product);
                 $data_inizio_validita = $cert->date->modify("+$giorni_min_valido days");
             }
 
-            $giorni_max_valido = ($scanMode != ValidationScanMode::SCHOOL_DGP) ?
-                self::getValueFromValidationRules(ValidationRules::VACCINE_END_DAY_COMPLETE, $cert->product) :
-                self::getEndDaySchool(ValidationRules::VACCINE_END_DAY_SCHOOL, 'GENERIC');
+            if (ValidationScanMode::SCHOOL_DGP != $scanMode) {
+                $giorni_max_valido = self::getValueFromValidationRules(ValidationRules::VACCINE_END_DAY_COMPLETE, $cert->product);
+            } else {
+                //verifico se dose booster
+                if ($check_booster_dose) {
+                    $giorni_max_valido = self::getValueFromValidationRules(ValidationRules::VACCINE_END_DAY_COMPLETE, $cert->product);
+                } else {
+                    $giorni_max_valido = self::getEndDaySchool(ValidationRules::VACCINE_END_DAY_SCHOOL, 'GENERIC');
+                }
+            }
 
             $data_fine_validita = $cert->date->modify("+$giorni_max_valido days");
 
