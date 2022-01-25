@@ -44,6 +44,9 @@ class TamponeCheckerTest extends GreenPassCovid19CheckerTest
 
         $esito = GreenPassCovid19Checker::verifyCert($greenpass, 'BOOSTED');
         $this->assertEquals('NOT_VALID', $esito);
+
+        $esito = GreenPassCovid19Checker::verifyCert($greenpass, 'SCHOOL');
+        $this->assertEquals('NOT_VALID', $esito);
     }
 
     /**
