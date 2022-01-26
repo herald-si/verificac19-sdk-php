@@ -147,6 +147,7 @@ E' necessario definire una modalità di verifica della Certificazione verde Covi
 * Tipologia `RAFFORZATA`: l'sdk considera valide solo le certificazioni verdi generate da vaccinazione o da guarigione.
 * Tipologia `BOOSTER`: l'sdk app considera valide le certificazioni verdi generate dopo dose di richiamo vaccinale. Considera valide, inoltre, le certificazioni verdi generate dopo ciclo vaccinale primario o guarigione con la contestuale presentazione di un documento, cartaceo o digitale, che attesti l’esito negativo di un test al SARS-CoV-2.
 * Tipologia `WORK`: l'sdk determina il controllo da effettuare per gli accessi ai luoghi di lavoro con mix obbligo vaccinale (>= 50 anni) e non (<50 anni). Le prescrizioni normative relative all'estensione dell'obbligo vaccinale in base all'età si applicano anche a coloro, che compiano il 50° anno di età in data successiva a quelle di entrata in vigore delle relative disposizioni, fermo l'attuale termine del 15 giugno 2022 (ex Art.1 comma 1 DL n.1 07/01/2022), ma sono comunque effettive dal compimento del 50° anno d'età.
+* Tipologia `SCHOOL`: l'sdk determina il controllo da effettuare per gli accessi a scuola, con due casi di positivita' nella classe, per coloro che diano dimostrazione di avere concluso il ciclo vaccinale primario o di essere guariti da meno di centoventi giorni oppure di avere effettuato la dose di richiamo, si applica l'autosorveglianza, con l'utilizzo di mascherine di tipo FFP2 e con didattica in presenza. Per gli altri soggetti, non vaccinati o non guariti nei termini summenzionati, si applica la didattica digitale integrata per la durata di dieci giorni (Art.4 comma 2 DL 01/2022 - 07/01/2022).
 
 Indicazioni di dettaglio sulle attività consentite senza/con green pass `BASE`, `RAFFORZATO`, `BOOSTER` (link https://www.governo.it/sites/governo.it/files/documenti/documenti/Notizie-allegati/tabella_attivita_consentite.pdf)
 
@@ -163,6 +164,8 @@ $scanMode = ValidationScanMode::SUPER_DGP;
 $scanMode = ValidationScanMode::BOOSTER_DGP;
 // or set scan mode to WORK
 $scanMode = ValidationScanMode::WORK_DGP;
+// or set scan mode to SCHOOL
+$scanMode = ValidationScanMode::SCHOOL_DGP;
 
 $gp_reader = new CertificateValidator($gp_string, $scanMode);
 ```
