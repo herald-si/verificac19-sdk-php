@@ -92,17 +92,14 @@ class EndpointService
         $list = [];
         try {
             do {
-                if (empty(self::$proxy)) {
-                    $res = $client->request('GET', $uri, [
-                    'proxy' => self::$proxy,
-                    'headers' => ['X-RESUME-TOKEN' => $resume_token],
-                ]);
-                } else {
-                    $res = $client->request('GET', $uri, [
-                    'proxy' => self::$proxy,
-                    'headers' => ['X-RESUME-TOKEN' => $resume_token],
-                ]);
+                $params = [];
+                $params['headers'] = ['X-RESUME-TOKEN' => $resume_token];
+
+                if (!empty(self::$proxy)) {
+                    $params['proxy'] = self::$proxy;
                 }
+
+                $res = $client->request('GET', $uri, $params);
 
                 if ($res->getStatusCode() == 200) {
                     if (empty($res->getBody())) {
