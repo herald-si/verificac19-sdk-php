@@ -1,9 +1,9 @@
 <?php
+
 namespace Herald\GreenPass\GreenPassEntities;
 
 class VaccinationDose extends CertificateType
 {
-
     /**
      * Type of the vaccine or prophylaxis used.
      *

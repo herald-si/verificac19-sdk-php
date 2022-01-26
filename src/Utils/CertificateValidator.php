@@ -1,4 +1,5 @@
 <?php
+
 namespace Herald\GreenPass\Utils;
 
 use Herald\GreenPass\Decoder\Decoder;
@@ -9,7 +10,6 @@ use Herald\GreenPass\Validation\Covid19\ValidationScanMode;
 
 class CertificateValidator
 {
-
     private $greenPassSimple;
 
     private $scanMode;

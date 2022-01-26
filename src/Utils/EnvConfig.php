@@ -1,12 +1,12 @@
 <?php
+
 namespace Herald\GreenPass\Utils;
 
 class EnvConfig
 {
+    public const PRODUCTION = "PRODUCTION";
 
-    const PRODUCTION = "PRODUCTION";
-
-    const DEBUG = "DEBUG";
+    public const DEBUG = "DEBUG";
 
     private static $envMode = self::PRODUCTION;
 
@@ -24,7 +24,7 @@ class EnvConfig
     {
         return self::$envMode;
     }
-    
+
     public static function isDebugEnabled()
     {
         return (self::$envMode == self::DEBUG);

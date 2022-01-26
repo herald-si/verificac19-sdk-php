@@ -1,5 +1,7 @@
 <?php
-declare(strict_types = 1);
+
+declare(strict_types=1);
+
 namespace Herald\GreenPass\Decoder;
 
 /**
@@ -7,12 +9,11 @@ namespace Herald\GreenPass\Decoder;
  */
 class Base45Test extends \PHPUnit\Framework\TestCase
 {
-
     /**
      *
      * @param
      *            $data
-     *            
+     *
      * @dataProvider dataProvider
      */
     public function testEncoding($input, $output)
@@ -25,7 +26,7 @@ class Base45Test extends \PHPUnit\Framework\TestCase
      *
      * @param
      *            $data
-     *            
+     *
      * @dataProvider dataProvider
      */
     public function testDecoding($input, $output)

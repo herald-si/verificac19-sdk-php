@@ -1,9 +1,9 @@
 <?php
+
 namespace Herald\GreenPass\GreenPassEntities;
 
 class Holder
 {
-
     public $surname;
 
     public $standardisedSurname;

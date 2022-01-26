@@ -1,4 +1,5 @@
 <?php
+
 namespace Herald\GreenPass\Exceptions;
 
 use Throwable;
@@ -9,7 +10,6 @@ use Throwable;
  */
 class NoCertificateListException extends \Exception
 {
-
     public function __construct($message = null, $code = 0, Throwable $previous = null)
     {
         if (empty($message)) {

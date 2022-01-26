@@ -1,4 +1,5 @@
 <?php
+
 namespace Herald\GreenPass\Utils;
 
 use Herald\GreenPass\Exceptions\NoCertificateListException;
@@ -7,7 +8,6 @@ use Herald\GreenPass\Decoder\Decoder;
 
 class EndpointService
 {
-
     private const STATUS_FILE = FileUtils::COUNTRY . "-gov-dgc-status.json";
 
     private const CERTS_FILE = FileUtils::COUNTRY . "-gov-dgc-certs.json";
@@ -113,10 +113,10 @@ class EndpointService
         if (empty($info['http_code'])) {
             throw new \InvalidArgumentException("No HTTP code was returned  from website " . $url);
         } // if http_code >= 400 there was a server error
-        else if ($info['http_code'] >= 400) {
+        elseif ($info['http_code'] >= 400) {
             throw new DownloadFailedException(DownloadFailedException::NO_WEBSITE_RESPONSE . " " . $url);
         } // if http_code is different from 200 return list, it's useless to continue
-        else if ($info['http_code'] != 200) {
+        elseif ($info['http_code'] != 200) {
             return $list;
         }
 

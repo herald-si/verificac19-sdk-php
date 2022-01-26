@@ -1,10 +1,10 @@
 <?php
+
 namespace Herald\GreenPass\Validation\Covid19;
 
 class MedicinalProduct
 {
+    public const JOHNSON = 'EU/1/20/1525';
 
-    const JOHNSON = "EU/1/20/1525";
-
-    const SPUTNIK = "Sputnik-V";
+    public const SPUTNIK = 'Sputnik-V';
 }
