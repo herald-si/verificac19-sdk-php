@@ -14,4 +14,6 @@ class ValidationScanMode
     const BOOSTER_DGP = 'BOOSTED';
 
     const WORK_DGP = 'WORK';
+
+    const SCHOOL_DGP = 'SCHOOL';
 }
