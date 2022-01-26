@@ -1,4 +1,5 @@
 <?php
+
 namespace Herald\GreenPass;
 
 /**
@@ -6,7 +7,6 @@ namespace Herald\GreenPass;
  */
 class GreenPassTest extends \PHPUnit\Framework\TestCase
 {
-
     /**
      *
      * @var GreenPass
@@ -41,4 +41,3 @@ class GreenPassTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals("NOT_VALID", $valid);
     }
 }
-
