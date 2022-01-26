@@ -1,4 +1,5 @@
 <?php
+
 namespace Herald\GreenPass\Validation\Covid19;
 
 use Herald\GreenPass\Utils\FileUtils;
@@ -10,10 +11,9 @@ use Herald\GreenPass\Exceptions\DownloadFailedException;
 // https://github.com/ministero-salute/it-dgc-documentation/blob/master/DRL.md
 class CertificateRevocationList
 {
+    public const DRL_SYNC_ACTIVE = true;
 
-    const DRL_SYNC_ACTIVE = TRUE;
-
-    const MAX_RETRY = 3;
+    public const MAX_RETRY = 3;
 
     private const DRL_STATUS_FILE = FileUtils::COUNTRY . "-gov-dgc-drl-status.json";
 
@@ -111,7 +111,6 @@ class CertificateRevocationList
 
         // outdated version
         if ($status->version < $check->version) {
-
             $download_pending = ($status->validity == self::DRL_STATUS_PENDING);
             // if no pending download OR pending download with same version requested / same chunk size
             if (! $download_pending || ($download_pending && $status->info->version == $check->version && $status->info->totalChunk == $check->totalChunk)) {
@@ -138,7 +137,6 @@ class CertificateRevocationList
                 }
             }
         } else {
-
             $totalInList = $this->db->countRevokedUcviInList();
             $totalNumberUCVI = $check->totalNumberUCVI;
 
@@ -186,7 +184,7 @@ class CertificateRevocationList
         if ($force_update && EnvConfig::isDebugEnabled()) {
             $this->cleanCRL();
         }
-        
+
         // Timer 24h or VALIDATION/RESUME DOWNLOAD NEEDED
         if (FileUtils::checkFileNotExistOrExpired(FileUtils::getCacheFilePath(self::DRL_STATUS_FILE), FileUtils::HOUR_BEFORE_DOWNLOAD_LIST * 3600) || $this->getCurrentCRLStatus()->validity == self::DRL_STATUS_NEED_VALIDATION || $this->getCurrentCRLStatus()->validity == self::DRL_STATUS_PENDING) {
             $this->getRevokeList();

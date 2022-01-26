@@ -1,9 +1,9 @@
 <?php
+
 namespace Herald\GreenPass\Model;
 
 class SimplePerson
 {
-
     public $standardizedFamilyName;
 
     public $familyName;

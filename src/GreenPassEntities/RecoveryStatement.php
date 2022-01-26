@@ -1,9 +1,9 @@
 <?php
+
 namespace Herald\GreenPass\GreenPassEntities;
 
 class RecoveryStatement extends CertificateType
 {
-
     /**
      * The date of the holder's first positive NAAT test result.
      */
