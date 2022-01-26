@@ -106,20 +106,24 @@ class EndpointService
                         throw new DownloadFailedException(DownloadFailedException::NO_WEBSITE_RESPONSE);
                     }
                     $response = $res->getBody()->getContents();
-
+                    $headers = self::getHeadersArray($res->getHeaders());
+                    $list[$headers['X-KID']] = $response;
+                    $resume_token = $headers['X-RESUME-TOKEN'];
                     // Create an associative array containing the response headers
-                    foreach ($res->getHeaders() as $header => $value) {
-                        if ($header == 'X-KID') {
-                            $list["{$value[0]}"] = $response;
-                        }
-                        if ($header == 'X-RESUME-TOKEN') {
-                            $resume_token = $value[0];
-                        }
-                    }
                 }
             } while ($res->getStatusCode() == 200);
         } catch (\Exception $e) {
             throw new DownloadFailedException(DownloadFailedException::NO_WEBSITE_RESPONSE.' '.$uri);
+        }
+
+        return $list;
+    }
+
+    private static function getHeadersArray($guzzleHeaders)
+    {
+        $list = [];
+        foreach ($guzzleHeaders as $header => $value) {
+            $list["$header"] = $value[0];
         }
 
         return $list;
