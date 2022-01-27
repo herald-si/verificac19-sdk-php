@@ -1,4 +1,5 @@
 <?php
+
 namespace Herald\GreenPass;
 
 use Herald\GreenPass\Utils\CertificateValidator;
@@ -9,7 +10,6 @@ use Herald\GreenPass\Utils\EnvConfig;
  */
 class CertificateValidatorTest extends \PHPUnit\Framework\TestCase
 {
-
     /**
      * Tests name
      */
@@ -39,4 +39,3 @@ class CertificateValidatorTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals("ADOLF", $decoder->getCertificateSimple()->person->givenName);
     }
 }
-

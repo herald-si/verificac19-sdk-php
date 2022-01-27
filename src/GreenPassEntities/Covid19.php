@@ -1,4 +1,5 @@
 <?php
+
 namespace Herald\GreenPass\GreenPassEntities;
 
 /**
@@ -7,7 +8,6 @@ namespace Herald\GreenPass\GreenPassEntities;
  */
 class Covid19 extends DiseaseAgent
 {
-
     public $id = "840539006";
 
     public $name = "COVID-19";

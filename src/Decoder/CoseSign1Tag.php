@@ -1,4 +1,5 @@
 <?php
+
 namespace Herald\GreenPass\Decoder;
 
 use CBOR\CBORObject;
@@ -6,7 +7,6 @@ use CBOR\Tag;
 
 final class CoseSign1Tag extends Tag
 {
-
     public static function getTagId(): int
     {
         return 18;

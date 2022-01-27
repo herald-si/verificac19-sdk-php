@@ -1,10 +1,10 @@
 <?php
+
 namespace Herald\GreenPass\Utils;
 
 class VerificaC19DB
 {
-
-    const SQLITE_DB_NAME = 'verificac19.db';
+    public const SQLITE_DB_NAME = 'verificac19.db';
 
     private $db_complete_path;
 
@@ -61,9 +61,9 @@ class VerificaC19DB
     {
         $tables = $this->getTableList();
         if (in_array($name, $tables)) {
-            return TRUE;
+            return true;
         }
-        return FALSE;
+        return false;
     }
 
     private function getTableList(): array
@@ -114,19 +114,19 @@ class VerificaC19DB
 
         return $stmt->rowCount();
     }
-    
+
     public function removeAllRevokedUcviFromUcviList(array $revokedUcvi)
     {
         $this->pdo->beginTransaction();
         $sql = 'DELETE FROM ucvi WHERE revokedUcvi = ?';
         $stmt = $this->pdo->prepare($sql);
-        
+
         foreach ($revokedUcvi as $d) {
             $stmt->execute([
                 $d
             ]);
         }
-        
+
         $this->pdo->commit();
     }
 

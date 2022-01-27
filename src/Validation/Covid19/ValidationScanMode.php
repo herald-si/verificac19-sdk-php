@@ -7,13 +7,13 @@ namespace Herald\GreenPass\Validation\Covid19;
  */
 class ValidationScanMode
 {
-    const SUPER_DGP = '2G';
+    public const SUPER_DGP = '2G';
 
-    const CLASSIC_DGP = '3G';
+    public const CLASSIC_DGP = '3G';
 
-    const BOOSTER_DGP = 'BOOSTED';
+    public const BOOSTER_DGP = 'BOOSTED';
 
-    const WORK_DGP = 'WORK';
+    public const WORK_DGP = 'WORK';
 
-    const SCHOOL_DGP = 'SCHOOL';
+    public const SCHOOL_DGP = 'SCHOOL';
 }

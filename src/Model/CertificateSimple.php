@@ -1,9 +1,9 @@
 <?php
+
 namespace Herald\GreenPass\Model;
 
 class CertificateSimple
 {
-
     public $person;
 
     public $dateOfBirth;
