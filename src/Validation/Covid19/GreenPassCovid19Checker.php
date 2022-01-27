@@ -248,6 +248,10 @@ class GreenPassCovid19Checker
 
     private static function verifyExemption(Exemption $cert, \DateTime $validation_date, string $scanMode)
     {
+        if ($scanMode == ValidationScanMode::SCHOOL_DGP) {
+            return ValidationStatus::NOT_VALID;
+        }
+
         $valid_from = $cert->validFrom;
         $valid_until = $cert->validUntil;
 
