@@ -1,19 +1,20 @@
 <?php
+
 namespace Herald\GreenPass\Utils;
+
 use Herald\GreenPass\Exceptions\FileException;
 
 class FileUtils
 {
+    public const COUNTRY = "it";
 
-    const COUNTRY = "it";
+    public const LOCALE = "it_IT";
 
-    const LOCALE = "it_IT";
+    public const HOUR_BEFORE_DOWNLOAD_LIST = 24;
 
-    const HOUR_BEFORE_DOWNLOAD_LIST = 24;
+    public const ASSETS_FOLDER_HOP = 2;
 
-    const ASSETS_FOLDER_HOP = 2;
-
-    const ASSETS_FOLDER_NAME = "assets";
+    public const ASSETS_FOLDER_NAME = "assets";
 
     private static $cache_path_override = null;
 
@@ -36,9 +37,8 @@ class FileUtils
     public static function saveDataToFile($file, $data): bool
     {
         if (! empty($data)) {
-            if(!$fp = fopen($file, 'w')) 
-            { 
-                throw new FileException("Error on saving data to file"); 
+            if (!$fp = fopen($file, 'w')) {
+                throw new FileException("Error on saving data to file");
             }
             fwrite($fp, $data);
             fclose($fp);
@@ -51,7 +51,7 @@ class FileUtils
     {
         self::$cache_path_override = $newPath;
     }
-    
+
     public static function resetCacheFilePath()
     {
         self::$cache_path_override = null;
@@ -75,6 +75,5 @@ class FileUtils
             $cache_uri,
             $fileName
         ));
-
     }
 }

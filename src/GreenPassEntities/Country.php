@@ -1,10 +1,10 @@
 <?php
+
 namespace Herald\GreenPass\GreenPassEntities;
 
 class Country
 {
+    public const ITALY = "IT";
 
-    const ITALY = "IT";
-
-    const SAN_MARINO = "SM";
+    public const SAN_MARINO = "SM";
 }

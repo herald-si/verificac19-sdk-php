@@ -1,4 +1,5 @@
 <?php
+
 namespace Herald\GreenPass\Decoder;
 
 use Herald\GreenPass\GPDataTest;
@@ -9,7 +10,6 @@ use Herald\GreenPass\Utils\FileUtils;
  */
 class DecoderTest extends \PHPUnit\Framework\TestCase
 {
-
     public function testValidGreenPass()
     {
         $validQRCode = GPDataTest::$qrcode_certificate_valid_but_revoked;
@@ -56,4 +56,3 @@ class DecoderTest extends \PHPUnit\Framework\TestCase
         FileUtils::resetCacheFilePath();
     }
 }
-

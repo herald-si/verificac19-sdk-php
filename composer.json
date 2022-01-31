@@ -19,6 +19,8 @@
         "phpunit/phpunit": "9.*"
     },
     "scripts": {
-        "test": "vendor/bin/phpunit"
+        "test": "vendor/bin/phpunit",
+		"cs-fixer-src" : "tools/php-cs-fixer/vendor/bin/php-cs-fixer fix src",
+		"cs-fixer-test" : "tools/php-cs-fixer/vendor/bin/php-cs-fixer fix tests"
     }
 }

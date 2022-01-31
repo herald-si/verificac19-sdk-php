@@ -1,9 +1,9 @@
 <?php
+
 namespace Herald\GreenPass\GreenPassEntities;
 
 abstract class CertificateType
 {
-
     /**
      * Unique certificate identifier (UVCI).
      *

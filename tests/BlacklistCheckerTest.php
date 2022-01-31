@@ -1,4 +1,5 @@
 <?php
+
 namespace Herald\GreenPass\Validation\Covid19;
 
 use Herald\GreenPass\GreenPass;
@@ -10,7 +11,6 @@ use Herald\GreenPass\Decoder\Decoder;
  */
 class BlacklistCheckerTest extends \PHPUnit\Framework\TestCase
 {
-
     public function testVerifyCertBlacklist()
     {
         $greenpass = Decoder::qrcode(GPDataTest::$qrcode_certificate_valid_but_revoked);
@@ -18,4 +18,3 @@ class BlacklistCheckerTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals("NOT_VALID", $esito);
     }
 }
-

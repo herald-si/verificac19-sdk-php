@@ -1,11 +1,11 @@
 <?php
+
 namespace Herald\GreenPass\Utils;
 
 use Herald\GreenPass\Validation\Covid19\CertificateRevocationList;
 
 class UpdateService
 {
-
     public static function setProxy($proxy)
     {
         EndpointService::setProxy($proxy);

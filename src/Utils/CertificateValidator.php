@@ -1,27 +1,27 @@
 <?php
+
 namespace Herald\GreenPass\Utils;
 
 use Herald\GreenPass\Decoder\Decoder;
-use Herald\GreenPass\Model\SimplePerson;
 use Herald\GreenPass\Model\CertificateSimple;
-use Herald\GreenPass\Validation\Covid19\ValidationStatus;
+use Herald\GreenPass\Model\SimplePerson;
 use Herald\GreenPass\Validation\Covid19\ValidationScanMode;
+use Herald\GreenPass\Validation\Covid19\ValidationStatus;
 
 class CertificateValidator
 {
-
     private $greenPassSimple;
 
     private $scanMode;
 
-    public function __construct(String $qrCodeText, String $scanMode = ValidationScanMode::CLASSIC_DGP)
+    public function __construct(string $qrCodeText, string $scanMode = ValidationScanMode::CLASSIC_DGP)
     {
         $this->scanMode = $scanMode;
         try {
             $greenPass = Decoder::qrcode($qrCodeText);
 
             $debug = EnvConfig::isDebugEnabled();
-            $debugDisclaimer = "DISABLE-DEBUG-MODE-IN-PRODUCTION";
+            $debugDisclaimer = 'DISABLE-DEBUG-MODE-IN-PRODUCTION';
 
             $standardizedFamilyName = $debug ? $debugDisclaimer : $greenPass->holder->standardisedSurname;
             $familyName = $debug ? $debugDisclaimer : $greenPass->holder->surname;
