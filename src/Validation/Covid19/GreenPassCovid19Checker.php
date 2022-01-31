@@ -161,12 +161,12 @@ class GreenPassCovid19Checker
             $addDays = ValidationRules::DEFAULT_DAYS_START_JJ;
         }
 
-        $ruleToCheck = "VACCINE_{$startEnd}_{$customCycle}_{$customCountry}";
+        $ruleToCheck = ValidationRules::convertRuleNameToConstant("VACCINE_{$startEnd}_{$customCycle}_{$customCountry}");
 
         $result = self::getValueFromValidationRules($ruleToCheck, $ruleType);
 
         if ($result == ValidationStatus::NOT_FOUND) {
-            $result = self::getDefaultValidationDays($startEnd, $cert->country);
+            $result = self::getDefaultValidationDays($startEnd, $countryCode);
         }
 
         return (int) $result + $addDays;
@@ -195,11 +195,11 @@ class GreenPassCovid19Checker
             $customCountry = 'NOT_'.Country::ITALY;
         }
 
-        $ruleToCheck = "RECOVERY_CERT_{$startEnd}_{$customCountry}";
+        $ruleToCheck = ValidationRules::convertRuleNameToConstant("RECOVERY_CERT_{$startEnd}_{$customCountry}");
 
         $result = self::getValueFromValidationRules($ruleToCheck, $ruleType);
 
-        return ($result != ValidationStatus::NOT_FOUND) ? (int) $result : self::getDefaultValidationDays($startEnd, $cert->country);
+        return ($result != ValidationStatus::NOT_FOUND) ? (int) $result : self::getDefaultValidationDays($startEnd, $countryCode);
     }
 
     /**

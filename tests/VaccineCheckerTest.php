@@ -254,6 +254,34 @@ class VaccineCheckerTest extends GreenPassCovid19CheckerTest
     }
 
     /*
+        * Test Other Completo 7 mesi
+        */
+    public function testCompleteAfter7Month()
+    {
+        $testgp = GPDataTest::$vaccine;
+        $data_greenpass = $this->data_oggi->modify(self::DATE_7_MONTHS_AGO);
+        $testgp['v'][0]['dt'] = $data_greenpass->format('Y-m-d');
+        $testgp['v'][0]['dn'] = 2;
+        $testgp['v'][0]['sd'] = 2;
+        $greenpass = new GreenPass($testgp);
+
+        $esito = GreenPassCovid19Checker::verifyCert($greenpass);
+        $this->assertEquals('EXPIRED', $esito);
+
+        $testgp['v'][0]['co'] = 'FR';
+        $greenpass = new GreenPass($testgp);
+
+        $esito = GreenPassCovid19Checker::verifyCert($greenpass);
+        $this->assertEquals('VALID', $esito);
+
+        $esito = GreenPassCovid19Checker::verifyCert($greenpass, ValidationScanMode::SCHOOL_DGP);
+        $this->assertEquals('EXPIRED', $esito);
+
+        $esito = GreenPassCovid19Checker::verifyCert($greenpass, ValidationScanMode::BOOSTER_DGP);
+        $this->assertEquals('EXPIRED', $esito);
+    }
+
+    /*
      * Test Booster
      */
     public function testBoosterDose()
@@ -339,5 +367,33 @@ class VaccineCheckerTest extends GreenPassCovid19CheckerTest
 
         $esito = GreenPassCovid19Checker::verifyCert($greenpass, ValidationScanMode::BOOSTER_DGP);
         $this->assertEquals('VALID', $esito);
+    }
+
+    /*
+     * Test Booster alt 7 mesi
+     */
+    public function testBoosterAltDose7Months()
+    {
+        $testgp = GPDataTest::$vaccine;
+        $data_greenpass = $this->data_oggi->modify(self::DATE_7_MONTHS_AGO);
+        $testgp['v'][0]['dt'] = $data_greenpass->format('Y-m-d');
+        $testgp['v'][0]['dn'] = 3;
+        $testgp['v'][0]['sd'] = 3;
+        $greenpass = new GreenPass($testgp);
+
+        $esito = GreenPassCovid19Checker::verifyCert($greenpass);
+        $this->assertEquals('EXPIRED', $esito);
+
+        $testgp['v'][0]['co'] = 'DE';
+        $greenpass = new GreenPass($testgp);
+
+        $esito = GreenPassCovid19Checker::verifyCert($greenpass);
+        $this->assertEquals('VALID', $esito);
+
+        // other scandmode use Italy validation rules
+        $esito = GreenPassCovid19Checker::verifyCert($greenpass, ValidationScanMode::SUPER_DGP);
+        $this->assertEquals('EXPIRED', $esito);
+        $esito = GreenPassCovid19Checker::verifyCert($greenpass, ValidationScanMode::BOOSTER_DGP);
+        $this->assertEquals('EXPIRED', $esito);
     }
 }

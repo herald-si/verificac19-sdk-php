@@ -51,4 +51,9 @@ class ValidationRules
     public const DEFAULT_DAYS_END_NOT_IT = 270;
 
     public const GENERIC_RULE = 'GENERIC';
+
+    public static function convertRuleNameToConstant($ruleName)
+    {
+        return constant("self::$ruleName");
+    }
 }
