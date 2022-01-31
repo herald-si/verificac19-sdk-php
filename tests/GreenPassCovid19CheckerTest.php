@@ -4,6 +4,7 @@ namespace Herald\GreenPass\Validation\Covid19;
 
 use Herald\GreenPass\GPDataTest;
 use Herald\GreenPass\GreenPass;
+use Herald\GreenPass\Utils\EnvConfig;
 
 /**
  * GreenPassCovid19Checker test case.
@@ -38,6 +39,7 @@ class GreenPassCovid19CheckerTest extends \PHPUnit\Framework\TestCase
     {
         parent::setUp();
         $this->data_oggi = new \DateTimeImmutable();
+        EnvConfig::enableDebugMode();
     }
 
     public function testVerifyC19Cert()
