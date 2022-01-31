@@ -161,7 +161,7 @@ class GreenPassCovid19Checker
             $addDays = ValidationRules::DEFAULT_DAYS_START_JJ;
         }
 
-        $ruleToCheck = ValidationRules::convertRuleNameToConstant("VACCINE_{$startEnd}_{$customCycle}_{$customCountry}");
+        $ruleToCheck = ValidationRules::convertRuleNameToConstant("VACCINE_{$startEnd}_{$customCycle}");
 
         $result = self::getValueFromValidationRules($ruleToCheck, $ruleType);
 
