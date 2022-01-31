@@ -1,10 +1,10 @@
 <?php
+
 namespace Herald\GreenPass\GreenPassEntities;
 
 class TestType
 {
+    public const RAPID = "LP217198-3";
 
-    const RAPID = "LP217198-3";
-
-    const MOLECULAR = "LP6464-4";
+    public const MOLECULAR = "LP6464-4";
 }

@@ -1,9 +1,9 @@
 <?php
+
 namespace Herald\GreenPass\GreenPassEntities;
 
 class TestResult extends CertificateType
 {
-
     /**
      * The type of the test used, based on the material targeted by the test.
      *

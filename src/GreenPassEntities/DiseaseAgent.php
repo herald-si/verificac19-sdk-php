@@ -1,9 +1,9 @@
 <?php
+
 namespace Herald\GreenPass\GreenPassEntities;
 
 abstract class DiseaseAgent
 {
-
     abstract public function id();
 
     abstract public function display();

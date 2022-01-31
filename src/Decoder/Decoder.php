@@ -1,4 +1,5 @@
 <?php
+
 namespace Herald\GreenPass\Decoder;
 
 use CBOR\ByteStringObject;
@@ -18,7 +19,6 @@ use Herald\GreenPass\Utils\FileUtils;
 
 class Decoder
 {
-
     // https://github.com/ehn-dcc-development/hcert-spec/blob/main/hcert_spec.md#332-signature-algorithm
     public const SUPPORTED_ALGO = [
         ES256::ID,
@@ -90,8 +90,8 @@ class Decoder
         $decoded['data'] = $cborDecoder->decode($infoStream)->normalize(); // The data we are looking for
 
         $signature = $list->get(3); // The fourth item is the signature.
-                                    // It can be verified using the protected header (first item) and the data (third item)
-                                    // And the public key
+        // It can be verified using the protected header (first item) and the data (third item)
+        // And the public key
         if (! $signature instanceof ByteStringObject) {
             throw new \InvalidArgumentException('Not a valid certificate. The signature is not a byte string.');
         }
@@ -193,7 +193,6 @@ class Decoder
             $cert = openssl_x509_read($pem);
             $publicKey = openssl_pkey_get_public($cert);
             $publicKeyData = openssl_pkey_get_details($publicKey);
-            
         } catch (\Exception $exception) {
             throw new \InvalidArgumentException('Failed to parse cert data');
         }
