@@ -153,7 +153,7 @@ class GreenPassCovid19Checker
         } else {
             $customCountry = 'NOT_'.Country::ITALY;
         }
-        if ($startEnd == self::CERT_RULE_START && $cert->product == MedicinalProduct::JOHNSON) {
+        if ($startEnd == self::CERT_RULE_START && !$isBooster && $cert->product == MedicinalProduct::JOHNSON) {
             $addDays = ValidationRules::DEFAULT_DAYS_START_JJ;
         }
 
@@ -203,7 +203,7 @@ class GreenPassCovid19Checker
      *
      * @return bool
      */
-    private static function verifyDiseaseAgent(mixed $agent)
+    private static function verifyDiseaseAgent($agent)
     {
         return $agent instanceof Covid19;
     }
