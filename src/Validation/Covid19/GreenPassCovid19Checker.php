@@ -152,11 +152,12 @@ class GreenPassCovid19Checker
         }
         $countryCode = ($scanMode == ValidationScanMode::CLASSIC_DGP) ? $cert->country : Country::ITALY;
 
-        if ($countryCode == Country::ITALY) {
-            $customCountry = Country::ITALY;
-        } else {
+        $customCountry = Country::ITALY;
+        
+        if ($countryCode != Country::ITALY) {
             $customCountry = 'NOT_'.Country::ITALY;
         }
+        
         if ($startEnd == self::CERT_RULE_START && !$isBooster && $cert->product == MedicinalProduct::JOHNSON) {
             $addDays = ValidationRules::DEFAULT_DAYS_START_JJ;
         }
@@ -188,10 +189,10 @@ class GreenPassCovid19Checker
         $ruleType = ValidationRules::GENERIC_RULE;
 
         $countryCode = ($scanMode == ValidationScanMode::CLASSIC_DGP) ? $cert->country : Country::ITALY;
-
-        if ($countryCode == Country::ITALY) {
-            $customCountry = Country::ITALY;
-        } else {
+        
+        $customCountry = Country::ITALY;
+        
+        if ($countryCode != Country::ITALY) {
             $customCountry = 'NOT_'.Country::ITALY;
         }
 
