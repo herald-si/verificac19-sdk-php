@@ -153,7 +153,7 @@ class RecoveryCheckerTest extends GreenPassCovid19CheckerTest
         $greenpass = new GreenPass($testgp);
 
         $esito = GreenPassCovid19Checker::verifyCert($greenpass);
-        $this->assertEquals('VALID', $esito);
+        $this->assertEquals('NOT_VALID', $esito);
 
         // other scandmode use Italy validation rules
         $esito = GreenPassCovid19Checker::verifyCert($greenpass, ValidationScanMode::SUPER_DGP);
