@@ -229,6 +229,6 @@ class Decoder
             throw new \InvalidArgumentException("The signature is NOT valid");
         }
 
-        return new GreenPass($cbor['data'][- 260][1], $pem);
+        return new GreenPass($cbor['data'], $pem);
     }
 }

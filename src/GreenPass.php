@@ -36,35 +36,67 @@ class GreenPass
 
     public $signingCertInfo;
 
+    /**
+     * Health Certificate
+     *
+     * @var array
+     */
+    public $hcert;
+
+    /**
+     * Issued At
+     *
+     * @var DateTime
+     */
+    public $iat;
+    
+    /**
+     * Expiration Time
+     *
+     * @var DateTime
+     */
+    public $exp;
+    
     public function __construct($data, string $signingCert = '')
     {
-        $this->version = $data['ver'] ?? null;
+        $this->hcert = $data[- 260];
 
-        $this->holder = new Holder($data);
+        $this->version = $this->hcert[1]['ver'] ?? null;
 
-        if (array_key_exists('v', $data)) {
-            $this->certificate = new VaccinationDose($data);
+        $this->holder = new Holder($this->hcert[1]);
+
+        if (array_key_exists('v', $this->hcert[1])) {
+            $this->certificate = new VaccinationDose($this->hcert[1]);
         }
 
-        if (array_key_exists('t', $data)) {
-            $this->certificate = new TestResult($data);
+        if (array_key_exists('t', $this->hcert[1])) {
+            $this->certificate = new TestResult($this->hcert[1]);
         }
 
-        if (array_key_exists('r', $data)) {
-            $this->certificate = new RecoveryStatement($data);
+        if (array_key_exists('r', $this->hcert[1])) {
+            $this->certificate = new RecoveryStatement($this->hcert[1]);
         }
 
-        if (array_key_exists('e', $data)) {
-            $this->certificate = new Exemption($data);
+        if (array_key_exists('e', $this->hcert[1])) {
+            $this->certificate = new Exemption($this->hcert[1]);
         }
 
+        $this->iat = \DateTime::createFromFormat("Ymd",date("Ymd", $data[6])); 
+
+        $this->exp = \DateTime::createFromFormat("Ymd",date("Ymd", $data[4]));
+        
         if (!empty($signingCert)) {
             $this->signingCertInfo = openssl_x509_parse($signingCert);
         }
     }
-
+    
     public function checkValid(string $scanMode)
     {
+        $today = new \DateTime();
+        if($today < $this->iat || $today > $this->exp){
+            echo("entro\n");
+            return ValidationStatus::NOT_VALID;
+        }
         return ValidationStatus::greenpassStatusAnonymizer(GreenPassCovid19Checker::verifyCert($this, $scanMode));
     }
 }
