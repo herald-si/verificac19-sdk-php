@@ -144,7 +144,7 @@ class GreenPassCovid19Checker
     private static function getVaccineCustomDaysFromValidationRules(VaccinationDose $cert, string $scanMode, string $startEnd, bool $isBooster): int
     {
         $addDays = 0;
-        $ruleType = $cert->product;
+        $ruleType = ValidationRules::GENERIC_RULE;
         if ($isBooster) {
             $customCycle = self::CERT_BOOSTER;
         } else {
