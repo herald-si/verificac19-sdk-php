@@ -158,14 +158,15 @@ class Decoder
     }
 
     /**
-     * Undocumented function.
+     * Check Health Certificate Issued At and Expiration.
      *
      * @param int $iat
      *                 The Issued At timestamp in the NumericDate format (RFC 8392 section 2)
      * @param int $exp
      *                 The Expiration Time timestamp in the NumericDate format (RFC 8392 section 2)
      *
-     * @return void
+     * @return bool
+     *              return true if date iat and exp valid, throw a InvalidPeriodException otherwhise
      */
     private static function checkValidDate(GreenPass $gp, int $iat, int $exp)
     {
