@@ -4,25 +4,25 @@ namespace Herald\GreenPass\Decoder;
 
 use CBOR\ByteStringObject;
 use CBOR\ListObject;
-use CBOR\StringStream;
-use CBOR\TextStringObject;
 use CBOR\OtherObject\OtherObjectManager;
+use CBOR\StringStream;
 use CBOR\Tag\TagManager;
+use CBOR\TextStringObject;
 use Cose\Algorithm\Signature\ECDSA\ES256;
 use Cose\Algorithm\Signature\RSA\PS256;
 use Cose\Key\Ec2Key;
 use Cose\Key\Key;
 use Cose\Key\RsaKey;
+use Herald\GreenPass\Exceptions\InvalidPeriodException;
 use Herald\GreenPass\GreenPass;
 use Herald\GreenPass\Utils\EndpointService;
-use Herald\GreenPass\Utils\FileUtils;
 
 class Decoder
 {
     // https://github.com/ehn-dcc-development/hcert-spec/blob/main/hcert_spec.md#332-signature-algorithm
     public const SUPPORTED_ALGO = [
         ES256::ID,
-        PS256::ID
+        PS256::ID,
     ];
 
     private static function base45($base45)
@@ -54,12 +54,12 @@ class Decoder
         $cborDecoder = new \CBOR\Decoder($tagObjectManager, new OtherObjectManager());
 
         $cbor = $cborDecoder->decode($stream); // We decode the data
-        if (! $cbor instanceof CoseSign1Tag) {
+        if (!$cbor instanceof CoseSign1Tag) {
             throw new \InvalidArgumentException('Not a valid certificate. Not a CoseSign1 type.');
         }
 
         $list = $cbor->getValue();
-        if (! $list instanceof ListObject) {
+        if (!$list instanceof ListObject) {
             throw new \InvalidArgumentException('Not a valid certificate. No list.');
         }
 
@@ -72,27 +72,27 @@ class Decoder
 
     private static function cbor($list)
     {
-        $decoded = array();
+        $decoded = [];
         $cborDecoder = new \CBOR\Decoder(new TagManager(), new OtherObjectManager());
 
         $h1 = $list->get(0); // The first item corresponds to the protected header
         $headerStream = new StringStream($h1->getValue()); // The first item is also a CBOR encoded byte string
-        $decoded['protected'] = $cborDecoder->decode($headerStream)->normalize(); // The array [1 => "-7"] = ["alg" => "ES256"]
+        $decoded['protected'] = $cborDecoder->decode($headerStream)->getNormalizedData(); // The array [1 => "-7"] = ["alg" => "ES256"]
 
         $h2 = $list->get(1); // The second item corresponds to unprotected header
         $decoded['unprotected'] = $h2->normalize(); // The index 4 refers to the 'kid' (key ID) parameter (see https://www.iana.org/assignments/cose/cose.xhtml)
 
         $data = $list->get(2); // The third item corresponds to the data we want to load
-        if (! $data instanceof ByteStringObject) {
+        if (!$data instanceof ByteStringObject) {
             throw new \InvalidArgumentException('Not a valid certificate. The payload is not a byte string.');
         }
         $infoStream = new StringStream($data->getValue()); // The third item is a CBOR encoded byte string
-        $decoded['data'] = $cborDecoder->decode($infoStream)->normalize(); // The data we are looking for
+        $decoded['data'] = $cborDecoder->decode($infoStream)->getNormalizedData(); // The data we are looking for
 
         $signature = $list->get(3); // The fourth item is the signature.
         // It can be verified using the protected header (first item) and the data (third item)
         // And the public key
-        if (! $signature instanceof ByteStringObject) {
+        if (!$signature instanceof ByteStringObject) {
             throw new \InvalidArgumentException('Not a valid certificate. The signature is not a byte string.');
         }
         $decoded['signature'] = $signature->normalize(); // The digital signature
@@ -102,9 +102,8 @@ class Decoder
 
     private static function retrieveKidFromCBOR($cbor)
     {
-
         // We filter the keyset using the country and the key ID from the data
-        $keyId = "";
+        $keyId = '';
 
         if (is_array($cbor['unprotected']) && isset($cbor['unprotected'][4])) {
             $keyId = base64_encode($cbor['unprotected'][4]);
@@ -123,18 +122,18 @@ class Decoder
 
     private static function retrieveAlgorithmFromCBOR($cbor)
     {
-        $alg = "";
+        $alg = '';
 
         if (is_array($cbor['unprotected']) && isset($cbor['unprotected'][1])) {
-            if (! in_array($cbor['unprotected'][1], self::SUPPORTED_ALGO)) {
-                throw new \InvalidArgumentException('Certificate algorithm with identifier ' . $cbor['unprotected'][1] . ' not supported');
+            if (!in_array($cbor['unprotected'][1], self::SUPPORTED_ALGO)) {
+                throw new \InvalidArgumentException('Certificate algorithm with identifier '.$cbor['unprotected'][1].' not supported');
             }
             $alg = $cbor['unprotected'][1];
         }
 
         if (is_array($cbor['protected']) && isset($cbor['protected'][1])) {
-            if (! in_array($cbor['protected'][1], self::SUPPORTED_ALGO)) {
-                throw new \InvalidArgumentException('Certificate algorithm with identifier ' . $cbor['protected'][1] . ' not supported');
+            if (!in_array($cbor['protected'][1], self::SUPPORTED_ALGO)) {
+                throw new \InvalidArgumentException('Certificate algorithm with identifier '.$cbor['protected'][1].' not supported');
             }
             $alg = $cbor['protected'][1];
         }
@@ -158,6 +157,35 @@ class Decoder
         throw new \InvalidArgumentException('Public key not found in list');
     }
 
+    /**
+     * Undocumented function.
+     *
+     * @param int $iat
+     *                 The Issued At timestamp in the NumericDate format (RFC 8392 section 2)
+     * @param int $exp
+     *                 The Expiration Time timestamp in the NumericDate format (RFC 8392 section 2)
+     *
+     * @return void
+     */
+    private static function checkValidDate(GreenPass $gp, int $iat, int $exp)
+    {
+        $today = new \DateTime();
+        $date_iat = new \DateTime();
+        $date_iat->setTimestamp($iat);
+
+        $date_exp = new \DateTime();
+        $date_exp->setTimestamp($exp);
+
+        if ($today < $date_iat) {
+            throw new InvalidPeriodException('Not valid yet', 1, null, $gp);
+        }
+        if ($today > $date_exp) {
+            throw new InvalidPeriodException('Expired', 2, null, $gp);
+        }
+
+        return true;
+    }
+
     public static function qrcode(string $qrcode)
     {
         if (substr($qrcode, 0, 4) === 'HC1:') {
@@ -167,14 +195,14 @@ class Decoder
         $cose = static::cose(static::zlib($zlib));
         $cbor = static::cbor($cose);
 
-        $pem = "";
+        $pem = '';
 
         $alg = static::retrieveAlgorithmFromCBOR($cbor);
         $keyId = static::retrieveKidFromCBOR($cbor);
 
         $certs_list = EndpointService::getCertificatesStatus();
 
-        if (! in_array($keyId, $certs_list)) {
+        if (!in_array($keyId, $certs_list)) {
             throw new \InvalidArgumentException('Public key not found list');
         }
 
@@ -184,7 +212,7 @@ class Decoder
         $pem = chunk_split($signingCertificate, 64, PHP_EOL);
 
         // We convert the raw data into a PEM encoded certificate
-        $pem = '-----BEGIN CERTIFICATE-----' . PHP_EOL . $pem . '-----END CERTIFICATE-----' . PHP_EOL;
+        $pem = '-----BEGIN CERTIFICATE-----'.PHP_EOL.$pem.'-----END CERTIFICATE-----'.PHP_EOL;
 
         $publicKey = null;
         $publicKeyData = null;
@@ -204,7 +232,7 @@ class Decoder
                 Key::KID => $keyId,
                 Ec2Key::DATA_CURVE => Ec2Key::CURVE_P256,
                 Ec2Key::DATA_X => $publicKeyData['ec']['x'],
-                Ec2Key::DATA_Y => $publicKeyData['ec']['y']
+                Ec2Key::DATA_Y => $publicKeyData['ec']['y'],
             ]);
         }
         if (PS256::ID == $alg) {
@@ -213,7 +241,7 @@ class Decoder
                 Key::TYPE => Key::TYPE_RSA,
                 Key::KID => $keyId,
                 RsaKey::DATA_E => $publicKeyData['rsa']['e'],
-                RsaKey::DATA_N => $publicKeyData['rsa']['n']
+                RsaKey::DATA_N => $publicKeyData['rsa']['n'],
             ]);
         }
 
@@ -225,10 +253,13 @@ class Decoder
         $structure->add($cose->get(2));
 
         // We verify the signature with the data structure and the PEM encoded key
-        if (! $verifier->verify((string) $structure, $key, $cbor['signature'])) {
-            throw new \InvalidArgumentException("The signature is NOT valid");
+        if (!$verifier->verify((string) $structure, $key, $cbor['signature'])) {
+            throw new \InvalidArgumentException('The signature is NOT valid');
         }
 
-        return new GreenPass($cbor['data'][- 260][1], $pem);
+        $gp = new GreenPass($cbor['data'][-260][1], $pem);
+        self::checkValidDate($gp, $cbor['data'][6], $cbor['data'][4]);
+
+        return $gp;
     }
 }
