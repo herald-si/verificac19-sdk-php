@@ -14,11 +14,31 @@ use Herald\GreenPass\GreenPassEntities\TestResultType;
 use Herald\GreenPass\GreenPassEntities\TestType;
 use Herald\GreenPass\GreenPassEntities\VaccinationDose;
 use Herald\GreenPass\Utils\EndpointService;
+use Herald\GreenPass\Utils\EnvConfig;
 
 class GreenPassCovid19Checker
 {
+    private const  CERT_RULE_START = 'START_DAY';
+    private const  CERT_RULE_END = 'END_DAY';
+    private const CERT_BOOSTER = 'BOOSTER';
+    private const CERT_COMPLETE = 'COMPLETE';
+
+    /**
+     * Verify GreenPass due date and blacklist.
+     *
+     * @param GreenPass $greenPass
+     *                             GreenPass to check
+     * @param string    $scanMode
+     *                             ValidationScanMode
+     *
+     * @return string
+     *                ValidationStatus
+     */
     public static function verifyCert(GreenPass $greenPass, string $scanMode = ValidationScanMode::CLASSIC_DGP)
     {
+        if (!EnvConfig::isDebugEnabled() && ($scanMode == ValidationScanMode::SCHOOL_DGP || $scanMode == ValidationScanMode::WORK_DGP)) {
+            throw new  \InvalidArgumentException('Unrelased scan mode, dont use in production');
+        }
         $cert = $greenPass->certificate;
 
         if (!self::verifyDiseaseAgent($cert->diseaseAgent)) {
@@ -69,6 +89,17 @@ class GreenPassCovid19Checker
         return ValidationStatus::NOT_RECOGNIZED;
     }
 
+    /**
+     * Get validation rules from rule name and type.
+     *
+     * @param string $rule
+     *                     rule name
+     * @param string $type
+     *                     rule type
+     *
+     * @return string
+     *                rule value if set, ValidationStatus::NOT_FOUND otherwise
+     */
     private static function getValueFromValidationRules(string $rule, string $type)
     {
         $validity_rules = EndpointService::getValidationRules();
@@ -83,6 +114,99 @@ class GreenPassCovid19Checker
         return $value;
     }
 
+    /**
+     * Get default days check.
+     */
+    private static function getDefaultValidationDays(string $startEnd, string $country): int
+    {
+        $default = ValidationRules::DEFAULT_DAYS_START;
+
+        if ($startEnd == self::CERT_RULE_END) {
+            $default = ($country == Country::ITALY) ? ValidationRules::DEFAULT_DAYS_END_IT : ValidationRules::DEFAULT_DAYS_END_NOT_IT;
+        }
+
+        return $default;
+    }
+
+    /**
+     * Get custom vaccine validation rules for countries.
+     *
+     * @param VaccinationDose $cert
+     *                                   Certificate type
+     * @param string          $startEnd
+     *                                   const CERT_RULE_START or const CERT_RULE_END
+     * @param bool            $isBooster
+     *                                   true for booster dose
+     *
+     * @return int
+     *             custom rule value
+     */
+    private static function getVaccineCustomDaysFromValidationRules(VaccinationDose $cert, string $scanMode, string $startEnd, bool $isBooster): int
+    {
+        $addDays = 0;
+        $ruleType = ValidationRules::GENERIC_RULE;
+        if ($isBooster) {
+            $customCycle = self::CERT_BOOSTER;
+        } else {
+            $customCycle = self::CERT_COMPLETE;
+        }
+        $countryCode = ($scanMode == ValidationScanMode::CLASSIC_DGP) ? $cert->country : Country::ITALY;
+
+        if ($countryCode == Country::ITALY) {
+            $customCountry = Country::ITALY;
+        } else {
+            $customCountry = 'NOT_'.Country::ITALY;
+        }
+        if ($startEnd == self::CERT_RULE_START && !$isBooster && $cert->product == MedicinalProduct::JOHNSON) {
+            $addDays = ValidationRules::DEFAULT_DAYS_START_JJ;
+        }
+
+        $ruleToCheck = ValidationRules::convertRuleNameToConstant("VACCINE_{$startEnd}_{$customCycle}_{$customCountry}");
+
+        $result = self::getValueFromValidationRules($ruleToCheck, $ruleType);
+
+        if ($result == ValidationStatus::NOT_FOUND) {
+            $result = self::getDefaultValidationDays($startEnd, $countryCode);
+        }
+
+        return (int) $result + $addDays;
+    }
+
+    /**
+     * Get custom recovery validation rules for countries.
+     *
+     * @param RecoveryStatement $cert
+     *                                    Certificate type
+     * @param string            $startEnd
+     *                                    const CERT_RULE_START or CERT_RULE_END
+     *
+     * @return string
+     *                custom rule value
+     */
+    private static function getRecoveryCustomRulesFromValidationRules(RecoveryStatement $cert, string $scanMode, string $startEnd): int
+    {
+        $ruleType = ValidationRules::GENERIC_RULE;
+
+        $countryCode = ($scanMode == ValidationScanMode::CLASSIC_DGP) ? $cert->country : Country::ITALY;
+
+        if ($countryCode == Country::ITALY) {
+            $customCountry = Country::ITALY;
+        } else {
+            $customCountry = 'NOT_'.Country::ITALY;
+        }
+
+        $ruleToCheck = ValidationRules::convertRuleNameToConstant("RECOVERY_CERT_{$startEnd}_{$customCountry}");
+
+        $result = self::getValueFromValidationRules($ruleToCheck, $ruleType);
+
+        return ($result != ValidationStatus::NOT_FOUND) ? (int) $result : self::getDefaultValidationDays($startEnd, $countryCode);
+    }
+
+    /**
+     * Check if GreenPass is for Covid19.
+     *
+     * @return bool
+     */
     private static function verifyDiseaseAgent($agent)
     {
         return $agent instanceof Covid19;
@@ -128,25 +252,16 @@ class GreenPassCovid19Checker
             $check_other_booster = $cert->doseGiven > $cert->totalDoses || ($cert->doseGiven == $cert->totalDoses && $cert->doseGiven > 2);
             $check_booster_dose = $check_jj_booster || $check_other_booster;
 
-            if ($check_jj_booster) {
-                $data_inizio_validita = $cert->date;
+            $startDaysToAdd = self::getVaccineCustomDaysFromValidationRules($cert, $scanMode, self::CERT_RULE_START, $check_booster_dose);
+
+            if (ValidationScanMode::SCHOOL_DGP == $scanMode && !$check_booster_dose) {
+                $endDaysToAdd = self::getEndDaySchool(ValidationRules::VACCINE_END_DAY_SCHOOL, ValidationRules::GENERIC_RULE);
             } else {
-                $giorni_min_valido = self::getValueFromValidationRules(ValidationRules::VACCINE_START_DAY_COMPLETE, $cert->product);
-                $data_inizio_validita = $cert->date->modify("+$giorni_min_valido days");
+                $endDaysToAdd = self::getVaccineCustomDaysFromValidationRules($cert, $scanMode, self::CERT_RULE_END, $check_booster_dose);
             }
 
-            if (ValidationScanMode::SCHOOL_DGP != $scanMode) {
-                $giorni_max_valido = self::getValueFromValidationRules(ValidationRules::VACCINE_END_DAY_COMPLETE, $cert->product);
-            } else {
-                //verifico se dose booster
-                if ($check_booster_dose) {
-                    $giorni_max_valido = self::getValueFromValidationRules(ValidationRules::VACCINE_END_DAY_COMPLETE, $cert->product);
-                } else {
-                    $giorni_max_valido = self::getEndDaySchool(ValidationRules::VACCINE_END_DAY_SCHOOL, 'GENERIC');
-                }
-            }
-
-            $data_fine_validita = $cert->date->modify("+$giorni_max_valido days");
+            $data_inizio_validita = $cert->date->modify("+$startDaysToAdd days");
+            $data_fine_validita = $cert->date->modify("+$endDaysToAdd days");
 
             if ($validation_date < $data_inizio_validita) {
                 return ValidationStatus::NOT_VALID_YET;
@@ -180,10 +295,10 @@ class GreenPassCovid19Checker
         }
 
         if ($cert->type == TestType::MOLECULAR) {
-            $ore_min_valido = self::getValueFromValidationRules(ValidationRules::MOLECULAR_TEST_START_HOUR, 'GENERIC');
+            $ore_min_valido = self::getValueFromValidationRules(ValidationRules::MOLECULAR_TEST_START_HOUR, ValidationRules::GENERIC_RULE);
             $ora_inizio_validita = $cert->date->modify("+$ore_min_valido hours");
 
-            $ore_max_valido = self::getValueFromValidationRules(ValidationRules::MOLECULAR_TEST_END_HOUR, 'GENERIC');
+            $ore_max_valido = self::getValueFromValidationRules(ValidationRules::MOLECULAR_TEST_END_HOUR, ValidationRules::GENERIC_RULE);
             $ora_fine_validita = $cert->date->modify("+$ore_max_valido hours");
 
             if ($validation_date < $ora_inizio_validita) {
@@ -197,10 +312,10 @@ class GreenPassCovid19Checker
         }
 
         if ($cert->type == TestType::RAPID) {
-            $ore_min_valido = self::getValueFromValidationRules(ValidationRules::RAPID_TEST_START_HOUR, 'GENERIC');
+            $ore_min_valido = self::getValueFromValidationRules(ValidationRules::RAPID_TEST_START_HOUR, ValidationRules::GENERIC_RULE);
             $ora_inizio_validita = $cert->date->modify("+$ore_min_valido hours");
 
-            $ore_max_valido = self::getValueFromValidationRules(ValidationRules::RAPID_TEST_END_HOUR, 'GENERIC');
+            $ore_max_valido = self::getValueFromValidationRules(ValidationRules::RAPID_TEST_END_HOUR, ValidationRules::GENERIC_RULE);
             $ora_fine_validita = $cert->date->modify("+$ore_max_valido hours");
 
             if ($validation_date < $ora_inizio_validita) {
@@ -219,12 +334,12 @@ class GreenPassCovid19Checker
     private static function verifyRecoveryStatement(RecoveryStatement $cert, \DateTime $validation_date, string $scanMode, $certificate)
     {
         $isRecoveryBis = self::isRecoveryBis($cert, $certificate);
-        $start_day = $isRecoveryBis ? self::getValueFromValidationRules(ValidationRules::RECOVERY_CERT_PV_START_DAY, 'GENERIC') : self::getValueFromValidationRules(ValidationRules::RECOVERY_CERT_START_DAY, 'GENERIC');
+        $start_day = $isRecoveryBis ? self::getValueFromValidationRules(ValidationRules::RECOVERY_CERT_PV_START_DAY, ValidationRules::GENERIC_RULE) : self::getRecoveryCustomRulesFromValidationRules($cert, $scanMode, self::CERT_RULE_START);
 
-        if ($scanMode != ValidationScanMode::SCHOOL_DGP) {
-            $end_day = $isRecoveryBis ? self::getValueFromValidationRules(ValidationRules::RECOVERY_CERT_PV_END_DAY, 'GENERIC') : self::getValueFromValidationRules(ValidationRules::RECOVERY_CERT_END_DAY, 'GENERIC');
+        if ($scanMode == ValidationScanMode::SCHOOL_DGP) {
+            $end_day = self::getEndDaySchool(ValidationRules::RECOVERY_CERT_END_DAY_SCHOOL, ValidationRules::GENERIC_RULE);
         } else {
-            $end_day = self::getEndDaySchool(ValidationRules::RECOVERY_CERT_END_DAY_SCHOOL, 'GENERIC');
+            $end_day = $isRecoveryBis ? self::getValueFromValidationRules(ValidationRules::RECOVERY_CERT_PV_END_DAY, ValidationRules::GENERIC_RULE) : self::getRecoveryCustomRulesFromValidationRules($cert, $scanMode, self::CERT_RULE_END);
         }
 
         $valid_from = $cert->validFrom;
@@ -342,7 +457,7 @@ class GreenPassCovid19Checker
     {
         $days = self::getValueFromValidationRules($rule, $type);
         if ($days == ValidationStatus::NOT_FOUND) {
-            $days = ValidationRules::SCHOOL_DEFAULT_DAYS;
+            $days = ValidationRules::DEFAULT_DAYS_SCHOOL;
         }
 
         return $days;

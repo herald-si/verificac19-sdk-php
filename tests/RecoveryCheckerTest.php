@@ -147,5 +147,18 @@ class RecoveryCheckerTest extends GreenPassCovid19CheckerTest
 
         $esito = GreenPassCovid19Checker::verifyCert($greenpass, ValidationScanMode::SCHOOL_DGP);
         $this->assertEquals('NOT_VALID', $esito);
+
+        // test recovery dopo 7 mesi other country
+        $testgp['r'][0]['co'] = 'GR';
+        $greenpass = new GreenPass($testgp);
+
+        $esito = GreenPassCovid19Checker::verifyCert($greenpass);
+        $this->assertEquals('NOT_VALID', $esito);
+
+        // other scandmode use Italy validation rules
+        $esito = GreenPassCovid19Checker::verifyCert($greenpass, ValidationScanMode::SUPER_DGP);
+        $this->assertEquals('NOT_VALID', $esito);
+        $esito = GreenPassCovid19Checker::verifyCert($greenpass, ValidationScanMode::BOOSTER_DGP);
+        $this->assertEquals('NOT_VALID', $esito);
     }
 }
