@@ -334,23 +334,31 @@ class GreenPassCovid19Checker
     private static function verifyRecoveryStatement(RecoveryStatement $cert, \DateTime $validation_date, string $scanMode, $certificate)
     {
         $isRecoveryBis = self::isRecoveryBis($cert, $certificate);
-        $start_day = $isRecoveryBis ? self::getValueFromValidationRules(ValidationRules::RECOVERY_CERT_PV_START_DAY, ValidationRules::GENERIC_RULE) : self::getRecoveryCustomRulesFromValidationRules($cert, $scanMode, self::CERT_RULE_START);
+        $startDaysToAdd = $isRecoveryBis ? self::getValueFromValidationRules(ValidationRules::RECOVERY_CERT_PV_START_DAY, ValidationRules::GENERIC_RULE) : self::getRecoveryCustomRulesFromValidationRules($cert, $scanMode, self::CERT_RULE_START);
 
         if ($scanMode == ValidationScanMode::SCHOOL_DGP) {
-            $end_day = self::getEndDaySchool(ValidationRules::RECOVERY_CERT_END_DAY_SCHOOL, ValidationRules::GENERIC_RULE);
+            $endDaysToAdd = self::getEndDaySchool(ValidationRules::RECOVERY_CERT_END_DAY_SCHOOL, ValidationRules::GENERIC_RULE);
         } else {
-            $end_day = $isRecoveryBis ? self::getValueFromValidationRules(ValidationRules::RECOVERY_CERT_PV_END_DAY, ValidationRules::GENERIC_RULE) : self::getRecoveryCustomRulesFromValidationRules($cert, $scanMode, self::CERT_RULE_END);
+            $endDaysToAdd = $isRecoveryBis ? self::getValueFromValidationRules(ValidationRules::RECOVERY_CERT_PV_END_DAY, ValidationRules::GENERIC_RULE) : self::getRecoveryCustomRulesFromValidationRules($cert, $scanMode, self::CERT_RULE_END);
         }
 
+        $certificateValidUntil = $cert->validUntil;
         $valid_from = $cert->validFrom;
 
-        $start_date = $valid_from->modify("+$start_day days");
+        $start_date = $valid_from->modify("+$startDaysToAdd days");
+        $dateOfFirstPositiveTest = $cert->date->modify("+ $endDaysToAdd days");
+
+        if ($scanMode == ValidationScanMode::SCHOOL_DGP) {
+            $endDate = ($certificateValidUntil < $dateOfFirstPositiveTest) ? $certificateValidUntil : $dateOfFirstPositiveTest;
+        } else {
+            $endDate = $start_date->modify("+$endDaysToAdd days");
+        }
 
         if ($start_date > $validation_date) {
             return ValidationStatus::NOT_VALID_YET;
         }
 
-        if ($validation_date > $start_date->modify("+$end_day days")) {
+        if ($validation_date > $endDate) {
             return ValidationStatus::NOT_VALID;
         }
 
