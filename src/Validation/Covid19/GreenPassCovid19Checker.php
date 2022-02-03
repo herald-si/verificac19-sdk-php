@@ -343,18 +343,18 @@ class GreenPassCovid19Checker
         }
 
         $certificateValidUntil = $cert->validUntil;
-        $valid_from = $cert->validFrom;
+        $certificateValidFrom = $cert->validFrom;
 
-        $start_date = $valid_from->modify("+$startDaysToAdd days");
-        $dateOfFirstPositiveTest = $cert->date->modify("+ $endDaysToAdd days");
+        $startDate = $certificateValidFrom->modify("+$startDaysToAdd days");
+        $endFromDateOfFirstPositiveTest = $cert->date->modify("+ $endDaysToAdd days");
 
         if ($scanMode == ValidationScanMode::SCHOOL_DGP) {
-            $endDate = ($certificateValidUntil < $dateOfFirstPositiveTest) ? $certificateValidUntil : $dateOfFirstPositiveTest;
+            $endDate = ($certificateValidUntil < $endFromDateOfFirstPositiveTest) ? $certificateValidUntil : $endFromDateOfFirstPositiveTest;
         } else {
-            $endDate = $start_date->modify("+$endDaysToAdd days");
+            $endDate = $certificateValidFrom->modify("+$endDaysToAdd days");
         }
 
-        if ($start_date > $validation_date) {
+        if ($startDate > $validation_date) {
             return ValidationStatus::NOT_VALID_YET;
         }
 
