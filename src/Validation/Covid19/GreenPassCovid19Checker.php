@@ -36,7 +36,7 @@ class GreenPassCovid19Checker
      */
     public static function verifyCert(GreenPass $greenPass, string $scanMode = ValidationScanMode::CLASSIC_DGP)
     {
-        if (!EnvConfig::isDebugEnabled() && ($scanMode == ValidationScanMode::SCHOOL_DGP || $scanMode == ValidationScanMode::WORK_DGP)) {
+        if (!EnvConfig::isDebugEnabled() && $scanMode == ValidationScanMode::WORK_DGP) {
             throw new  \InvalidArgumentException('Unrelased scan mode, dont use in production');
         }
         $cert = $greenPass->certificate;
@@ -334,23 +334,31 @@ class GreenPassCovid19Checker
     private static function verifyRecoveryStatement(RecoveryStatement $cert, \DateTime $validation_date, string $scanMode, $certificate)
     {
         $isRecoveryBis = self::isRecoveryBis($cert, $certificate);
-        $start_day = $isRecoveryBis ? self::getValueFromValidationRules(ValidationRules::RECOVERY_CERT_PV_START_DAY, ValidationRules::GENERIC_RULE) : self::getRecoveryCustomRulesFromValidationRules($cert, $scanMode, self::CERT_RULE_START);
+        $startDaysToAdd = $isRecoveryBis ? self::getValueFromValidationRules(ValidationRules::RECOVERY_CERT_PV_START_DAY, ValidationRules::GENERIC_RULE) : self::getRecoveryCustomRulesFromValidationRules($cert, $scanMode, self::CERT_RULE_START);
 
         if ($scanMode == ValidationScanMode::SCHOOL_DGP) {
-            $end_day = self::getEndDaySchool(ValidationRules::RECOVERY_CERT_END_DAY_SCHOOL, ValidationRules::GENERIC_RULE);
+            $endDaysToAdd = self::getEndDaySchool(ValidationRules::RECOVERY_CERT_END_DAY_SCHOOL, ValidationRules::GENERIC_RULE);
         } else {
-            $end_day = $isRecoveryBis ? self::getValueFromValidationRules(ValidationRules::RECOVERY_CERT_PV_END_DAY, ValidationRules::GENERIC_RULE) : self::getRecoveryCustomRulesFromValidationRules($cert, $scanMode, self::CERT_RULE_END);
+            $endDaysToAdd = $isRecoveryBis ? self::getValueFromValidationRules(ValidationRules::RECOVERY_CERT_PV_END_DAY, ValidationRules::GENERIC_RULE) : self::getRecoveryCustomRulesFromValidationRules($cert, $scanMode, self::CERT_RULE_END);
         }
 
-        $valid_from = $cert->validFrom;
+        $certificateValidUntil = $cert->validUntil;
+        $certificateValidFrom = $cert->validFrom;
 
-        $start_date = $valid_from->modify("+$start_day days");
+        $startDate = $certificateValidFrom->modify("+$startDaysToAdd days");
+        $endFromDateOfFirstPositiveTest = $cert->date->modify("+ $endDaysToAdd days");
 
-        if ($start_date > $validation_date) {
+        if ($scanMode == ValidationScanMode::SCHOOL_DGP) {
+            $endDate = ($certificateValidUntil < $endFromDateOfFirstPositiveTest) ? $certificateValidUntil : $endFromDateOfFirstPositiveTest;
+        } else {
+            $endDate = $certificateValidFrom->modify("+$endDaysToAdd days");
+        }
+
+        if ($startDate > $validation_date) {
             return ValidationStatus::NOT_VALID_YET;
         }
 
-        if ($validation_date > $start_date->modify("+$end_day days")) {
+        if ($validation_date > $endDate) {
             return ValidationStatus::NOT_VALID;
         }
 
@@ -363,10 +371,6 @@ class GreenPassCovid19Checker
 
     private static function verifyExemption(Exemption $cert, \DateTime $validation_date, string $scanMode)
     {
-        if ($scanMode == ValidationScanMode::SCHOOL_DGP) {
-            return ValidationStatus::NOT_VALID;
-        }
-
         $valid_from = $cert->validFrom;
         $valid_until = $cert->validUntil;
 
