@@ -163,15 +163,7 @@ class VaccineChecker
             return ValidationStatus::EXPIRED;
         }
 
-        //Data valida, controllo tipologia
-        $esito = ValidationStatus::NOT_EU_DCC;
-        if ($cert->isComplete()) {
-            $esito = ValidationStatus::VALID;
-        } elseif ($cert->isNotComplete()) {
-            $esito = ValidationStatus::NOT_VALID;
-        }
-
-        return $esito;
+        return ValidationStatus::VALID;
     }
 
     private function strengthenedStrategy(VaccinationDose $cert)
