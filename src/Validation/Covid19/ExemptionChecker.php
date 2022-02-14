@@ -6,20 +6,35 @@ use Herald\GreenPass\GreenPassEntities\Exemption;
 
 class ExemptionChecker
 {
-    public static function verifyExemption(Exemption $cert, \DateTime $validation_date, string $scanMode)
-    {
-        $valid_from = $cert->validFrom;
-        $valid_until = $cert->validUntil;
+    private $validation_date = null;
+    private $scanMode = null;
+    private $cert = null;
 
-        if ($valid_from > $validation_date) {
+    public function __construct(\DateTime $validation_date, string $scanMode, Exemption $cert)
+    {
+        $this->validation_date = $validation_date;
+        $this->scanMode = $scanMode;
+        $this->cert = $cert;
+    }
+
+    public function checkCertificate()
+    {
+        if ($this->scanMode == ValidationScanMode::ENTRY_IT_DGP) {
+            return ValidationStatus::NOT_VALID;
+        }
+
+        $valid_from = $this->cert->validFrom;
+        $valid_until = $this->cert->validUntil;
+
+        if ($valid_from > $this->validation_date) {
             return ValidationStatus::NOT_VALID_YET;
         }
 
-        if ($validation_date > $valid_until) {
+        if ($this->validation_date > $valid_until) {
             return ValidationStatus::EXPIRED;
         }
 
-        if ($scanMode == ValidationScanMode::BOOSTER_DGP) {
+        if ($this->scanMode == ValidationScanMode::BOOSTER_DGP) {
             return ValidationStatus::TEST_NEEDED;
         }
 

@@ -40,7 +40,7 @@ class RecoveryChecker
             $endDaysToAdd = $isRecoveryBis ? ValidationRules::getValues(ValidationRules::RECOVERY_CERT_PV_END_DAY, ValidationRules::GENERIC_RULE) : $this->getRecoveryCustomRulesFromValidationRules($this->cert, $countryCode, ValidationRules::CERT_RULE_END);
         }
 
-        $certificateValidFrom = ($this->scanMode == ValidationScanMode::ENTRY_IT_DGP) ? $this->cert->date : $this->cert->validFrom;
+        $certificateValidFrom = ($this->scanMode == ValidationScanMode::SCHOOL_DGP) ? $this->cert->date : $this->cert->validFrom;
 
         $startDate = $certificateValidFrom->modify("+$startDaysToAdd days");
         $endDate = $certificateValidFrom->modify("+$endDaysToAdd days");

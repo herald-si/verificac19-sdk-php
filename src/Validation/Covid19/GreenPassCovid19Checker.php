@@ -67,7 +67,9 @@ class GreenPassCovid19Checker
 
         // esenzione
         if ($cert instanceof Exemption) {
-            return ExemptionChecker::verifyExemption($cert, $data_oggi, $scanMode);
+            $excemptionValidator = new ExemptionChecker($data_oggi, $scanMode, $cert);
+
+            return $excemptionValidator->checkCertificate();
         }
 
         return ValidationStatus::NOT_RECOGNIZED;
