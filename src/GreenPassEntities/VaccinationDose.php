@@ -65,12 +65,6 @@ class VaccinationDose extends CertificateType
         $this->date = !empty($data['v'][0]['dt'] ?? null) ? new \DateTimeImmutable($data['v'][0]['dt']) : null;
     }
 
-    public function isNotAllowed()
-    {
-        // isSputnikNotFromSanMarino ( https://github.com/ministero-salute/it-dgc-verificac19-sdk-android/commit/fee61a8ab86c6f4598afd6bbb48553081933f813 )
-        return $this->product == MedicinalProduct::SPUTNIK && $this != Country::SAN_MARINO;
-    }
-
     public function isComplete()
     {
         return $this->doseGiven >= $this->totalDoses;
