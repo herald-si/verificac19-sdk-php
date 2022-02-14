@@ -48,9 +48,9 @@ class GreenPassCovid19Checker
 
         // vaccino effettuato
         if ($cert instanceof VaccinationDose) {
-            $vaccineValidator = new VaccineChecker($data_oggi, $scanMode);
+            $vaccineValidator = new VaccineChecker($data_oggi, $scanMode, $greenPass->holder, $cert);
 
-            return $vaccineValidator->checkCertificate($cert);
+            return $vaccineValidator->checkCertificate();
         }
 
         // tampone effettuato

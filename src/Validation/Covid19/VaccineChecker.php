@@ -3,6 +3,7 @@
 namespace Herald\GreenPass\Validation\Covid19;
 
 use Herald\GreenPass\GreenPassEntities\Country;
+use Herald\GreenPass\GreenPassEntities\Holder;
 use Herald\GreenPass\GreenPassEntities\VaccinationDose;
 
 class VaccineChecker
@@ -14,25 +15,29 @@ class VaccineChecker
 
     private $validation_date = null;
     private $scanMode = null;
+    private $cert = null;
+    private $holder = null;
 
-    public function __construct(\DateTime $validation_date, string $scanMode)
+    public function __construct(\DateTime $validation_date, string $scanMode, Holder $holder, VaccinationDose $cert)
     {
         $this->validation_date = $validation_date;
         $this->scanMode = $scanMode;
+        $this->holder = $holder;
+        $this->cert = $cert;
     }
 
-    public function checkCertificate(VaccinationDose $cert)
+    public function checkCertificate()
     {
-        $vaccineType = $cert->product;
+        $vaccineType = $this->cert->product;
 
-        if (!$this->hasRuleForVaccine($cert, $vaccineType)) {
+        if (!$this->hasRuleForVaccine($this->cert, $vaccineType)) {
             return ValidationStatus::NOT_VALID;
         }
-        if ($cert->isNotAllowed()) {
+        if ($this->cert->isNotAllowed()) {
             return ValidationStatus::NOT_VALID;
         }
 
-        return $this->validate($cert);
+        return $this->validate($this->cert);
     }
 
     /**
@@ -61,7 +66,7 @@ class VaccineChecker
         if ($countryCode == Country::ITALY) {
             $customCountry = Country::ITALY;
         } else {
-            $customCountry = 'NOT_'.Country::ITALY;
+            $customCountry = Country::NOT_ITALY;
         }
         if ($startEnd == VaccineChecker::CERT_RULE_START && !$isBooster && $cert->product == MedicinalProduct::JOHNSON) {
             $addDays = ValidationRules::DEFAULT_DAYS_START_JJ;
@@ -201,6 +206,7 @@ class VaccineChecker
         $startDate = $vaccineDate->modify("+$startDaysToAdd days");
         $endDate = $vaccineDate->modify("+$endDaysToAdd days");
         $extendedDate = $vaccineDate->modify("+$extendedDaysToAdd days");
+
         if ($cert->isNotComplete() || $cert->isBooster()) {
             if ($this->validation_date < $startDate) {
                 $esito = ValidationStatus::NOT_VALID_YET;
@@ -284,8 +290,7 @@ class VaccineChecker
         }
 
         $startDaysToAdd = $this->getVaccineCustomDaysFromValidationRules($cert, Country::ITALY, VaccineChecker::CERT_RULE_START, $cert->isBooster());
-        $endDaysToAdd =
-        ($cert->isBooster()) ? $this->getVaccineCustomDaysFromValidationRules($cert, Country::ITALY, VaccineChecker::CERT_RULE_END, $cert->isBooster()) : ValidationRules::getEndDaySchool(ValidationRules::VACCINE_END_DAY_SCHOOL, ValidationRules::GENERIC_RULE);
+        $endDaysToAdd = ($cert->isBooster()) ? $this->getVaccineCustomDaysFromValidationRules($cert, Country::ITALY, VaccineChecker::CERT_RULE_END, $cert->isBooster()) : ValidationRules::getEndDaySchool(ValidationRules::VACCINE_END_DAY_SCHOOL, ValidationRules::GENERIC_RULE);
 
         $startDate = $vaccineDate->modify("+$startDaysToAdd days");
         $endDate = $vaccineDate->modify("+$endDaysToAdd days");
@@ -296,42 +301,45 @@ class VaccineChecker
             return ValidationStatus::EXPIRED;
         }
 
-        //Data valida, controllo tipologia
-        $esito = ValidationStatus::NOT_VALID;
-        if ($cert->isComplete()) {
-            if ($cert->isBooster()) {
-                if (MedicinalProduct::isEma($cert->product)) {
-                    $esito = ValidationStatus::VALID;
-                } else {
-                    $esito = ValidationStatus::TEST_NEEDED;
-                }
-            } else {
-                $esito = ValidationStatus::TEST_NEEDED;
-            }
-        }
+        return ValidationStatus::VALID;
     }
 
     private function workStrategy(VaccinationDose $cert)
     {
-        /*
-         * TODO: Not yet implemented
-         */
-
-        return ValidationStatus::VALID;
+        $age = $this->holder->getAgeAtGivenDate($this->validation_date);
+        if ($age >= ValidationRules::VACCINE_MANDATORY_AGE) {
+            return $this->strengthenedStrategy($cert);
+        } else {
+            return $this->standardStrategy($cert);
+        }
     }
 
     private function vaccineEntryItalyStrategy(VaccinationDose $cert)
     {
+        $vaccineDate = $cert->date;
+
         if (!MedicinalProduct::isEma($cert->product)) {
             return ValidationStatus::NOT_VALID;
         }
-        if ($cert->isComplete()) {
-            return ValidationStatus::VALID;
-        } elseif ($cert->isNotComplete()) {
+
+        if ($cert->isNotComplete()) {
             return ValidationStatus::NOT_VALID;
         }
 
-        return ValidationStatus::NOT_EU_DCC;
+        $startDaysToAdd = $this->getVaccineCustomDaysFromValidationRules($cert, Country::NOT_ITALY, VaccineChecker::CERT_RULE_START, $cert->isBooster());
+        $endDaysToAdd = $this->getVaccineCustomDaysFromValidationRules($cert, Country::NOT_ITALY, VaccineChecker::CERT_RULE_END, $cert->isBooster());
+
+        $startDate = $vaccineDate->modify("+$startDaysToAdd days");
+        $endDate = $vaccineDate->modify("+$endDaysToAdd days");
+
+        if ($this->validation_date < $startDate) {
+            return ValidationStatus::NOT_VALID_YET;
+        }
+        if ($this->validation_date > $endDate) {
+            return ValidationStatus::EXPIRED;
+        }
+
+        return ValidationStatus::VALID;
     }
 
     private function retrieveExendedDaysToAdd()
