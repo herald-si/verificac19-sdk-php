@@ -2,6 +2,7 @@
 
 namespace Herald\GreenPass\Validation\Covid19;
 
+use Herald\GreenPass\GreenPassEntities\Country;
 use Herald\GreenPass\Utils\EndpointService;
 
 class ValidationRules
@@ -56,6 +57,8 @@ class ValidationRules
     public const DEFAULT_DAYS_START_JJ = 15;
     public const DEFAULT_DAYS_END_IT = 180;
     public const DEFAULT_DAYS_END_NOT_IT = 270;
+    public const  CERT_RULE_START = 'START_DAY';
+    public const  CERT_RULE_END = 'END_DAY';
 
     public const GENERIC_RULE = 'GENERIC';
 
@@ -87,5 +90,29 @@ class ValidationRules
         }
 
         return $value;
+    }
+
+    /**
+     * Get default days check.
+     */
+    public static function getDefaultValidationDays(string $startEnd, string $country): int
+    {
+        $default = ValidationRules::DEFAULT_DAYS_START;
+
+        if ($startEnd == self::CERT_RULE_END) {
+            $default = ($country == Country::ITALY) ? ValidationRules::DEFAULT_DAYS_END_IT : ValidationRules::DEFAULT_DAYS_END_NOT_IT;
+        }
+
+        return $default;
+    }
+
+    public static function getEndDaySchool(string $rule, string $type)
+    {
+        $days = ValidationRules::getValues($rule, $type);
+        if ($days == ValidationStatus::NOT_FOUND) {
+            $days = ValidationRules::DEFAULT_DAYS_SCHOOL;
+        }
+
+        return $days;
     }
 }
