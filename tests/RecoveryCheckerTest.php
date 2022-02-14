@@ -81,6 +81,7 @@ class RecoveryCheckerTest extends GreenPassCovid19CheckerTest
         $testgp = GPDataTest::$recovery;
         $data_greenpass = $this->data_oggi->modify(self::DATE_TOMORROW);
         $testgp['r'][0]['df'] = $data_greenpass->format('Y-m-d');
+        $testgp['r'][0]['fr'] = $data_greenpass->format('Y-m-d');
         $greenpass = new GreenPass($testgp);
 
         $esito = GreenPassCovid19Checker::verifyCert($greenpass);

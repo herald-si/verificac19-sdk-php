@@ -20,7 +20,7 @@ class VaccineCheckerTest extends GreenPassCovid19CheckerTest
         $greenpass = new GreenPass($testgp);
 
         $esito = GreenPassCovid19Checker::verifyCert($greenpass);
-        $this->assertEquals('NOT_VALID', $esito);
+        $this->assertEquals('EXPIRED', $esito);
     }
 
     /*
@@ -272,7 +272,7 @@ class VaccineCheckerTest extends GreenPassCovid19CheckerTest
         $greenpass = new GreenPass($testgp);
 
         $esito = GreenPassCovid19Checker::verifyCert($greenpass);
-        $this->assertEquals('VALID', $esito);
+        $this->assertEquals('EXPIRED', $esito);
 
         $esito = GreenPassCovid19Checker::verifyCert($greenpass, ValidationScanMode::SCHOOL_DGP);
         $this->assertEquals('EXPIRED', $esito);
