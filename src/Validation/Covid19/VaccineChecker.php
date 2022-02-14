@@ -55,7 +55,6 @@ class VaccineChecker
      */
     private function getVaccineCustomDaysFromValidationRules(VaccinationDose $cert, string $countryCode, string $startEnd, bool $isBooster): int
     {
-        $addDays = 0;
         $ruleType = ValidationRules::GENERIC_RULE;
         if ($isBooster) {
             $customCycle = VaccineChecker::CERT_BOOSTER;
@@ -69,7 +68,9 @@ class VaccineChecker
             $customCountry = Country::NOT_ITALY;
         }
         if ($startEnd == VaccineChecker::CERT_RULE_START && !$isBooster && $cert->product == MedicinalProduct::JOHNSON) {
-            $addDays = ValidationRules::DEFAULT_DAYS_START_JJ;
+            $addDays = ValidationRules::getValues(ValidationRules::VACCINE_START_DAY_COMPLETE, MedicinalProduct::JOHNSON);
+        } else {
+            $addDays = 0;
         }
 
         $ruleToCheck = ValidationRules::convertRuleNameToConstant("VACCINE_{$startEnd}_{$customCycle}_{$customCountry}");
@@ -80,7 +81,7 @@ class VaccineChecker
             $result = ValidationRules::getDefaultValidationDays($startEnd, $countryCode);
         }
 
-        return (int) $result + $addDays;
+        return (int) $result + (int) $addDays;
     }
 
     /**
@@ -137,11 +138,8 @@ class VaccineChecker
             return ValidationStatus::NOT_VALID;
         }
 
-        $countryCode = $cert->country;
+        $countryCode = Country::ITALY;
 
-        if ($countryCode != Country::ITALY && $cert->isComplete() && !$cert->isBooster()) {
-            $countryCode = Country::ITALY;
-        }
         $vaccineDate = $cert->date;
 
         $startDaysToAdd = 0;
@@ -242,6 +240,9 @@ class VaccineChecker
     private function boosterStrategy(VaccinationDose $cert)
     {
         if ($cert->isNotComplete()) {
+            return ValidationStatus::NOT_VALID;
+        }
+        if (!MedicinalProduct::isEma($cert->product) && $cert->country == Country::ITALY) {
             return ValidationStatus::NOT_VALID;
         }
 

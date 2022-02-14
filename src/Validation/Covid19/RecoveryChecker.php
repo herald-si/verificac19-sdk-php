@@ -26,7 +26,7 @@ class RecoveryChecker
 
     public function checkCertificate()
     {
-        if ($this->scanMode == ValidationScanMode::CLASSIC_DGP || $this->scanMode == ValidationScanMode::ENTRY_IT_DGP || ($this->scanMode == ValidationScanMode::WORK_DGP && $this->holder->getAgeAtGivenDate($this->validation_date) < ValidationRules::VACCINE_MANDATORY_AGE)) {
+        if ($this->scanMode == ValidationScanMode::ENTRY_IT_DGP) {
             $countryCode = $this->cert->country;
         } else {
             $countryCode = Country::ITALY;
