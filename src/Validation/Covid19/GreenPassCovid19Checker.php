@@ -55,7 +55,9 @@ class GreenPassCovid19Checker
 
         // tampone effettuato
         if ($cert instanceof TestResult) {
-            return TestResultChecker::verifyTestResults($cert, $data_oggi, $scanMode, $greenPass->holder->dateOfBirth);
+            $testResultValidator = new TestResultChecker($data_oggi, $scanMode, $greenPass->holder, $cert);
+
+            return $testResultValidator->checkCertificate();
         }
 
         // guarigione avvenuta

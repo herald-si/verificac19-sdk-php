@@ -28,12 +28,6 @@ class VaccineChecker
 
     public function checkCertificate()
     {
-        $vaccineType = $this->cert->product;
-
-        if (!$this->hasRuleForVaccine($this->cert, $vaccineType)) {
-            return ValidationStatus::NOT_VALID;
-        }
-
         return $this->validate($this->cert);
     }
 

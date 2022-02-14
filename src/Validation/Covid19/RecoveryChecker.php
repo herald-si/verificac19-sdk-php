@@ -53,7 +53,7 @@ class RecoveryChecker
             return ValidationStatus::EXPIRED;
         }
 
-        if ($this->scanMode == ValidationScanMode::BOOSTER_DGP) {
+        if ($this->scanMode == ValidationScanMode::BOOSTER_DGP && !$this->isRecoveryBis()) {
             return ValidationStatus::TEST_NEEDED;
         }
 

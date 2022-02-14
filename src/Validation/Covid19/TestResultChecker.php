@@ -2,24 +2,36 @@
 
 namespace Herald\GreenPass\Validation\Covid19;
 
+use Herald\GreenPass\GreenPassEntities\Holder;
 use Herald\GreenPass\GreenPassEntities\TestResult;
 use Herald\GreenPass\GreenPassEntities\TestResultType;
 use Herald\GreenPass\GreenPassEntities\TestType;
 
 class TestResultChecker
 {
-    public static function verifyTestResults(TestResult $cert, \DateTime $validation_date, string $scanMode, \DateTimeImmutable $dob)
+    private $validation_date = null;
+    private $scanMode = null;
+    private $cert = null;
+    private $holder = null;
+
+    public function __construct(\DateTime $validation_date, string $scanMode, Holder $holder, TestResult $cert)
+    {
+        $this->validation_date = $validation_date;
+        $this->scanMode = $scanMode;
+        $this->holder = $holder;
+        $this->cert = $cert;
+    }
+
+    public function checkCertificate()
     {
         // if scan mode Super Green Pass, TestResult is non a valid GP
-        if ($scanMode == ValidationScanMode::SUPER_DGP || $scanMode == ValidationScanMode::BOOSTER_DGP || $scanMode == ValidationScanMode::SCHOOL_DGP) {
+        $isTestNotAllowed = ($this->scanMode == ValidationScanMode::SUPER_DGP || $this->scanMode == ValidationScanMode::BOOSTER_DGP || $this->scanMode == ValidationScanMode::SCHOOL_DGP);
+
+        if ($this->cert->result == TestResultType::DETECTED) {
             return ValidationStatus::NOT_VALID;
         }
 
-        if ($cert->result == TestResultType::DETECTED) {
-            return ValidationStatus::NOT_VALID;
-        }
-
-        switch ($cert->type) {
+        switch ($this->cert->type) {
             case TestType::MOLECULAR:
                 $ore_min_valido = ValidationRules::getValues(ValidationRules::MOLECULAR_TEST_START_HOUR, ValidationRules::GENERIC_RULE);
                 $ore_max_valido = ValidationRules::getValues(ValidationRules::MOLECULAR_TEST_END_HOUR, ValidationRules::GENERIC_RULE);
@@ -32,24 +44,28 @@ class TestResultChecker
                 return ValidationStatus::NOT_VALID;
         }
 
-        $ora_inizio_validita = $cert->date->modify("+$ore_min_valido hours");
-        $ora_fine_validita = $cert->date->modify("+$ore_max_valido hours");
+        $ora_inizio_validita = $this->cert->date->modify("+$ore_min_valido hours");
+        $ora_fine_validita = $this->cert->date->modify("+$ore_max_valido hours");
 
-        if ($validation_date < $ora_inizio_validita) {
+        if ($this->validation_date < $ora_inizio_validita) {
             return ValidationStatus::NOT_VALID_YET;
         }
-        if ($validation_date > $ora_fine_validita) {
+        if ($this->validation_date > $ora_fine_validita) {
             return ValidationStatus::EXPIRED;
         }
 
-        return self::checkVaccineMandatoryAge($validation_date, $scanMode, $dob) ? ValidationStatus::NOT_VALID : ValidationStatus::VALID;
+        if ($isTestNotAllowed) {
+            return ValidationStatus::NOT_VALID;
+        } else {
+            return self::checkVaccineMandatoryAge() ? ValidationStatus::NOT_VALID : ValidationStatus::VALID;
+        }
     }
 
-    private static function checkVaccineMandatoryAge(\DateTime $validation_date, string $scanMode, \DateTimeImmutable $dob)
+    private function checkVaccineMandatoryAge()
     {
-        $age = $dob->diff($validation_date)->y;
+        $age = $this->holder->getAgeAtGivenDate($this->validation_date);
 
-        if ($scanMode == ValidationScanMode::WORK_DGP && $age >= ValidationRules::VACCINE_MANDATORY_AGE) {
+        if ($this->scanMode == ValidationScanMode::WORK_DGP && $age >= ValidationRules::VACCINE_MANDATORY_AGE) {
             return true;
         }
 
