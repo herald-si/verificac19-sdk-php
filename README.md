@@ -143,28 +143,30 @@ Herald\GreenPass\Utils\EndpointService::setProxy("https://username:password@192.
 ## Scan Mode
 E' necessario definire una modalità di verifica della Certificazione verde Covid-19, come da elenco:
 
-* Tipologia `BASE`: l'sdk considera valide le certificazioni verdi generate da vaccinazione, da guarigione, da tampone.
-* Tipologia `RAFFORZATA`: l'sdk considera valide solo le certificazioni verdi generate da vaccinazione o da guarigione.
-* Tipologia `BOOSTER`: l'sdk app considera valide le certificazioni verdi generate dopo dose di richiamo vaccinale. Considera valide, inoltre, le certificazioni verdi generate dopo ciclo vaccinale primario o guarigione con la contestuale presentazione di un documento, cartaceo o digitale, che attesti l’esito negativo di un test al SARS-CoV-2.
-* Tipologia `WORK`: l'sdk determina il controllo da effettuare per gli accessi ai luoghi di lavoro con mix obbligo vaccinale (>= 50 anni) e non (<50 anni). Le prescrizioni normative relative all'estensione dell'obbligo vaccinale in base all'età si applicano anche a coloro, che compiano il 50° anno di età in data successiva a quelle di entrata in vigore delle relative disposizioni, fermo l'attuale termine del 15 giugno 2022 (ex Art.1 comma 1 DL n.1 07/01/2022), ma sono comunque effettive dal compimento del 50° anno d'età.
-* Tipologia `SCHOOL`: l'sdk determina il controllo da effettuare per gli accessi a scuola, con due casi di positivita' nella classe, per coloro che diano dimostrazione di avere concluso il ciclo vaccinale primario o di essere guariti da meno di centoventi giorni oppure di avere effettuato la dose di richiamo, si applica l'autosorveglianza, con l'utilizzo di mascherine di tipo FFP2 e con didattica in presenza. Per gli altri soggetti, non vaccinati o non guariti nei termini summenzionati, si applica la didattica digitale integrata per la durata di dieci giorni (Art.4 comma 2 DL 01/2022 - 07/01/2022).
-
-Indicazioni di dettaglio sulle attività consentite senza/con green pass `BASE`, `RAFFORZATO`, `BOOSTER` (link https://www.governo.it/sites/governo.it/files/documenti/documenti/Notizie-allegati/tabella_attivita_consentite.pdf)
+Per procedere alla scansione selezionare una delle tipologie di verifica della Certificazione verde Covid-19: BASE, RAFFORZATA, VISITATORI RSA, LAVORO, INGRESSO IT, STUDENTI.
+* Tipologia `BASE`: l'sdk considera valide le certificazioni verdi generate da vaccinazione, da guarigione, da tampone e le certificazioni di esenzione dalla vaccinazione.
+* Tipologia `RAFFORZATA`: l'sdk considera valide solo le certificazioni verdi generate da vaccinazione o da guarigione e le certificazioni di esenzione dalla vaccinazione.
+* Tipologia `VISITATORI RSA`: da utilizzare per l'accesso di visitatori alle strutture residenziali, socio-assistenziali, socio-sanitarie e hospice: la app considera valide le certificazioni verdi generate da vaccinazione con dose di richiamo. Considera valide, inoltre, le certificazioni verdi generate da vaccinazione con ciclo primario completato o guarigione insieme alla contestuale presentazione di un esito negativo di un test al SARS-CoV-2 eseguito nelle 48 ore precedenti.
+* Tipologia `LAVORO`: da utilizzare per l'accesso ai luoghi di lavoro dal 15 febbraio: fino ai 49 anni di età la app considera valide le certificazioni verdi generate da vaccinazione, da guarigione o da tampone. Dai 50 anni compiuti in su, considera valide solo le certificazioni verdi generate da vaccinazione o da guarigione. La app considera comunque valide le certificazioni di esenzione dalla vaccinazione. 
+* Tipologia `INGRESSO IT`: da utilizzare all'atto dell'ingresso in Italia dall'estero: la app considera valide tutte le tipologie di certificazione verde COVID-19 (vaccinazione, guarigione o tampone) secondo le regole di validazione europee per la circolazione tra gli Stati Membri. Sulla base del tipo di vaccino o ciclo completato da più di 180gg e fino a 270gg può richiedere la contestuale presentazione di un esito negativo di un test al SARS-CoV-2 eseguito nelle 48 ore precedenti
+* Tipologia `STUDENTI`: da utilizzare nelle classi della scuola primaria e secondaria per la didattica in presenza, in classi con casi di positività accertati: la app considera valide le certificazioni verdi generate da vaccinazione con dose di richiamo e quelle con ciclo primario o guarigione, se emesse da meno di 120 giorni e le certificazioni di esenzione dalla vaccinazione. 
 
 Per selezionare la tipologia, è possibile passare al costruttore del validatore un parametro di tipo `Herald\GreenPass\Validation\Covid19\ValidationScanMode`.
 
 Nel caso in cui non venisse scelto, viene impostata di default la tipologia `BASE`.
 
 ```php
-// set scan mode to 3G (BASE)
+// set scan mode to BASE
 $scanMode = ValidationScanMode::CLASSIC_DGP;
-// or set scan mode to 2G (RAFFORZATO)
+// or set scan mode to RAFFORZATA
 $scanMode = ValidationScanMode::SUPER_DGP;
-// or set scan mode to BOOSTED
+// or set scan mode to VISITATORI RSA
 $scanMode = ValidationScanMode::BOOSTER_DGP;
-// or set scan mode to WORK
+// or set scan mode to LAVORO
 $scanMode = ValidationScanMode::WORK_DGP;
-// or set scan mode to SCHOOL
+// or set scan mode to INGRESSO IT
+$scanMode = ValidationScanMode::ENTRY_IT_DGP;
+// or set scan mode to STUDENTI
 $scanMode = ValidationScanMode::SCHOOL_DGP;
 
 $gp_reader = new CertificateValidator($gp_string, $scanMode);
