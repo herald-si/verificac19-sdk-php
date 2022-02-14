@@ -13,7 +13,6 @@ use Herald\GreenPass\GreenPassEntities\TestResult;
 use Herald\GreenPass\GreenPassEntities\TestResultType;
 use Herald\GreenPass\GreenPassEntities\TestType;
 use Herald\GreenPass\GreenPassEntities\VaccinationDose;
-use Herald\GreenPass\Utils\EndpointService;
 
 class GreenPassCovid19Checker
 {
@@ -86,31 +85,6 @@ class GreenPassCovid19Checker
     }
 
     /**
-     * Get validation rules from rule name and type.
-     *
-     * @param string $rule
-     *                     rule name
-     * @param string $type
-     *                     rule type
-     *
-     * @return string
-     *                rule value if set, ValidationStatus::NOT_FOUND otherwise
-     */
-    private static function getValueFromValidationRules(string $rule, string $type)
-    {
-        $validity_rules = EndpointService::getValidationRules();
-        $value = ValidationStatus::NOT_FOUND;
-        foreach ($validity_rules as $item) {
-            if (($item->name == $rule) && ($item->type == $type)) {
-                $value = $item->value;
-                break;
-            }
-        }
-
-        return $value;
-    }
-
-    /**
      * Get default days check.
      */
     private static function getDefaultValidationDays(string $startEnd, string $country): int
@@ -159,7 +133,7 @@ class GreenPassCovid19Checker
 
         $ruleToCheck = ValidationRules::convertRuleNameToConstant("VACCINE_{$startEnd}_{$customCycle}_{$customCountry}");
 
-        $result = self::getValueFromValidationRules($ruleToCheck, $ruleType);
+        $result = ValidationRules::getValues($ruleToCheck, $ruleType);
 
         if ($result == ValidationStatus::NOT_FOUND) {
             $result = self::getDefaultValidationDays($startEnd, $countryCode);
@@ -193,7 +167,7 @@ class GreenPassCovid19Checker
 
         $ruleToCheck = ValidationRules::convertRuleNameToConstant("RECOVERY_CERT_{$startEnd}_{$customCountry}");
 
-        $result = self::getValueFromValidationRules($ruleToCheck, $ruleType);
+        $result = ValidationRules::getValues($ruleToCheck, $ruleType);
 
         return ($result != ValidationStatus::NOT_FOUND) ? (int) $result : self::getDefaultValidationDays($startEnd, $countryCode);
     }
@@ -210,7 +184,7 @@ class GreenPassCovid19Checker
 
     private static function verifyVaccinationDose(VaccinationDose $cert, \DateTime $validation_date, string $scanMode)
     {
-        $esiste_vaccino = self::getValueFromValidationRules(ValidationRules::VACCINE_END_DAY_COMPLETE, $cert->product);
+        $esiste_vaccino = ValidationRules::getValues(ValidationRules::VACCINE_END_DAY_COMPLETE, $cert->product);
         if ($esiste_vaccino == ValidationStatus::NOT_FOUND) {
             return ValidationStatus::NOT_RECOGNIZED;
         }
@@ -225,10 +199,10 @@ class GreenPassCovid19Checker
                 return ValidationStatus::NOT_VALID;
             }
 
-            $giorni_min_valido = self::getValueFromValidationRules(ValidationRules::VACCINE_START_DAY_NOT_COMPLETE, $cert->product);
+            $giorni_min_valido = ValidationRules::getValues(ValidationRules::VACCINE_START_DAY_NOT_COMPLETE, $cert->product);
             $data_inizio_validita = $cert->date->modify("+$giorni_min_valido days");
 
-            $giorni_max_valido = self::getValueFromValidationRules(ValidationRules::VACCINE_END_DAY_NOT_COMPLETE, $cert->product);
+            $giorni_max_valido = ValidationRules::getValues(ValidationRules::VACCINE_END_DAY_NOT_COMPLETE, $cert->product);
             $data_fine_validita = $cert->date->modify("+$giorni_max_valido days");
 
             if ($validation_date < $data_inizio_validita) {
@@ -292,12 +266,12 @@ class GreenPassCovid19Checker
 
         switch ($cert->type) {
             case TestType::MOLECULAR:
-                $ore_min_valido = self::getValueFromValidationRules(ValidationRules::MOLECULAR_TEST_START_HOUR, ValidationRules::GENERIC_RULE);
-                $ore_max_valido = self::getValueFromValidationRules(ValidationRules::MOLECULAR_TEST_END_HOUR, ValidationRules::GENERIC_RULE);
+                $ore_min_valido = ValidationRules::getValues(ValidationRules::MOLECULAR_TEST_START_HOUR, ValidationRules::GENERIC_RULE);
+                $ore_max_valido = ValidationRules::getValues(ValidationRules::MOLECULAR_TEST_END_HOUR, ValidationRules::GENERIC_RULE);
             break;
             case TestType::RAPID:
-                $ore_min_valido = self::getValueFromValidationRules(ValidationRules::RAPID_TEST_START_HOUR, ValidationRules::GENERIC_RULE);
-                $ore_max_valido = self::getValueFromValidationRules(ValidationRules::RAPID_TEST_END_HOUR, ValidationRules::GENERIC_RULE);
+                $ore_min_valido = ValidationRules::getValues(ValidationRules::RAPID_TEST_START_HOUR, ValidationRules::GENERIC_RULE);
+                $ore_max_valido = ValidationRules::getValues(ValidationRules::RAPID_TEST_END_HOUR, ValidationRules::GENERIC_RULE);
             break;
             default:
                 return ValidationStatus::NOT_VALID;
@@ -319,12 +293,12 @@ class GreenPassCovid19Checker
     private static function verifyRecoveryStatement(RecoveryStatement $cert, \DateTime $validation_date, string $scanMode, $certificate)
     {
         $isRecoveryBis = self::isRecoveryBis($cert, $certificate);
-        $startDaysToAdd = $isRecoveryBis ? self::getValueFromValidationRules(ValidationRules::RECOVERY_CERT_PV_START_DAY, ValidationRules::GENERIC_RULE) : self::getRecoveryCustomRulesFromValidationRules($cert, $scanMode, self::CERT_RULE_START);
+        $startDaysToAdd = $isRecoveryBis ? ValidationRules::getValues(ValidationRules::RECOVERY_CERT_PV_START_DAY, ValidationRules::GENERIC_RULE) : self::getRecoveryCustomRulesFromValidationRules($cert, $scanMode, self::CERT_RULE_START);
 
         if ($scanMode == ValidationScanMode::SCHOOL_DGP) {
             $endDaysToAdd = self::getEndDaySchool(ValidationRules::RECOVERY_CERT_END_DAY_SCHOOL, ValidationRules::GENERIC_RULE);
         } else {
-            $endDaysToAdd = $isRecoveryBis ? self::getValueFromValidationRules(ValidationRules::RECOVERY_CERT_PV_END_DAY, ValidationRules::GENERIC_RULE) : self::getRecoveryCustomRulesFromValidationRules($cert, $scanMode, self::CERT_RULE_END);
+            $endDaysToAdd = $isRecoveryBis ? ValidationRules::getValues(ValidationRules::RECOVERY_CERT_PV_END_DAY, ValidationRules::GENERIC_RULE) : self::getRecoveryCustomRulesFromValidationRules($cert, $scanMode, self::CERT_RULE_END);
         }
 
         $certificateValidUntil = $cert->validUntil;
@@ -376,7 +350,7 @@ class GreenPassCovid19Checker
 
     private static function checkInBlackList(string $kid): bool
     {
-        $list = self::getValueFromValidationRules(ValidationRules::BLACK_LIST_UVCI, ValidationRules::BLACK_LIST_UVCI);
+        $list = ValidationRules::getValues(ValidationRules::BLACK_LIST_UVCI, ValidationRules::BLACK_LIST_UVCI);
         if ($list != ValidationStatus::NOT_FOUND) {
             $blacklisted = explode(';', $list);
             foreach ($blacklisted as $bl_item) {
@@ -444,7 +418,7 @@ class GreenPassCovid19Checker
 
     private static function getEndDaySchool(string $rule, string $type)
     {
-        $days = self::getValueFromValidationRules($rule, $type);
+        $days = ValidationRules::getValues($rule, $type);
         if ($days == ValidationStatus::NOT_FOUND) {
             $days = ValidationRules::DEFAULT_DAYS_SCHOOL;
         }

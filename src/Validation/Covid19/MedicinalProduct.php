@@ -28,6 +28,6 @@ class MedicinalProduct
 
     private static function getEmaList(): bool
     {
-        return  'EU/1/20/1525;EU/1/20/1507;EU/1/20/1528;EU/1/21/1529;Covishield;R-COVI;Covid-19-recombinant';
+        return  ValidationRules::getValues(ValidationRules::BLACK_LIST_UVCI, ValidationRules::BLACK_LIST_UVCI);
     }
 }

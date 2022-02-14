@@ -2,6 +2,8 @@
 
 namespace Herald\GreenPass\Validation\Covid19;
 
+use Herald\GreenPass\Utils\EndpointService;
+
 class ValidationRules
 {
     public const RECOVERY_CERT_START_DAY = 'recovery_cert_start_day';
@@ -44,6 +46,7 @@ class ValidationRules
     public const VACCINE_START_DAY_NOT_COMPLETE_NOT_EMA = 'vaccine_start_day_not_complete_NOT_EMA';
     public const VACCINE_END_DAY_NOT_COMPLETE_NOT_EMA = 'vaccine_end_day_not_complete_NOT_EMA';
 
+    public const EMA_VACCINES = 'EMA_vaccines';
     public const BLACK_LIST_UVCI = 'black_list_uvci';
 
     public const VACCINE_MANDATORY_AGE = 50;
@@ -59,5 +62,30 @@ class ValidationRules
     public static function convertRuleNameToConstant($ruleName)
     {
         return constant("self::$ruleName");
+    }
+
+    /**
+     * Get validation rules from rule name and type.
+     *
+     * @param string $rule
+     *                     rule name
+     * @param string $type
+     *                     rule type
+     *
+     * @return string
+     *                rule value if set, ValidationStatus::NOT_FOUND otherwise
+     */
+    public static function getValues(string $rule, string $type)
+    {
+        $validity_rules = EndpointService::getValidationRules();
+        $value = ValidationStatus::NOT_FOUND;
+        foreach ($validity_rules as $item) {
+            if (($item->name == $rule) && ($item->type == $type)) {
+                $value = $item->value;
+                break;
+            }
+        }
+
+        return $value;
     }
 }
