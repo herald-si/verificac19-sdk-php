@@ -3,44 +3,64 @@
 namespace Herald\GreenPass\Validation\Covid19;
 
 use Herald\GreenPass\GreenPassEntities\CertCode;
-use Herald\GreenPass\GreenPassEntities\CertificateType;
 use Herald\GreenPass\GreenPassEntities\Country;
+use Herald\GreenPass\GreenPassEntities\Holder;
 use Herald\GreenPass\GreenPassEntities\RecoveryStatement;
 
 class RecoveryChecker
 {
-    public static function verifyRecoveryStatement(RecoveryStatement $cert, \DateTime $validation_date, string $scanMode, $certificate)
-    {
-        $isRecoveryBis = self::isRecoveryBis($cert, $certificate);
-        $startDaysToAdd = $isRecoveryBis ? ValidationRules::getValues(ValidationRules::RECOVERY_CERT_PV_START_DAY, ValidationRules::GENERIC_RULE) : self::getRecoveryCustomRulesFromValidationRules($cert, $scanMode, ValidationRules::CERT_RULE_START);
+    private $validation_date = null;
+    private $scanMode = null;
+    private $cert = null;
+    private $holder = null;
+    private $signingCertificate = null;
 
-        if ($scanMode == ValidationScanMode::SCHOOL_DGP) {
+    public function __construct(RecoveryStatement $cert, \DateTime $validation_date, string $scanMode, Holder $holder, $signingCertificate)
+    {
+        $this->validation_date = $validation_date;
+        $this->scanMode = $scanMode;
+        $this->holder = $holder;
+        $this->cert = $cert;
+        $this->signingCertificate = $signingCertificate;
+    }
+
+    public function checkCertificate()
+    {
+        if ($this->scanMode == ValidationScanMode::CLASSIC_DGP || $this->scanMode == ValidationScanMode::ENTRY_IT_DGP || ($this->scanMode == ValidationScanMode::WORK_DGP && $this->holder->getAgeAtGivenDate($this->validation_date) < ValidationRules::VACCINE_MANDATORY_AGE)) {
+            $countryCode = $this->cert->country;
+        } else {
+            $countryCode = Country::ITALY;
+        }
+        $isRecoveryBis = $this->isRecoveryBis();
+        $startDaysToAdd = $isRecoveryBis ? ValidationRules::getValues(ValidationRules::RECOVERY_CERT_PV_START_DAY, ValidationRules::GENERIC_RULE) : $this->getRecoveryCustomRulesFromValidationRules($this->cert, $countryCode, ValidationRules::CERT_RULE_START);
+
+        if ($this->scanMode == ValidationScanMode::SCHOOL_DGP) {
             $endDaysToAdd = ValidationRules::getEndDaySchool(ValidationRules::RECOVERY_CERT_END_DAY_SCHOOL, ValidationRules::GENERIC_RULE);
         } else {
-            $endDaysToAdd = $isRecoveryBis ? ValidationRules::getValues(ValidationRules::RECOVERY_CERT_PV_END_DAY, ValidationRules::GENERIC_RULE) : self::getRecoveryCustomRulesFromValidationRules($cert, $scanMode, ValidationRules::CERT_RULE_END);
+            $endDaysToAdd = $isRecoveryBis ? ValidationRules::getValues(ValidationRules::RECOVERY_CERT_PV_END_DAY, ValidationRules::GENERIC_RULE) : $this->getRecoveryCustomRulesFromValidationRules($this->cert, $countryCode, ValidationRules::CERT_RULE_END);
         }
 
-        $certificateValidUntil = $cert->validUntil;
-        $certificateValidFrom = $cert->validFrom;
+        $certificateValidUntil = $this->cert->validUntil;
+        $certificateValidFrom = $this->cert->validFrom;
 
         $startDate = $certificateValidFrom->modify("+$startDaysToAdd days");
-        $endFromDateOfFirstPositiveTest = $cert->date->modify("+ $endDaysToAdd days");
+        $endFromDateOfFirstPositiveTest = $this->cert->date->modify("+ $endDaysToAdd days");
 
-        if ($scanMode == ValidationScanMode::SCHOOL_DGP) {
+        if ($this->scanMode == ValidationScanMode::SCHOOL_DGP) {
             $endDate = ($certificateValidUntil < $endFromDateOfFirstPositiveTest) ? $certificateValidUntil : $endFromDateOfFirstPositiveTest;
         } else {
             $endDate = $certificateValidFrom->modify("+$endDaysToAdd days");
         }
 
-        if ($startDate > $validation_date) {
+        if ($startDate > $this->validation_date) {
             return ValidationStatus::NOT_VALID_YET;
         }
 
-        if ($validation_date > $endDate) {
+        if ($this->validation_date > $endDate) {
             return ValidationStatus::NOT_VALID;
         }
 
-        if ($scanMode == ValidationScanMode::BOOSTER_DGP) {
+        if ($this->scanMode == ValidationScanMode::BOOSTER_DGP) {
             return ValidationStatus::TEST_NEEDED;
         }
 
@@ -58,16 +78,14 @@ class RecoveryChecker
      * @return string
      *                custom rule value
      */
-    private static function getRecoveryCustomRulesFromValidationRules(RecoveryStatement $cert, string $scanMode, string $startEnd): int
+    private function getRecoveryCustomRulesFromValidationRules(RecoveryStatement $cert, string $countryCode, string $startEnd): int
     {
         $ruleType = ValidationRules::GENERIC_RULE;
-
-        $countryCode = ($scanMode == ValidationScanMode::CLASSIC_DGP) ? $cert->country : Country::ITALY;
 
         if ($countryCode == Country::ITALY) {
             $customCountry = Country::ITALY;
         } else {
-            $customCountry = 'NOT_'.Country::ITALY;
+            $customCountry = Country::NOT_ITALY;
         }
 
         $ruleToCheck = ValidationRules::convertRuleNameToConstant("RECOVERY_CERT_{$startEnd}_{$customCountry}");
@@ -77,10 +95,10 @@ class RecoveryChecker
         return ($result != ValidationStatus::NOT_FOUND) ? (int) $result : ValidationRules::getDefaultValidationDays($startEnd, $countryCode);
     }
 
-    private static function isRecoveryBis(CertificateType $cert, $signingCertificate)
+    private function isRecoveryBis()
     {
-        if ($cert->country == Country::ITALY) {
-            $eku = isset($signingCertificate['extensions']['extendedKeyUsage']) ? $signingCertificate['extensions']['extendedKeyUsage'] : '';
+        if ($this->cert->country == Country::ITALY) {
+            $eku = isset($this->signingCertificate['extensions']['extendedKeyUsage']) ? $this->signingCertificate['extensions']['extendedKeyUsage'] : '';
             foreach (explode(', ', $eku) as $keyUsage) {
                 if (CertCode::OID_RECOVERY == $keyUsage || CertCode::OID_ALT_RECOVERY == $keyUsage) {
                     return true;

@@ -60,7 +60,9 @@ class GreenPassCovid19Checker
 
         // guarigione avvenuta
         if ($cert instanceof RecoveryStatement) {
-            return RecoveryChecker::verifyRecoveryStatement($cert, $data_oggi, $scanMode, $greenPass->signingCertInfo);
+            $recoveryValidator = new RecoveryChecker($cert, $data_oggi, $scanMode, $greenPass->holder, $greenPass->signingCertInfo);
+
+            return $recoveryValidator->checkCertificate();
         }
 
         // esenzione
