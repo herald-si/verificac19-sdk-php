@@ -20,7 +20,7 @@ class VaccineCheckerTest extends GreenPassCovid19CheckerTest
         $greenpass = new GreenPass($testgp);
 
         $esito = GreenPassCovid19Checker::verifyCert($greenpass);
-        $this->assertEquals('NOT_RECOGNIZED', $esito);
+        $this->assertEquals('NOT_VALID', $esito);
     }
 
     /*
