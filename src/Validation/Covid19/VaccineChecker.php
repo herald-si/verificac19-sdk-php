@@ -258,9 +258,6 @@ class VaccineChecker
         }
 
         //Data valida, controllo tipologia
-        if (!MedicinalProduct::isEma($cert->product, $cert->country) && $cert->country == Country::ITALY) {
-            return ValidationStatus::NOT_VALID;
-        }
         $esito = ValidationStatus::NOT_VALID;
         if ($cert->isComplete()) {
             if ($cert->isBooster()) {
