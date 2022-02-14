@@ -196,9 +196,10 @@ class VaccineChecker
         if ($cert->isNotComplete() || $cert->isBooster()) {
             if ($this->validation_date < $startDate) {
                 $esito = ValidationStatus::NOT_VALID_YET;
-            }
-            if ($this->validation_date > $endDate) {
+            } elseif ($this->validation_date > $endDate) {
                 $esito = ValidationStatus::EXPIRED;
+            } else {
+                $esito = ValidationStatus::VALID;
             }
         } else {
             if (MedicinalProduct::isEma($cert->product, $cert->country)) {
