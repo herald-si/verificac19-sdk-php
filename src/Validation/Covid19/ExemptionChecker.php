@@ -16,7 +16,7 @@ class ExemptionChecker
         }
 
         if ($validation_date > $valid_until) {
-            return ValidationStatus::NOT_VALID;
+            return ValidationStatus::EXPIRED;
         }
 
         if ($scanMode == ValidationScanMode::BOOSTER_DGP) {

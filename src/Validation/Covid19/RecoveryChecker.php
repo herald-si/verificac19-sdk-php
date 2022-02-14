@@ -40,24 +40,17 @@ class RecoveryChecker
             $endDaysToAdd = $isRecoveryBis ? ValidationRules::getValues(ValidationRules::RECOVERY_CERT_PV_END_DAY, ValidationRules::GENERIC_RULE) : $this->getRecoveryCustomRulesFromValidationRules($this->cert, $countryCode, ValidationRules::CERT_RULE_END);
         }
 
-        $certificateValidUntil = $this->cert->validUntil;
-        $certificateValidFrom = $this->cert->validFrom;
+        $certificateValidFrom = ($this->scanMode == ValidationScanMode::ENTRY_IT_DGP) ? $this->cert->date : $this->cert->validFrom;
 
         $startDate = $certificateValidFrom->modify("+$startDaysToAdd days");
-        $endFromDateOfFirstPositiveTest = $this->cert->date->modify("+ $endDaysToAdd days");
-
-        if ($this->scanMode == ValidationScanMode::SCHOOL_DGP) {
-            $endDate = ($certificateValidUntil < $endFromDateOfFirstPositiveTest) ? $certificateValidUntil : $endFromDateOfFirstPositiveTest;
-        } else {
-            $endDate = $certificateValidFrom->modify("+$endDaysToAdd days");
-        }
+        $endDate = $certificateValidFrom->modify("+$endDaysToAdd days");
 
         if ($startDate > $this->validation_date) {
             return ValidationStatus::NOT_VALID_YET;
         }
 
         if ($this->validation_date > $endDate) {
-            return ValidationStatus::NOT_VALID;
+            return ValidationStatus::EXPIRED;
         }
 
         if ($this->scanMode == ValidationScanMode::BOOSTER_DGP) {

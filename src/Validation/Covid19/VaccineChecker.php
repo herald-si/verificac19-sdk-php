@@ -214,11 +214,11 @@ class VaccineChecker
                 if ($this->validation_date < $startDate) {
                     $esito = ValidationStatus::NOT_VALID_YET;
                 } elseif ($this->validation_date < $endDate) {
-                    $esito = ValidationStatus::EXPIRED;
+                    $esito = ValidationStatus::VALID;
                 } elseif ($this->validation_date < $extendedDate) {
                     $esito = ValidationStatus::TEST_NEEDED;
                 } else {
-                    $esito = ValidationStatus::NOT_VALID;
+                    $esito = ValidationStatus::EXPIRED;
                 }
             } else {
                 if ($this->validation_date < $startDate) {
@@ -226,7 +226,7 @@ class VaccineChecker
                 } elseif ($this->validation_date < $extendedDate) {
                     $esito = ValidationStatus::TEST_NEEDED;
                 } else {
-                    $esito = ValidationStatus::NOT_VALID;
+                    $esito = ValidationStatus::EXPIRED;
                 }
             }
         }
