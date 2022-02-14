@@ -79,28 +79,8 @@ class VaccineChecker
         return (int) $result + (int) $addDays;
     }
 
-    /**
-     * Check if exist a rule in ValidationRules settings.
-     *
-     * @param string $vaccine
-     *                        Vaccine type
-     *
-     * @return bool
-     *              true if rule exist, false otherwise
-     */
-    private function hasRuleForVaccine(VaccinationDose $cert, string $vaccine)
-    {
-        $esiste_vaccino = ValidationRules::getValues(ValidationRules::VACCINE_END_DAY_COMPLETE, $vaccine);
-        if ($esiste_vaccino == ValidationStatus::NOT_FOUND) {
-            return false;
-        } else {
-            return true;
-        }
-    }
-
     private function validate(VaccinationDose $cert)
     {
-        $esito = ValidationStatus::NOT_EU_DCC;
         switch ($this->scanMode) {
             case ValidationScanMode::CLASSIC_DGP:
                 $esito = $this->standardStrategy($cert);
@@ -165,7 +145,6 @@ class VaccineChecker
 
     private function strengthenedStrategy(VaccinationDose $cert)
     {
-        $esito = ValidationStatus::NOT_EU_DCC;
         $countryCode = $cert->country;
         $vaccineDate = $cert->date;
         $startDaysToAdd = 0;
@@ -215,9 +194,9 @@ class VaccineChecker
             if (MedicinalProduct::isEma($cert->product, $cert->country)) {
                 if ($this->validation_date < $startDate) {
                     $esito = ValidationStatus::NOT_VALID_YET;
-                } elseif (($this->validation_date < $endDate) || !($this->validation_date > $endDate)) {
+                } elseif (($this->validation_date <= $endDate)) {
                     $esito = ValidationStatus::VALID;
-                } elseif (($this->validation_date < $extendedDate) || !($this->validation_date > $extendedDate)) {
+                } elseif (($this->validation_date <= $extendedDate)) {
                     $esito = ValidationStatus::TEST_NEEDED;
                 } else {
                     $esito = ValidationStatus::EXPIRED;
@@ -225,7 +204,7 @@ class VaccineChecker
             } else {
                 if ($this->validation_date < $startDate) {
                     $esito = ValidationStatus::NOT_VALID_YET;
-                } elseif (($this->validation_date < $extendedDate) || !($this->validation_date > $extendedDate)) {
+                } elseif (($this->validation_date <= $extendedDate)) {
                     $esito = ValidationStatus::TEST_NEEDED;
                 } else {
                     $esito = ValidationStatus::EXPIRED;

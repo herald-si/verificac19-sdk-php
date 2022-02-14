@@ -32,12 +32,12 @@ class RecoveryChecker
             $countryCode = Country::ITALY;
         }
         $isRecoveryBis = $this->isRecoveryBis();
-        $startDaysToAdd = $isRecoveryBis ? ValidationRules::getValues(ValidationRules::RECOVERY_CERT_PV_START_DAY, ValidationRules::GENERIC_RULE) : $this->getRecoveryCustomRulesFromValidationRules($this->cert, $countryCode, ValidationRules::CERT_RULE_START);
+        $startDaysToAdd = $isRecoveryBis ? ValidationRules::getValues(ValidationRules::RECOVERY_CERT_PV_START_DAY, ValidationRules::GENERIC_RULE) : $this->getRecoveryCustomRulesFromValidationRules($countryCode, ValidationRules::CERT_RULE_START);
 
         if ($this->scanMode == ValidationScanMode::SCHOOL_DGP) {
             $endDaysToAdd = ValidationRules::getEndDaySchool(ValidationRules::RECOVERY_CERT_END_DAY_SCHOOL, ValidationRules::GENERIC_RULE);
         } else {
-            $endDaysToAdd = $isRecoveryBis ? ValidationRules::getValues(ValidationRules::RECOVERY_CERT_PV_END_DAY, ValidationRules::GENERIC_RULE) : $this->getRecoveryCustomRulesFromValidationRules($this->cert, $countryCode, ValidationRules::CERT_RULE_END);
+            $endDaysToAdd = $isRecoveryBis ? ValidationRules::getValues(ValidationRules::RECOVERY_CERT_PV_END_DAY, ValidationRules::GENERIC_RULE) : $this->getRecoveryCustomRulesFromValidationRules($countryCode, ValidationRules::CERT_RULE_END);
         }
 
         $certificateValidFrom = ($this->scanMode == ValidationScanMode::SCHOOL_DGP) ? $this->cert->date : $this->cert->validFrom;
@@ -63,15 +63,13 @@ class RecoveryChecker
     /**
      * Get custom recovery validation rules for countries.
      *
-     * @param RecoveryStatement $cert
-     *                                    Certificate type
-     * @param string            $startEnd
-     *                                    const CERT_RULE_START or CERT_RULE_END
+     * @param string $startEnd
+     *                         const CERT_RULE_START or CERT_RULE_END
      *
      * @return string
      *                custom rule value
      */
-    private function getRecoveryCustomRulesFromValidationRules(RecoveryStatement $cert, string $countryCode, string $startEnd): int
+    private function getRecoveryCustomRulesFromValidationRules(string $countryCode, string $startEnd): int
     {
         $ruleType = ValidationRules::GENERIC_RULE;
 
