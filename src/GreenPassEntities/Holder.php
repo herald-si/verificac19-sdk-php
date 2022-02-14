@@ -16,11 +16,16 @@ class Holder
 
     public function __construct($data)
     {
-        $this->dateOfBirth = ! empty($data["dob"] ?? null) ? new \DateTimeImmutable($data["dob"]) : null;
+        $this->dateOfBirth = !empty($data['dob'] ?? null) ? new \DateTimeImmutable($data['dob']) : null;
 
-        $this->surname = $data["nam"]["fn"] ?? null;
-        $this->standardisedSurname = $data["nam"]["fnt"] ?? null;
-        $this->forename = $data["nam"]["gn"] ?? null;
-        $this->standardisedForename = $data["nam"]["gnt"] ?? null;
+        $this->surname = $data['nam']['fn'] ?? null;
+        $this->standardisedSurname = $data['nam']['fnt'] ?? null;
+        $this->forename = $data['nam']['gn'] ?? null;
+        $this->standardisedForename = $data['nam']['gnt'] ?? null;
+    }
+
+    public function getAgeAtGivenDate(\DateTime $date)
+    {
+        return $this->dateOfBirth->diff($date)->y;
     }
 }
