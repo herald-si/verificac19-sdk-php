@@ -14,7 +14,6 @@ use Herald\GreenPass\GreenPassEntities\TestResultType;
 use Herald\GreenPass\GreenPassEntities\TestType;
 use Herald\GreenPass\GreenPassEntities\VaccinationDose;
 use Herald\GreenPass\Utils\EndpointService;
-use Herald\GreenPass\Utils\EnvConfig;
 
 class GreenPassCovid19Checker
 {
@@ -36,9 +35,6 @@ class GreenPassCovid19Checker
      */
     public static function verifyCert(GreenPass $greenPass, string $scanMode = ValidationScanMode::CLASSIC_DGP)
     {
-        if (!EnvConfig::isDebugEnabled() && $scanMode == ValidationScanMode::WORK_DGP) {
-            throw new  \InvalidArgumentException('Unrelased scan mode, dont use in production');
-        }
         $cert = $greenPass->certificate;
 
         if (!self::verifyDiseaseAgent($cert->diseaseAgent)) {
@@ -294,41 +290,30 @@ class GreenPassCovid19Checker
             return ValidationStatus::NOT_VALID;
         }
 
-        if ($cert->type == TestType::MOLECULAR) {
-            $ore_min_valido = self::getValueFromValidationRules(ValidationRules::MOLECULAR_TEST_START_HOUR, ValidationRules::GENERIC_RULE);
-            $ora_inizio_validita = $cert->date->modify("+$ore_min_valido hours");
-
-            $ore_max_valido = self::getValueFromValidationRules(ValidationRules::MOLECULAR_TEST_END_HOUR, ValidationRules::GENERIC_RULE);
-            $ora_fine_validita = $cert->date->modify("+$ore_max_valido hours");
-
-            if ($validation_date < $ora_inizio_validita) {
-                return ValidationStatus::NOT_VALID_YET;
-            }
-            if ($validation_date > $ora_fine_validita) {
-                return ValidationStatus::EXPIRED;
-            }
-
-            return self::checkVaccineMandatoryAge($validation_date, $scanMode, $dob) ? ValidationStatus::NOT_VALID : ValidationStatus::VALID;
+        switch ($cert->type) {
+            case TestType::MOLECULAR:
+                $ore_min_valido = self::getValueFromValidationRules(ValidationRules::MOLECULAR_TEST_START_HOUR, ValidationRules::GENERIC_RULE);
+                $ore_max_valido = self::getValueFromValidationRules(ValidationRules::MOLECULAR_TEST_END_HOUR, ValidationRules::GENERIC_RULE);
+            break;
+            case TestType::RAPID:
+                $ore_min_valido = self::getValueFromValidationRules(ValidationRules::RAPID_TEST_START_HOUR, ValidationRules::GENERIC_RULE);
+                $ore_max_valido = self::getValueFromValidationRules(ValidationRules::RAPID_TEST_END_HOUR, ValidationRules::GENERIC_RULE);
+            break;
+            default:
+                return ValidationStatus::NOT_VALID;
         }
 
-        if ($cert->type == TestType::RAPID) {
-            $ore_min_valido = self::getValueFromValidationRules(ValidationRules::RAPID_TEST_START_HOUR, ValidationRules::GENERIC_RULE);
-            $ora_inizio_validita = $cert->date->modify("+$ore_min_valido hours");
+        $ora_inizio_validita = $cert->date->modify("+$ore_min_valido hours");
+        $ora_fine_validita = $cert->date->modify("+$ore_max_valido hours");
 
-            $ore_max_valido = self::getValueFromValidationRules(ValidationRules::RAPID_TEST_END_HOUR, ValidationRules::GENERIC_RULE);
-            $ora_fine_validita = $cert->date->modify("+$ore_max_valido hours");
-
-            if ($validation_date < $ora_inizio_validita) {
-                return ValidationStatus::NOT_VALID_YET;
-            }
-            if ($validation_date > $ora_fine_validita) {
-                return ValidationStatus::EXPIRED;
-            }
-
-            return self::checkVaccineMandatoryAge($validation_date, $scanMode, $dob) ? ValidationStatus::NOT_VALID : ValidationStatus::VALID;
+        if ($validation_date < $ora_inizio_validita) {
+            return ValidationStatus::NOT_VALID_YET;
+        }
+        if ($validation_date > $ora_fine_validita) {
+            return ValidationStatus::EXPIRED;
         }
 
-        return ValidationStatus::NOT_RECOGNIZED;
+        return self::checkVaccineMandatoryAge($validation_date, $scanMode, $dob) ? ValidationStatus::NOT_VALID : ValidationStatus::VALID;
     }
 
     private static function verifyRecoveryStatement(RecoveryStatement $cert, \DateTime $validation_date, string $scanMode, $certificate)
