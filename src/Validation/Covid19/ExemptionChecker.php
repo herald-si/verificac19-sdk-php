@@ -19,10 +19,6 @@ class ExemptionChecker
 
     public function checkCertificate()
     {
-        if ($this->scanMode == ValidationScanMode::ENTRY_IT_DGP) {
-            return ValidationStatus::NOT_VALID;
-        }
-
         $valid_from = $this->cert->validFrom;
         $valid_until = $this->cert->validUntil;
 
@@ -36,6 +32,9 @@ class ExemptionChecker
 
         if ($this->scanMode == ValidationScanMode::BOOSTER_DGP) {
             return ValidationStatus::TEST_NEEDED;
+        }
+        if ($this->scanMode == ValidationScanMode::ENTRY_IT_DGP) {
+            return ValidationStatus::NOT_VALID;
         }
 
         return ValidationStatus::VALID;

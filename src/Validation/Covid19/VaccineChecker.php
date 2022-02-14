@@ -28,6 +28,10 @@ class VaccineChecker
 
     public function checkCertificate()
     {
+        if ($this->cert->isNotComplete() && !MedicinalProduct::isEma($this->cert->product, $this->cert->country)) {
+            return ValidationStatus::NOT_VALID;
+        }
+
         return $this->validate($this->cert);
     }
 
@@ -125,10 +129,6 @@ class VaccineChecker
 
     private function standardStrategy(VaccinationDose $cert)
     {
-        if (!MedicinalProduct::isEma($cert->product, $cert->country)) {
-            return ValidationStatus::NOT_VALID;
-        }
-
         $countryCode = Country::ITALY;
 
         $vaccineDate = $cert->date;
@@ -155,6 +155,9 @@ class VaccineChecker
         }
         if ($this->validation_date > $endDate) {
             return ValidationStatus::EXPIRED;
+        }
+        if (!MedicinalProduct::isEma($cert->product, $cert->country)) {
+            return ValidationStatus::NOT_VALID;
         }
 
         return ValidationStatus::VALID;
@@ -187,13 +190,26 @@ class VaccineChecker
         $endDate = $vaccineDate->modify("+$endDaysToAdd days");
         $extendedDate = $vaccineDate->modify("+$extendedDaysToAdd days");
 
-        if ($cert->isNotComplete() || $cert->isBooster()) {
+        if ($cert->isNotComplete()) {
+            if (!MedicinalProduct::isEma($cert->product, $cert->country)) {
+                return ValidationStatus::NOT_VALID;
+            }
             if ($this->validation_date < $startDate) {
                 $esito = ValidationStatus::NOT_VALID_YET;
             } elseif ($this->validation_date > $endDate) {
                 $esito = ValidationStatus::EXPIRED;
             } else {
                 $esito = ValidationStatus::VALID;
+            }
+        } elseif ($cert->isBooster()) {
+            if ($this->validation_date < $startDate) {
+                $esito = ValidationStatus::NOT_VALID_YET;
+            } elseif ($this->validation_date > $endDate) {
+                $esito = ValidationStatus::EXPIRED;
+            } elseif (MedicinalProduct::isEma($cert->product, $cert->country)) {
+                $esito = ValidationStatus::VALID;
+            } else {
+                $esito = ValidationStatus::TEST_NEEDED;
             }
         } else {
             if (MedicinalProduct::isEma($cert->product, $cert->country)) {
@@ -222,16 +238,14 @@ class VaccineChecker
 
     private function boosterStrategy(VaccinationDose $cert)
     {
-        if ($cert->isNotComplete()) {
-            return ValidationStatus::NOT_VALID;
-        }
-        if (!MedicinalProduct::isEma($cert->product, $cert->country) && $cert->country == Country::ITALY) {
-            return ValidationStatus::NOT_VALID;
-        }
-
         $startDaysToAdd = $this->getVaccineCustomDaysFromValidationRules($cert, Country::ITALY, VaccineChecker::CERT_RULE_START, $cert->isBooster());
+        if ($cert->isNotComplete()) {
+            $startDaysToAdd = ValidationRules::getValues(ValidationRules::VACCINE_START_DAY_NOT_COMPLETE, $cert->product);
+        }
         $endDaysToAdd = $this->getVaccineCustomDaysFromValidationRules($cert, Country::ITALY, VaccineChecker::CERT_RULE_END, $cert->isBooster());
-
+        if ($cert->isNotComplete()) {
+            $endDaysToAdd = ValidationRules::getValues(ValidationRules::VACCINE_END_DAY_NOT_COMPLETE, $cert->product);
+        }
         $vaccineDate = $cert->date;
 
         $startDate = $vaccineDate->modify("+$startDaysToAdd days");
@@ -244,6 +258,9 @@ class VaccineChecker
         }
 
         //Data valida, controllo tipologia
+        if (!MedicinalProduct::isEma($cert->product, $cert->country) && $cert->country == Country::ITALY) {
+            return ValidationStatus::NOT_VALID;
+        }
         $esito = ValidationStatus::NOT_VALID;
         if ($cert->isComplete()) {
             if ($cert->isBooster()) {
@@ -266,15 +283,15 @@ class VaccineChecker
         $startDaysToAdd = 0;
         $endDaysToAdd = 0;
 
-        if (!MedicinalProduct::isEma($cert->product, $cert->country)) {
-            return ValidationStatus::NOT_VALID;
-        }
+        $startDaysToAdd = $this->getVaccineCustomDaysFromValidationRules($cert, Country::ITALY, VaccineChecker::CERT_RULE_START, $cert->isBooster());
         if ($cert->isNotComplete()) {
-            return ValidationStatus::NOT_VALID;
+            $startDaysToAdd = ValidationRules::getValues(ValidationRules::VACCINE_START_DAY_NOT_COMPLETE, $cert->product);
         }
 
-        $startDaysToAdd = $this->getVaccineCustomDaysFromValidationRules($cert, Country::ITALY, VaccineChecker::CERT_RULE_START, $cert->isBooster());
         $endDaysToAdd = ($cert->isBooster()) ? $this->getVaccineCustomDaysFromValidationRules($cert, Country::ITALY, VaccineChecker::CERT_RULE_END, $cert->isBooster()) : ValidationRules::getEndDaySchool(ValidationRules::VACCINE_END_DAY_SCHOOL, ValidationRules::GENERIC_RULE);
+        if ($cert->isNotComplete()) {
+            $endDaysToAdd = ValidationRules::getValues(ValidationRules::VACCINE_END_DAY_NOT_COMPLETE, $cert->product);
+        }
 
         $startDate = $vaccineDate->modify("+$startDaysToAdd days");
         $endDate = $vaccineDate->modify("+$endDaysToAdd days");
@@ -283,6 +300,14 @@ class VaccineChecker
         }
         if ($this->validation_date > $endDate) {
             return ValidationStatus::EXPIRED;
+        }
+
+        //Data valida, controllo tipologia
+        if (!MedicinalProduct::isEma($cert->product, $cert->country)) {
+            return ValidationStatus::NOT_VALID;
+        }
+        if ($cert->isNotComplete()) {
+            return ValidationStatus::NOT_VALID;
         }
 
         return ValidationStatus::VALID;
@@ -302,16 +327,15 @@ class VaccineChecker
     {
         $vaccineDate = $cert->date;
 
-        if (!MedicinalProduct::isEma($cert->product, $cert->country)) {
-            return ValidationStatus::NOT_VALID;
-        }
-
-        if ($cert->isNotComplete()) {
-            return ValidationStatus::NOT_VALID;
-        }
-
         $startDaysToAdd = $this->getVaccineCustomDaysFromValidationRules($cert, Country::NOT_ITALY, VaccineChecker::CERT_RULE_START, $cert->isBooster());
+        if ($cert->isNotComplete()) {
+            $startDaysToAdd = ValidationRules::getValues(ValidationRules::VACCINE_START_DAY_NOT_COMPLETE, $cert->product);
+        }
+
         $endDaysToAdd = $this->getVaccineCustomDaysFromValidationRules($cert, Country::NOT_ITALY, VaccineChecker::CERT_RULE_END, $cert->isBooster());
+        if ($cert->isNotComplete()) {
+            $endDaysToAdd = ValidationRules::getValues(ValidationRules::VACCINE_END_DAY_NOT_COMPLETE, $cert->product);
+        }
 
         $startDate = $vaccineDate->modify("+$startDaysToAdd days");
         $endDate = $vaccineDate->modify("+$endDaysToAdd days");
@@ -321,6 +345,14 @@ class VaccineChecker
         }
         if ($this->validation_date > $endDate) {
             return ValidationStatus::EXPIRED;
+        }
+
+        if (!MedicinalProduct::isEma($cert->product, $cert->country)) {
+            return ValidationStatus::NOT_VALID;
+        }
+
+        if ($cert->isNotComplete()) {
+            return ValidationStatus::NOT_VALID;
         }
 
         return ValidationStatus::VALID;
