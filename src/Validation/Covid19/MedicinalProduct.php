@@ -13,9 +13,9 @@ class MedicinalProduct
     public const  R_COVI = 'R-COVI';
     public const  COVID19_RECOMBINANT = 'Covid-19-recombinant';
 
-    public function isEma(string $medicinalProduct)
+    public static function isEma(string $medicinalProduct)
     {
-        $list = self::getEmaList();
+        $list = ValidationRules::getValues(ValidationRules::EMA_VACCINES, ValidationRules::GENERIC_RULE);
         $ema = explode(';', $list);
         foreach ($ema as $emaProduct) {
             if ($medicinalProduct == $emaProduct) {
@@ -24,10 +24,5 @@ class MedicinalProduct
         }
 
         return false;
-    }
-
-    private static function getEmaList(): bool
-    {
-        return  ValidationRules::getValues(ValidationRules::BLACK_LIST_UVCI, ValidationRules::BLACK_LIST_UVCI);
     }
 }
