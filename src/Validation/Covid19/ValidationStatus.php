@@ -34,7 +34,6 @@ class ValidationStatus
     {
         switch ($stato) {
             case ValidationStatus::NOT_VALID_YET:
-            case ValidationStatus::EXPIRED:
                 return 'NOT_VALID';
             default:
                 return $stato;
