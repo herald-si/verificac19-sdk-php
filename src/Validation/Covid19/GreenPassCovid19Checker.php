@@ -8,6 +8,7 @@ use Herald\GreenPass\GreenPassEntities\Exemption;
 use Herald\GreenPass\GreenPassEntities\RecoveryStatement;
 use Herald\GreenPass\GreenPassEntities\TestResult;
 use Herald\GreenPass\GreenPassEntities\VaccinationDose;
+use Herald\GreenPass\Utils\EnvConfig;
 
 class GreenPassCovid19Checker
 {
@@ -24,6 +25,9 @@ class GreenPassCovid19Checker
      */
     public static function verifyCert(GreenPass $greenPass, string $scanMode = ValidationScanMode::CLASSIC_DGP)
     {
+        if (!EnvConfig::isDebugEnabled() && $scanMode == ValidationScanMode::SCHOOL_DGP) {
+            throw new  \InvalidArgumentException('Restricted scan mode, dont use in production');
+        }
         $cert = $greenPass->certificate;
 
         if (!self::verifyDiseaseAgent($cert->diseaseAgent)) {
