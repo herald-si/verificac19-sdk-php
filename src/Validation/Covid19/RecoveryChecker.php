@@ -49,7 +49,7 @@ class RecoveryChecker
             return ValidationStatus::NOT_VALID_YET;
         }
 
-        if ($this->validation_date > $endDate) {
+        if ($this->validation_date->date > $endDate) {
             return ValidationStatus::EXPIRED;
         }
 
