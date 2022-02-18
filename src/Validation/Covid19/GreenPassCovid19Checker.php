@@ -34,7 +34,7 @@ class GreenPassCovid19Checker
             return ValidationStatus::NOT_COVID_19;
         }
 
-        $data_oggi = new \DateTime();
+        $data_oggi = new \DateTime(date("Ymd"));
 
         $certificateId = self::extractUVCI($greenPass);
 
