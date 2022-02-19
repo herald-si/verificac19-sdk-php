@@ -44,12 +44,13 @@ class RecoveryChecker
 
         $startDate = $certificateValidFrom->modify("+$startDaysToAdd days");
         $endDate = $certificateValidFrom->modify("+$endDaysToAdd days");
-
+        $endDate = $endDate->SetTime(23, 59);
+        
         if ($startDate > $this->validation_date) {
             return ValidationStatus::NOT_VALID_YET;
         }
 
-        if ($this->validation_date->date > $endDate) {
+        if ($this->validation_date > $endDate) {
             return ValidationStatus::EXPIRED;
         }
 
