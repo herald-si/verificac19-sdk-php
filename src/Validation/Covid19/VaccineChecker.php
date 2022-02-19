@@ -170,7 +170,7 @@ class VaccineChecker
         $endDate = $vaccineDate->modify("+$endDaysToAdd days");
         $extendedDate = $vaccineDate->modify("+$extendedDaysToAdd days");
         $endDate = $endDate->SetTime(23, 59);
-        $extendedDate = $endDate->SetTime(23, 59);
+        $extendedDate = $extendedDate->SetTime(23, 59);
 
         if ($cert->isNotComplete()) {
             if (!MedicinalProduct::isEma($cert->product, $cert->country)) {
