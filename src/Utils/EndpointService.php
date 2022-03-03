@@ -61,18 +61,26 @@ class EndpointService
         return $return;
     }
 
+    private static function getSdkUserAgent()
+    {
+        $sdkInfo = EnvConfig::getSdkName();
+        $sdkVers = EnvConfig::getSdkVersion();
+
+        return "$sdkInfo/$sdkVers";
+    }
+
     private static function enpointRequest($uri, $type)
     {
         $client = new \GuzzleHttp\Client();
 
+        $params = [];
+        $params['headers']['User-Agent'] = self::getSdkUserAgent();
         try {
-            if (empty(self::$proxy)) {
-                $res = $client->request('GET', $uri);
-            } else {
-                $res = $client->request('GET', $uri, [
-                    'proxy' => self::$proxy,
-                ]);
+            if (!empty(self::$proxy)) {
+                $params['proxy'] = self::$proxy;
             }
+
+            $res = $client->request('GET', $uri, $params);
         } catch (\Exception $e) {
             throw new DownloadFailedException(DownloadFailedException::NO_WEBSITE_RESPONSE.' '.$uri);
         }
@@ -93,14 +101,13 @@ class EndpointService
         try {
             do {
                 $params = [];
-                $params['headers'] = ['X-RESUME-TOKEN' => $resume_token];
+                $params['headers']['X-RESUME-TOKEN'] = $resume_token;
+                $params['headers']['User-Agent'] = self::getSdkUserAgent();
 
                 if (!empty(self::$proxy)) {
                     $params['proxy'] = self::$proxy;
                 }
-
                 $res = $client->request('GET', $uri, $params);
-
                 if ($res->getStatusCode() == 200) {
                     if (empty($res->getBody())) {
                         throw new DownloadFailedException(DownloadFailedException::NO_WEBSITE_RESPONSE);

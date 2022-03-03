@@ -1,18 +1,18 @@
 {
-    "name" : "herald-si/verificac19-sdk-php",
-    "description" : "PHP Digital Green Certificate SDK",
+    "name": "herald-si/verificac19-sdk-php",
+    "description": "PHP Digital Green Certificate SDK",
     "license": "Apache-2.0",
-    "require" : {
+    "version": "v1.5.4",
+    "require": {
         "php": ">=7.3",
-        "guzzlehttp/guzzle" : "^7",
-        "ext-zlib" : "*",
-        "spomky-labs/cbor-php" : "^2.1",
+        "guzzlehttp/guzzle": "^7",
+        "ext-zlib": "*",
+        "spomky-labs/cbor-php": "^2.1",
         "web-auth/cose-lib": "^3.3"
     },
-      
-    "autoload" : {
-        "psr-4" : {
-            "Herald\\GreenPass\\" : "src"
+    "autoload": {
+        "psr-4": {
+            "Herald\\GreenPass\\": "src"
         }
     },
     "require-dev": {
@@ -20,7 +20,7 @@
     },
     "scripts": {
         "test": "vendor/bin/phpunit",
-		"cs-fixer-src" : "tools/php-cs-fixer/vendor/bin/php-cs-fixer fix src",
-		"cs-fixer-test" : "tools/php-cs-fixer/vendor/bin/php-cs-fixer fix tests"
+        "cs-fixer-src": "tools/php-cs-fixer/vendor/bin/php-cs-fixer fix src",
+        "cs-fixer-test": "tools/php-cs-fixer/vendor/bin/php-cs-fixer fix tests"
     }
 }

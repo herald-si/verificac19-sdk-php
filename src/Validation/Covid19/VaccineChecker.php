@@ -129,6 +129,7 @@ class VaccineChecker
 
         $startDate = $vaccineDate->modify("+$startDaysToAdd days");
         $endDate = $vaccineDate->modify("+$endDaysToAdd days");
+        $endDate = $endDate->SetTime(23, 59);
 
         if ($this->validation_date < $startDate) {
             return ValidationStatus::NOT_VALID_YET;
@@ -168,6 +169,8 @@ class VaccineChecker
         $startDate = $vaccineDate->modify("+$startDaysToAdd days");
         $endDate = $vaccineDate->modify("+$endDaysToAdd days");
         $extendedDate = $vaccineDate->modify("+$extendedDaysToAdd days");
+        $endDate = $endDate->SetTime(23, 59);
+        $extendedDate = $extendedDate->SetTime(23, 59);
 
         if ($cert->isNotComplete()) {
             if (!MedicinalProduct::isEma($cert->product, $cert->country)) {
@@ -229,6 +232,8 @@ class VaccineChecker
 
         $startDate = $vaccineDate->modify("+$startDaysToAdd days");
         $endDate = $vaccineDate->modify("+$endDaysToAdd days");
+        $endDate = $endDate->SetTime(23, 59);
+
         if ($this->validation_date < $startDate) {
             return ValidationStatus::NOT_VALID_YET;
         }
@@ -271,6 +276,7 @@ class VaccineChecker
 
         $startDate = $vaccineDate->modify("+$startDaysToAdd days");
         $endDate = $vaccineDate->modify("+$endDaysToAdd days");
+        $endDate = $endDate->setTime(23, 59);
 
         return $this->defaultValidationResults($startDate, $endDate);
     }
