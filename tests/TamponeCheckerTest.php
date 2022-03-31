@@ -66,7 +66,7 @@ class TamponeCheckerTest extends GreenPassCovid19CheckerTest
         $greenpass = new GreenPass($testgp);
 
         $esito = GreenPassCovid19Checker::verifyCert($greenpass, 'WORK');
-        $this->assertEquals('NOT_VALID', $esito);
+        $this->assertEquals('VALID', $esito);
 
         // the day after 50 years old birthday
         $today_50_birthday_plus_one = $today_50_birthday->modify(self::DATE_A_DAY_AGO);
