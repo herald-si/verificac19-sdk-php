@@ -143,13 +143,11 @@ Herald\GreenPass\Utils\EndpointService::setProxy("https://username:password@192.
 ## Scan Mode
 E' necessario definire una modalità di verifica della Certificazione verde Covid-19, come da elenco:
 
-Per procedere alla scansione selezionare una delle tipologie di verifica della Certificazione verde Covid-19: BASE, RAFFORZATA, VISITATORI RSA, LAVORO, INGRESSO IT, STUDENTI.
+Per procedere alla scansione selezionare una delle tipologie di verifica della Certificazione verde Covid-19: BASE, RAFFORZATA, VISITATORI RSA, INGRESSO IT.
 * Tipologia `BASE`: l'sdk considera valide le certificazioni verdi generate da vaccinazione, da guarigione, da tampone e le certificazioni di esenzione dalla vaccinazione.
 * Tipologia `RAFFORZATA`: l'sdk considera valide solo le certificazioni verdi generate da vaccinazione o da guarigione e le certificazioni di esenzione dalla vaccinazione.
 * Tipologia `VISITATORI RSA`: da utilizzare per l'accesso di visitatori alle strutture residenziali, socio-assistenziali, socio-sanitarie e hospice: la app considera valide le certificazioni verdi generate da vaccinazione con dose di richiamo. Considera valide, inoltre, le certificazioni verdi generate da vaccinazione con ciclo primario completato o guarigione insieme alla contestuale presentazione di un esito negativo di un test al SARS-CoV-2 eseguito nelle 48 ore precedenti.
-* Tipologia `LAVORO`: da utilizzare per l'accesso ai luoghi di lavoro dal 15 febbraio: fino ai 49 anni di età la app considera valide le certificazioni verdi generate da vaccinazione, da guarigione o da tampone. Dai 50 anni compiuti in su, considera valide solo le certificazioni verdi generate da vaccinazione o da guarigione. La app considera comunque valide le certificazioni di esenzione dalla vaccinazione. 
 * Tipologia `INGRESSO IT`: da utilizzare all'atto dell'ingresso in Italia dall'estero: la app considera valide tutte le tipologie di certificazione verde COVID-19 (vaccinazione, guarigione o tampone) secondo le regole di validazione europee per la circolazione tra gli Stati Membri. Sulla base del tipo di vaccino o ciclo completato da più di 180gg e fino a 270gg può richiedere la contestuale presentazione di un esito negativo di un test al SARS-CoV-2 eseguito nelle 48 ore precedenti
-* Tipologia `STUDENTI`: da utilizzare nelle classi della scuola primaria e secondaria per la didattica in presenza, in classi con casi di positività accertati: la app considera valide le certificazioni verdi generate da vaccinazione con dose di richiamo e quelle con ciclo primario o guarigione, se emesse da meno di 120 giorni e le certificazioni di esenzione dalla vaccinazione. 
 
 Per selezionare la tipologia, è possibile passare al costruttore del validatore un parametro di tipo `Herald\GreenPass\Validation\Covid19\ValidationScanMode`.
 
@@ -162,12 +160,8 @@ $scanMode = ValidationScanMode::CLASSIC_DGP;
 $scanMode = ValidationScanMode::SUPER_DGP;
 // or set scan mode to VISITATORI RSA
 $scanMode = ValidationScanMode::BOOSTER_DGP;
-// or set scan mode to LAVORO
-$scanMode = ValidationScanMode::WORK_DGP;
 // or set scan mode to INGRESSO IT
 $scanMode = ValidationScanMode::ENTRY_IT_DGP;
-// or set scan mode to STUDENTI
-$scanMode = ValidationScanMode::SCHOOL_DGP;
 
 $gp_reader = new CertificateValidator($gp_string, $scanMode);
 ```
