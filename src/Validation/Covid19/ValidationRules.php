@@ -37,6 +37,7 @@ class ValidationRules
     public const VACCINE_END_DAY_COMPLETE_NOT_IT = 'vaccine_end_day_complete_NOT_IT';
     public const VACCINE_START_DAY_BOOSTER_NOT_IT = 'vaccine_start_day_booster_NOT_IT';
     public const VACCINE_END_DAY_BOOSTER_NOT_IT = 'vaccine_end_day_booster_NOT_IT';
+    public const VACCINE_END_DAY_COMPLETE_UNDER_18 = 'vaccine_end_day_complete_under_18';
 
     public const RECOVERY_CERT_START_DAY_IT = 'recovery_cert_start_day_IT';
     public const RECOVERY_CERT_END_DAY_IT = 'recovery_cert_end_day_IT';
@@ -44,11 +45,13 @@ class ValidationRules
     public const RECOVERY_CERT_END_DAY_NOT_IT = 'recovery_cert_end_day_NOT_IT';
 
     public const VACCINE_END_DAY_COMPLETE_EXTENDED_EMA = 'vaccine_end_day_complete_extended_EMA';
-
+    public const VACCINE_COMPLETE_UNDER_18_OFFSET = 'vaccine_complete_under_18_offset';
     public const EMA_VACCINES = 'EMA_vaccines';
+
     public const BLACK_LIST_UVCI = 'black_list_uvci';
 
     public const VACCINE_MANDATORY_AGE = 50;
+    public const VACCINE_UNDERAGE_AGE = 18;
 
     public const DEFAULT_DAYS_SCHOOL = 120;
     public const DEFAULT_DAYS_START = 0;
