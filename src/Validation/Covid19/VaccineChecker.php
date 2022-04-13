@@ -295,6 +295,11 @@ class VaccineChecker
     {
         $vaccineDate = $cert->date;
 
+        $offset = ValidationRules::getValues(ValidationRules::VACCINE_COMPLETE_UNDER_18_OFFSET, ValidationRules::GENERIC_RULE);
+        $date_with_offset = $this->validation_date->modify("-$offset days");
+        $age = $this->holder->getAgeAtGivenDate($date_with_offset);
+        $isUserUnderage = ($age < ValidationRules::VACCINE_UNDERAGE_AGE);
+
         $startDaysToAdd = $this->getVaccineCustomDaysFromValidationRules($cert, Country::NOT_ITALY, VaccineChecker::CERT_RULE_START, $cert->isBooster());
         if ($cert->isNotComplete()) {
             $startDaysToAdd = ValidationRules::getValues(ValidationRules::VACCINE_START_DAY_NOT_COMPLETE, $cert->product);
@@ -303,6 +308,9 @@ class VaccineChecker
         $endDaysToAdd = $this->getVaccineCustomDaysFromValidationRules($cert, Country::NOT_ITALY, VaccineChecker::CERT_RULE_END, $cert->isBooster());
         if ($cert->isNotComplete()) {
             $endDaysToAdd = ValidationRules::getValues(ValidationRules::VACCINE_END_DAY_NOT_COMPLETE, $cert->product);
+        }
+        if ($isUserUnderage && $cert->isComplete()) {
+            $endDaysToAdd = ValidationRules::getValues(ValidationRules::VACCINE_END_DAY_COMPLETE_UNDER_18, ValidationRules::GENERIC_RULE);
         }
 
         $startDate = $vaccineDate->modify("+$startDaysToAdd days");

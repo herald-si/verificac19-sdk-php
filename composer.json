@@ -2,7 +2,7 @@
     "name": "herald-si/verificac19-sdk-php",
     "description": "PHP Digital Green Certificate SDK",
     "license": "Apache-2.0",
-    "version": "v1.5.4",
+    "version": "v1.5.5",
     "require": {
         "php": ">=7.3",
         "guzzlehttp/guzzle": "^7",
