@@ -396,4 +396,81 @@ class VaccineCheckerTest extends GreenPassCovid19CheckerTest
         $esito = GreenPassCovid19Checker::verifyCert($greenpass, ValidationScanMode::BOOSTER_DGP);
         $this->assertEquals('VALID', $esito);
     }
+
+    /*
+     * Test Entry Italy oltre 12 mesi
+     */
+    public function testEntryItalyStrategyOneYear()
+    {
+        $testgp = GPDataTest::$vaccine;
+        $data_greenpass = $this->data_oggi->modify(self::DATE_MORE_THAN_A_YEAR);
+        $testgp['v'][0]['dt'] = $data_greenpass->format('Y-m-d');
+        $testgp['v'][0]['dn'] = 1;
+        $testgp['v'][0]['sd'] = 2;
+        $greenpass = new GreenPass($testgp);
+
+        $esito = GreenPassCovid19Checker::verifyCert($greenpass, ValidationScanMode::ENTRY_IT_DGP);
+        $this->assertEquals('EXPIRED', $esito);
+
+        $testgp['v'][0]['dn'] = 2;
+        $testgp['v'][0]['sd'] = 2;
+        $greenpass = new GreenPass($testgp);
+        $esito = GreenPassCovid19Checker::verifyCert($greenpass, ValidationScanMode::ENTRY_IT_DGP);
+        $this->assertEquals('EXPIRED', $esito);
+
+        $testgp['v'][0]['dn'] = 3;
+        $testgp['v'][0]['sd'] = 3;
+        $greenpass = new GreenPass($testgp);
+        $esito = GreenPassCovid19Checker::verifyCert($greenpass, ValidationScanMode::ENTRY_IT_DGP);
+        $this->assertEquals('VALID', $esito);
+    }
+
+    /*
+     * Test Entry Italy underage
+     */
+    public function testEntryItalyStrategyUnderAge()
+    {
+        $testgp = GPDataTest::$vaccine;
+        $data_greenpass = $this->data_oggi->modify(self::DATE_MORE_THAN_A_YEAR);
+        $testgp['v'][0]['dt'] = $data_greenpass->format('Y-m-d');
+        $testgp['v'][0]['dn'] = 1;
+        $testgp['v'][0]['sd'] = 2;
+        $greenpass = new GreenPass($testgp);
+        $today_18_birthday = $this->data_oggi->modify(-ValidationRules::VACCINE_UNDERAGE_AGE.' year');
+        $today_17_years_old = $today_18_birthday->modify(self::DATE_TOMORROW);
+        $today_18_birthday_plus_one = $today_18_birthday->modify(self::DATE_12_HOURS_AGO);
+        $offset = ValidationRules::getValues(ValidationRules::VACCINE_COMPLETE_UNDER_18_OFFSET, ValidationRules::GENERIC_RULE);
+
+        $testgp['dob'] = $today_17_years_old->format('Y-m-d');
+        $greenpass = new GreenPass($testgp);
+        $esito = GreenPassCovid19Checker::verifyCert($greenpass, ValidationScanMode::ENTRY_IT_DGP);
+        $this->assertEquals('EXPIRED', $esito);
+
+        $testgp['dob'] = $today_18_birthday->format('Y-m-d');
+        $greenpass = new GreenPass($testgp);
+        $esito = GreenPassCovid19Checker::verifyCert($greenpass, ValidationScanMode::ENTRY_IT_DGP);
+        $this->assertEquals('EXPIRED', $esito);
+
+        $testgp['dob'] = $today_18_birthday_plus_one->format('Y-m-d');
+        $greenpass = new GreenPass($testgp);
+        $esito = GreenPassCovid19Checker::verifyCert($greenpass, ValidationScanMode::ENTRY_IT_DGP);
+        $this->assertEquals('EXPIRED', $esito);
+
+        $testgp['v'][0]['dn'] = 2;
+        $testgp['v'][0]['sd'] = 2;
+
+        $testgp['dob'] = $today_17_years_old->format('Y-m-d');
+        $greenpass = new GreenPass($testgp);
+        $esito = GreenPassCovid19Checker::verifyCert($greenpass, ValidationScanMode::ENTRY_IT_DGP);
+        $this->assertEquals('VALID', $esito);
+
+        $testgp['dob'] = $today_18_birthday->format('Y-m-d');
+        $greenpass = new GreenPass($testgp);
+        $esito = GreenPassCovid19Checker::verifyCert($greenpass, ValidationScanMode::ENTRY_IT_DGP);
+        if ($offset <= 0) {
+            $this->assertEquals('EXPIRED', $esito);
+        } else {
+            $this->assertEquals('VALID', $esito);
+        }
+    }
 }
