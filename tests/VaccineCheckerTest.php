@@ -423,19 +423,14 @@ class VaccineCheckerTest extends GreenPassCovid19CheckerTest
         $greenpass = new GreenPass($testgp);
         $esito = GreenPassCovid19Checker::verifyCert($greenpass, ValidationScanMode::ENTRY_IT_DGP);
         $this->assertEquals('VALID', $esito);
-    }
 
-    /*
-     * Test Entry Italy underage
-     */
-    public function testEntryItalyStrategyUnderAge()
-    {
-        $testgp = GPDataTest::$vaccine;
-        $data_greenpass = $this->data_oggi->modify(self::DATE_MORE_THAN_A_YEAR);
+        /*
+         * Test underage
+         */
         $testgp['v'][0]['dt'] = $data_greenpass->format('Y-m-d');
         $testgp['v'][0]['dn'] = 1;
         $testgp['v'][0]['sd'] = 2;
-        $greenpass = new GreenPass($testgp);
+
         $today_18_birthday = $this->data_oggi->modify(-ValidationRules::VACCINE_UNDERAGE_AGE.' year');
         $today_17_years_old = $today_18_birthday->modify(self::DATE_TOMORROW);
         $today_18_birthday_plus_one = $today_18_birthday->modify(self::DATE_12_HOURS_AGO);
