@@ -8,7 +8,8 @@
         "guzzlehttp/guzzle": "^7",
         "ext-zlib": "*",
         "spomky-labs/cbor-php": "^2.1",
-        "web-auth/cose-lib": "^3.3"
+        "web-auth/cose-lib": "^3.3",
+        "symfony/deprecation-contracts": "^2.2"
     },
     "autoload": {
         "psr-4": {
