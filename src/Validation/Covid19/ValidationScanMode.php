@@ -17,5 +17,4 @@ class ValidationScanMode
 
     public const SCHOOL_DGP = 'SCHOOL';
 
-    public const ENTRY_IT_DGP = 'ENTRY_ITALY';
 }
