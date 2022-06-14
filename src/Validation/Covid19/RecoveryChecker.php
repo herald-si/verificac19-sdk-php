@@ -26,11 +26,9 @@ class RecoveryChecker
 
     public function checkCertificate()
     {
-        if ($this->scanMode == ValidationScanMode::ENTRY_IT_DGP) {
-            $countryCode = $this->cert->country;
-        } else {
-            $countryCode = Country::ITALY;
-        }
+
+        $countryCode = Country::ITALY;
+
         $isRecoveryBis = $this->isRecoveryBis();
         $startDaysToAdd = $isRecoveryBis ? ValidationRules::getValues(ValidationRules::RECOVERY_CERT_PV_START_DAY, ValidationRules::GENERIC_RULE) : $this->getRecoveryCustomRulesFromValidationRules($countryCode, ValidationRules::CERT_RULE_START);
 
@@ -45,7 +43,7 @@ class RecoveryChecker
         $startDate = $certificateValidFrom->modify("+$startDaysToAdd days");
         $endDate = $certificateValidFrom->modify("+$endDaysToAdd days");
         $endDate = $endDate->SetTime(23, 59);
-        
+
         if ($startDate > $this->validation_date) {
             return ValidationStatus::NOT_VALID_YET;
         }

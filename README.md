@@ -1,4 +1,4 @@
-<h1 align="center">Digital Green Certificate SDK PHP</h1>        
+<h1 align="center">Digital Green Certificate SDK PHP</h1>
 
 # Indice
 - [Contesto](#contesto)
@@ -33,7 +33,7 @@ Certificazioni verdi COVID-19 sottoposte a verifica, nonché di estrarre,
 consultare, registrare o comunque trattare per finalit&agrave; ulteriori rispetto
 a quelle previste per la verifica della Certificazione verde COVID-19 o le
 informazioni rilevate dalla lettura dei QR code e le informazioni fornite in
-esito ai controlli, come indicato nel DPCM 12 ottobre 2021    
+esito ai controlli, come indicato nel DPCM 12 ottobre 2021
 
 # Requisiti
 - PHP >= 7.3
@@ -58,7 +58,7 @@ E' necessario settare i permessi della cartella `sdk_repo_folder\assets` in modo
 il webserver possa leggere, creare ed editare i file contenuti in essa.
 
 Nel caso in cui non fosse possibile cambiare i permessi della cartella,
-dalla release `1.0.5` esiste la possibilità di modificare il path di salvataggio dei 
+dalla release `1.0.5` esiste la possibilità di modificare il path di salvataggio dei
 file, vedi [Cache Folder](#cache-folder).
 
 
@@ -71,9 +71,9 @@ require __DIR__ . '/sdk_repo_folder/vendor/autoload.php';
 A questo punto &egrave; possibile utilizzare una libreria di scansione di QR Code
 a scelta che, dopo aver letto un QR Code di un EU DCC, passi la stringa
 estratta al validatore
-`Herald\GreenPass\Utils\CertificateValidator`.  
+`Herald\GreenPass\Utils\CertificateValidator`.
 
-Esempio:  
+Esempio:
 
 ```php
 ...
@@ -101,7 +101,7 @@ stato della verifica del DCC.
 
 ## Cache Folder
 
-Dalla release `1.0.5` esiste la possibilità di modificare il path di salvataggio dei 
+Dalla release `1.0.5` esiste la possibilità di modificare il path di salvataggio dei
 file, utilizzando il metodo `overrideCacheFilePath` della classe `FileUtils`:
 
 ```php
@@ -160,8 +160,6 @@ $scanMode = ValidationScanMode::CLASSIC_DGP;
 $scanMode = ValidationScanMode::SUPER_DGP;
 // or set scan mode to VISITATORI RSA
 $scanMode = ValidationScanMode::BOOSTER_DGP;
-// or set scan mode to INGRESSO IT
-$scanMode = ValidationScanMode::ENTRY_IT_DGP;
 
 $gp_reader = new CertificateValidator($gp_string, $scanMode);
 ```
@@ -179,15 +177,15 @@ E' possibile, solo con debug mode attivo, forzare l'aggiornamento dei file nella
 Esempi di funzionamento:
 ```php
 //non viene forzato l'aggiornamento, manca debug mode
-Herald\GreenPass\Utils\UpdateService::updateCertificatesStatus(true); 
+Herald\GreenPass\Utils\UpdateService::updateCertificatesStatus(true);
 ---
 //non viene forzato l'aggiornamento, parametro force update a false
 Herald\GreenPass\Utils\EnvConfig::enableDebugMode();
-Herald\GreenPass\Utils\UpdateService::updateCertificatesStatus(); 
+Herald\GreenPass\Utils\UpdateService::updateCertificatesStatus();
 ---
 //viene forzato l'aggiornamento, non usare in produzione!
 Herald\GreenPass\Utils\EnvConfig::enableDebugMode();
-Herald\GreenPass\Utils\UpdateService::updateCertificatesStatus(true); 
+Herald\GreenPass\Utils\UpdateService::updateCertificatesStatus(true);
 
 ```
 ## Visualizza errori scansione
@@ -207,8 +205,8 @@ specifiche.
 Qui c'&egrave; una lista di contributori. Grazie per essere partecipi nel
 miglioramento del progetto giorno dopo giorno!
 
-<a href="https://github.com/herald-si/verificac19-sdk-php">  
-  <img    
-  src="https://contributors-img.web.app/image?repo=herald-si/verificac19-sdk-php"   
-  />    
-</a>    
+<a href="https://github.com/herald-si/verificac19-sdk-php">
+  <img
+  src="https://contributors-img.web.app/image?repo=herald-si/verificac19-sdk-php"
+  />
+</a>
