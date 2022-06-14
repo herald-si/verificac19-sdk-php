@@ -97,9 +97,6 @@ class VaccineChecker
             case ValidationScanMode::WORK_DGP:
                 $esito = $this->workStrategy($cert);
                 break;
-            case ValidationScanMode::ENTRY_IT_DGP:
-                $esito = $this->vaccineEntryItalyStrategy($cert);
-                break;
             default:
                 return ValidationStatus::NOT_EU_DCC;
         }
