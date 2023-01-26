@@ -48,8 +48,12 @@ class VaccineChecker
      * @return int
      *             custom rule value
      */
-    private function getVaccineCustomDaysFromValidationRules(VaccinationDose $cert, string $countryCode, string $startEnd, bool $isBooster): int
-    {
+    private function getVaccineCustomDaysFromValidationRules(
+        VaccinationDose $cert,
+        string $countryCode,
+        string $startEnd,
+        bool $isBooster
+    ): int {
         $ruleType = ValidationRules::GENERIC_RULE;
         if ($isBooster) {
             $customCycle = VaccineChecker::CERT_BOOSTER;
@@ -62,13 +66,21 @@ class VaccineChecker
         } else {
             $customCountry = Country::NOT_ITALY;
         }
-        if ($startEnd == VaccineChecker::CERT_RULE_START && !$isBooster && $cert->product == MedicinalProduct::JOHNSON) {
-            $addDays = ValidationRules::getValues(ValidationRules::VACCINE_START_DAY_COMPLETE, MedicinalProduct::JOHNSON);
+        if (
+            $startEnd == VaccineChecker::CERT_RULE_START
+            && !$isBooster && $cert->product == MedicinalProduct::JOHNSON
+        ) {
+            $addDays = ValidationRules::getValues(
+                ValidationRules::VACCINE_START_DAY_COMPLETE,
+                MedicinalProduct::JOHNSON
+            );
         } else {
             $addDays = 0;
         }
 
-        $ruleToCheck = ValidationRules::convertRuleNameToConstant("VACCINE_{$startEnd}_{$customCycle}_{$customCountry}");
+        $ruleToCheck = ValidationRules::convertRuleNameToConstant(
+            "VACCINE_{$startEnd}_{$customCycle}_{$customCountry}"
+        );
 
         $result = ValidationRules::getValues($ruleToCheck, $ruleType);
 
@@ -97,14 +109,27 @@ class VaccineChecker
 
         $startDaysToAdd = 0;
         if ($cert->isComplete()) {
-            $startDaysToAdd = $this->getVaccineCustomDaysFromValidationRules($cert, $countryCode, VaccineChecker::CERT_RULE_START, $cert->isBooster());
+            $startDaysToAdd = $this->getVaccineCustomDaysFromValidationRules(
+                $cert,
+                $countryCode,
+                VaccineChecker::CERT_RULE_START,
+                $cert->isBooster()
+            );
         } elseif ($cert->isNotComplete()) {
-            $startDaysToAdd = ValidationRules::getValues(ValidationRules::VACCINE_START_DAY_NOT_COMPLETE, $cert->product);
+            $startDaysToAdd = ValidationRules::getValues(
+                ValidationRules::VACCINE_START_DAY_NOT_COMPLETE,
+                $cert->product
+            );
         }
 
         $endDaysToAdd = 0;
         if ($cert->isComplete()) {
-            $endDaysToAdd = $this->getVaccineCustomDaysFromValidationRules($cert, $countryCode, VaccineChecker::CERT_RULE_END, $cert->isBooster());
+            $endDaysToAdd = $this->getVaccineCustomDaysFromValidationRules(
+                $cert,
+                $countryCode,
+                VaccineChecker::CERT_RULE_END,
+                $cert->isBooster()
+            );
         } elseif ($cert->isNotComplete()) {
             $endDaysToAdd = ValidationRules::getValues(ValidationRules::VACCINE_END_DAY_NOT_COMPLETE, $cert->product);
         }

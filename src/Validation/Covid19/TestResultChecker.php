@@ -9,14 +9,14 @@ use Herald\GreenPass\GreenPassEntities\TestType;
 
 class TestResultChecker
 {
-    private $validation_date = null;
+    private $validationDate = null;
     private $scanMode = null;
     private $cert = null;
     private $holder = null;
 
-    public function __construct(\DateTime $validation_date, string $scanMode, Holder $holder, TestResult $cert)
+    public function __construct(\DateTime $validationDate, string $scanMode, Holder $holder, TestResult $cert)
     {
-        $this->validation_date = $validation_date;
+        $this->validationDate = $validationDate;
         $this->scanMode = $scanMode;
         $this->holder = $holder;
         $this->cert = $cert;
@@ -30,24 +30,36 @@ class TestResultChecker
 
         switch ($this->cert->type) {
             case TestType::MOLECULAR:
-                $ore_min_valido = ValidationRules::getValues(ValidationRules::MOLECULAR_TEST_START_HOUR, ValidationRules::GENERIC_RULE);
-                $ore_max_valido = ValidationRules::getValues(ValidationRules::MOLECULAR_TEST_END_HOUR, ValidationRules::GENERIC_RULE);
+                $oreMinValido = ValidationRules::getValues(
+                    ValidationRules::MOLECULAR_TEST_START_HOUR,
+                    ValidationRules::GENERIC_RULE
+                );
+                $oreMaxValido = ValidationRules::getValues(
+                    ValidationRules::MOLECULAR_TEST_END_HOUR,
+                    ValidationRules::GENERIC_RULE
+                );
                 break;
             case TestType::RAPID:
-                $ore_min_valido = ValidationRules::getValues(ValidationRules::RAPID_TEST_START_HOUR, ValidationRules::GENERIC_RULE);
-                $ore_max_valido = ValidationRules::getValues(ValidationRules::RAPID_TEST_END_HOUR, ValidationRules::GENERIC_RULE);
+                $oreMinValido = ValidationRules::getValues(
+                    ValidationRules::RAPID_TEST_START_HOUR,
+                    ValidationRules::GENERIC_RULE
+                );
+                $oreMaxValido = ValidationRules::getValues(
+                    ValidationRules::RAPID_TEST_END_HOUR,
+                    ValidationRules::GENERIC_RULE
+                );
                 break;
             default:
                 return ValidationStatus::NOT_VALID;
         }
 
-        $ora_inizio_validita = $this->cert->date->modify("+$ore_min_valido hours");
-        $ora_fine_validita = $this->cert->date->modify("+$ore_max_valido hours");
+        $oraInizioValidita = $this->cert->date->modify("+$oreMinValido hours");
+        $oraFineValidita = $this->cert->date->modify("+$oreMaxValido hours");
 
-        if ($this->validation_date < $ora_inizio_validita) {
+        if ($this->validationDate < $oraInizioValidita) {
             return ValidationStatus::NOT_VALID_YET;
         }
-        if ($this->validation_date > $ora_fine_validita) {
+        if ($this->validationDate > $oraFineValidita) {
             return ValidationStatus::EXPIRED;
         }
 

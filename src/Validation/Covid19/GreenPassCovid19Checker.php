@@ -34,7 +34,7 @@ class GreenPassCovid19Checker
             return ValidationStatus::NOT_COVID_19;
         }
 
-        $data_oggi = new \DateTime();
+        $dataOggi = new \DateTime();
 
         $certificateId = self::extractUVCI($greenPass);
 
@@ -52,28 +52,34 @@ class GreenPassCovid19Checker
 
         // vaccino effettuato
         if ($cert instanceof VaccinationDose) {
-            $vaccineValidator = new VaccineChecker($data_oggi, $scanMode, $greenPass->holder, $cert);
+            $vaccineValidator = new VaccineChecker($dataOggi, $scanMode, $greenPass->holder, $cert);
 
             return $vaccineValidator->checkCertificate();
         }
 
         // tampone effettuato
         if ($cert instanceof TestResult) {
-            $testResultValidator = new TestResultChecker($data_oggi, $scanMode, $greenPass->holder, $cert);
+            $testResultValidator = new TestResultChecker($dataOggi, $scanMode, $greenPass->holder, $cert);
 
             return $testResultValidator->checkCertificate();
         }
 
         // guarigione avvenuta
         if ($cert instanceof RecoveryStatement) {
-            $recoveryValidator = new RecoveryChecker($cert, $data_oggi, $scanMode, $greenPass->holder, $greenPass->signingCertInfo);
+            $recoveryValidator = new RecoveryChecker(
+                $cert,
+                $dataOggi,
+                $scanMode,
+                $greenPass->holder,
+                $greenPass->signingCertInfo
+            );
 
             return $recoveryValidator->checkCertificate();
         }
 
         // esenzione
         if ($cert instanceof Exemption) {
-            $excemptionValidator = new ExemptionChecker($data_oggi, $scanMode, $cert);
+            $excemptionValidator = new ExemptionChecker($dataOggi, $scanMode, $cert);
 
             return $excemptionValidator->checkCertificate();
         }
