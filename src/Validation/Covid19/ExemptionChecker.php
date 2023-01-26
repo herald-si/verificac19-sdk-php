@@ -30,10 +30,6 @@ class ExemptionChecker
             return ValidationStatus::EXPIRED;
         }
 
-        if ($this->scanMode == ValidationScanMode::BOOSTER_DGP) {
-            return ValidationStatus::TEST_NEEDED;
-        }
-
         return ValidationStatus::VALID;
     }
 }

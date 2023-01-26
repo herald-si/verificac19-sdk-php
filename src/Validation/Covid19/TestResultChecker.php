@@ -24,9 +24,6 @@ class TestResultChecker
 
     public function checkCertificate()
     {
-        // if scan mode Super Green Pass, TestResult is non a valid GP
-        $isTestNotAllowed = ($this->scanMode == ValidationScanMode::SUPER_DGP || $this->scanMode == ValidationScanMode::BOOSTER_DGP || $this->scanMode == ValidationScanMode::SCHOOL_DGP);
-
         if ($this->cert->result == TestResultType::DETECTED) {
             return ValidationStatus::NOT_VALID;
         }
@@ -35,11 +32,11 @@ class TestResultChecker
             case TestType::MOLECULAR:
                 $ore_min_valido = ValidationRules::getValues(ValidationRules::MOLECULAR_TEST_START_HOUR, ValidationRules::GENERIC_RULE);
                 $ore_max_valido = ValidationRules::getValues(ValidationRules::MOLECULAR_TEST_END_HOUR, ValidationRules::GENERIC_RULE);
-            break;
+                break;
             case TestType::RAPID:
                 $ore_min_valido = ValidationRules::getValues(ValidationRules::RAPID_TEST_START_HOUR, ValidationRules::GENERIC_RULE);
                 $ore_max_valido = ValidationRules::getValues(ValidationRules::RAPID_TEST_END_HOUR, ValidationRules::GENERIC_RULE);
-            break;
+                break;
             default:
                 return ValidationStatus::NOT_VALID;
         }
@@ -54,21 +51,6 @@ class TestResultChecker
             return ValidationStatus::EXPIRED;
         }
 
-        if ($isTestNotAllowed) {
-            return ValidationStatus::NOT_VALID;
-        } else {
-            return self::checkVaccineMandatoryAge() ? ValidationStatus::NOT_VALID : ValidationStatus::VALID;
-        }
-    }
-
-    private function checkVaccineMandatoryAge()
-    {
-        $age = $this->holder->getAgeAtGivenDate($this->validation_date);
-
-        if ($this->scanMode == ValidationScanMode::WORK_DGP && $age >= ValidationRules::VACCINE_MANDATORY_AGE) {
-            return true;
-        }
-
-        return false;
+        return ValidationStatus::VALID;
     }
 }

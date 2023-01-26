@@ -32,13 +32,9 @@ class RecoveryChecker
         $isRecoveryBis = $this->isRecoveryBis();
         $startDaysToAdd = $isRecoveryBis ? ValidationRules::getValues(ValidationRules::RECOVERY_CERT_PV_START_DAY, ValidationRules::GENERIC_RULE) : $this->getRecoveryCustomRulesFromValidationRules($countryCode, ValidationRules::CERT_RULE_START);
 
-        if ($this->scanMode == ValidationScanMode::SCHOOL_DGP) {
-            $endDaysToAdd = ValidationRules::getEndDaySchool(ValidationRules::RECOVERY_CERT_END_DAY_SCHOOL, ValidationRules::GENERIC_RULE);
-        } else {
-            $endDaysToAdd = $isRecoveryBis ? ValidationRules::getValues(ValidationRules::RECOVERY_CERT_PV_END_DAY, ValidationRules::GENERIC_RULE) : $this->getRecoveryCustomRulesFromValidationRules($countryCode, ValidationRules::CERT_RULE_END);
-        }
+        $endDaysToAdd = $isRecoveryBis ? ValidationRules::getValues(ValidationRules::RECOVERY_CERT_PV_END_DAY, ValidationRules::GENERIC_RULE) : $this->getRecoveryCustomRulesFromValidationRules($countryCode, ValidationRules::CERT_RULE_END);
 
-        $certificateValidFrom = ($this->scanMode == ValidationScanMode::SCHOOL_DGP) ? $this->cert->date : $this->cert->validFrom;
+        $certificateValidFrom = $this->cert->validFrom;
 
         $startDate = $certificateValidFrom->modify("+$startDaysToAdd days");
         $endDate = $certificateValidFrom->modify("+$endDaysToAdd days");
@@ -50,10 +46,6 @@ class RecoveryChecker
 
         if ($this->validation_date > $endDate) {
             return ValidationStatus::EXPIRED;
-        }
-
-        if ($this->scanMode == ValidationScanMode::BOOSTER_DGP && !$this->isRecoveryBis()) {
-            return ValidationStatus::TEST_NEEDED;
         }
 
         return ValidationStatus::VALID;
