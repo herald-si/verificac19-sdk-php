@@ -15,8 +15,13 @@ class RecoveryChecker
     private $holder = null;
     private $signingCertificate = null;
 
-    public function __construct(RecoveryStatement $cert, \DateTime $validationDate, string $scanMode, Holder $holder, $signingCertificate)
-    {
+    public function __construct(
+        RecoveryStatement $cert,
+        \DateTime $validationDate,
+        string $scanMode,
+        Holder $holder,
+        $signingCertificate
+    ) {
         $this->validationDate = $validationDate;
         $this->scanMode = $scanMode;
         $this->holder = $holder;

@@ -29,8 +29,8 @@ class VaccineCheckerTest extends GreenPassCovid19CheckerTest
     public function testSuperGreenPass()
     {
         $testgp = GPDataTest::$vaccine;
-        $data_greenpass = $this->data_oggi->modify(self::DATE_A_MONTH_AGO);
-        $testgp['v'][0]['dt'] = $data_greenpass->format('Y-m-d');
+        $dataGreenpass = $this->dataOggi->modify(self::DATE_A_MONTH_AGO);
+        $testgp['v'][0]['dt'] = $dataGreenpass->format('Y-m-d');
         $greenpass = new GreenPass($testgp);
 
         $esito = GreenPassCovid19Checker::verifyCert($greenpass);
@@ -43,8 +43,8 @@ class VaccineCheckerTest extends GreenPassCovid19CheckerTest
     public function testSputnikNotSM()
     {
         $testgp = GPDataTest::$vaccine;
-        $data_greenpass = $this->data_oggi->modify(self::DATE_A_MONTH_AGO);
-        $testgp['v'][0]['dt'] = $data_greenpass->format('Y-m-d');
+        $dataGreenpass = $this->dataOggi->modify(self::DATE_A_MONTH_AGO);
+        $testgp['v'][0]['dt'] = $dataGreenpass->format('Y-m-d');
         $testgp['v'][0]['mp'] = MedicinalProduct::SPUTNIK;
         $testgp['v'][0]['co'] = 'IT';
         $greenpass = new GreenPass($testgp);
@@ -59,8 +59,8 @@ class VaccineCheckerTest extends GreenPassCovid19CheckerTest
     public function testSputnikSM()
     {
         $testgp = GPDataTest::$vaccine;
-        $data_greenpass = $this->data_oggi->modify(self::DATE_A_MONTH_AGO);
-        $testgp['v'][0]['dt'] = $data_greenpass->format('Y-m-d');
+        $dataGreenpass = $this->dataOggi->modify(self::DATE_A_MONTH_AGO);
+        $testgp['v'][0]['dt'] = $dataGreenpass->format('Y-m-d');
         $testgp['v'][0]['mp'] = MedicinalProduct::SPUTNIK;
         $testgp['v'][0]['co'] = 'SM';
         $greenpass = new GreenPass($testgp);
@@ -75,8 +75,8 @@ class VaccineCheckerTest extends GreenPassCovid19CheckerTest
     public function testNotComplete5days()
     {
         $testgp = GPDataTest::$vaccine;
-        $data_greenpass = $this->data_oggi->modify(self::DATE_5_DAYS_AGO);
-        $testgp['v'][0]['dt'] = $data_greenpass->format('Y-m-d');
+        $dataGreenpass = $this->dataOggi->modify(self::DATE_5_DAYS_AGO);
+        $testgp['v'][0]['dt'] = $dataGreenpass->format('Y-m-d');
         $testgp['v'][0]['dn'] = 1;
         $testgp['v'][0]['sd'] = 2;
         $greenpass = new GreenPass($testgp);
@@ -91,26 +91,12 @@ class VaccineCheckerTest extends GreenPassCovid19CheckerTest
     public function testCompleteMoreThanAYear()
     {
         $testgp = GPDataTest::$vaccine;
-        $data_greenpass = $this->data_oggi->modify(self::DATE_MORE_THAN_A_YEAR);
-        $testgp['v'][0]['dt'] = $data_greenpass->format('Y-m-d');
+        $dataGreenpass = $this->dataOggi->modify(self::DATE_MORE_THAN_A_YEAR);
+        $testgp['v'][0]['dt'] = $dataGreenpass->format('Y-m-d');
         $greenpass = new GreenPass($testgp);
 
         $esito = GreenPassCovid19Checker::verifyCert($greenpass);
         $this->assertEquals('EXPIRED', $esito);
-    }
-
-    /*
-     * Test completo dopo un mese
-     */
-    public function testVaccineAfterAMonth()
-    {
-        $testgp = GPDataTest::$vaccine;
-        $data_greenpass = $this->data_oggi->modify(self::DATE_A_MONTH_AGO);
-        $testgp['v'][0]['dt'] = $data_greenpass->format('Y-m-d');
-        $greenpass = new GreenPass($testgp);
-
-        $esito = GreenPassCovid19Checker::verifyCert($greenpass);
-        $this->assertEquals('VALID', $esito);
     }
 
     /*
@@ -119,8 +105,8 @@ class VaccineCheckerTest extends GreenPassCovid19CheckerTest
     public function testJohnsonCompleto()
     {
         $testgp = GPDataTest::$vaccine;
-        $data_greenpass = $this->data_oggi->modify(self::DATE_A_MONTH_AGO);
-        $testgp['v'][0]['dt'] = $data_greenpass->format('Y-m-d');
+        $dataGreenpass = $this->dataOggi->modify(self::DATE_A_MONTH_AGO);
+        $testgp['v'][0]['dt'] = $dataGreenpass->format('Y-m-d');
         $testgp['v'][0]['mp'] = MedicinalProduct::JOHNSON;
         $testgp['v'][0]['dn'] = 1;
         $testgp['v'][0]['sd'] = 1;
@@ -136,8 +122,8 @@ class VaccineCheckerTest extends GreenPassCovid19CheckerTest
     public function testNotComplete()
     {
         $testgp = GPDataTest::$vaccine;
-        $data_greenpass = $this->data_oggi->modify(self::DATE_20_DAYS_AGO);
-        $testgp['v'][0]['dt'] = $data_greenpass->format('Y-m-d');
+        $dataGreenpass = $this->dataOggi->modify(self::DATE_20_DAYS_AGO);
+        $testgp['v'][0]['dt'] = $dataGreenpass->format('Y-m-d');
         $testgp['v'][0]['dn'] = 1;
         $testgp['v'][0]['sd'] = 2;
         $greenpass = new GreenPass($testgp);
@@ -152,8 +138,8 @@ class VaccineCheckerTest extends GreenPassCovid19CheckerTest
     public function testBoosterComplete()
     {
         $testgp = GPDataTest::$vaccine;
-        $data_greenpass = $this->data_oggi->modify(self::DATE_A_MONTH_AGO);
-        $testgp['v'][0]['dt'] = $data_greenpass->format('Y-m-d');
+        $dataGreenpass = $this->dataOggi->modify(self::DATE_A_MONTH_AGO);
+        $testgp['v'][0]['dt'] = $dataGreenpass->format('Y-m-d');
         $testgp['v'][0]['dn'] = 2;
         $testgp['v'][0]['sd'] = 1;
         $greenpass = new GreenPass($testgp);
@@ -168,8 +154,8 @@ class VaccineCheckerTest extends GreenPassCovid19CheckerTest
     public function testBoosterJohnsonCompleto()
     {
         $testgp = GPDataTest::$vaccine;
-        $data_greenpass = $this->data_oggi->modify(self::DATE_A_MONTH_AGO);
-        $testgp['v'][0]['dt'] = $data_greenpass->format('Y-m-d');
+        $dataGreenpass = $this->dataOggi->modify(self::DATE_A_MONTH_AGO);
+        $testgp['v'][0]['dt'] = $dataGreenpass->format('Y-m-d');
         $testgp['v'][0]['mp'] = MedicinalProduct::JOHNSON;
         $testgp['v'][0]['dn'] = 2;
         $testgp['v'][0]['sd'] = 2;
@@ -185,8 +171,8 @@ class VaccineCheckerTest extends GreenPassCovid19CheckerTest
     public function testComplete()
     {
         $testgp = GPDataTest::$vaccine;
-        $data_greenpass = $this->data_oggi->modify(self::DATE_A_MONTH_AGO);
-        $testgp['v'][0]['dt'] = $data_greenpass->format('Y-m-d');
+        $dataGreenpass = $this->dataOggi->modify(self::DATE_A_MONTH_AGO);
+        $testgp['v'][0]['dt'] = $dataGreenpass->format('Y-m-d');
         $testgp['v'][0]['dn'] = 2;
         $testgp['v'][0]['sd'] = 2;
         $greenpass = new GreenPass($testgp);
@@ -201,8 +187,8 @@ class VaccineCheckerTest extends GreenPassCovid19CheckerTest
     public function testCompleteAfter150Days()
     {
         $testgp = GPDataTest::$vaccine;
-        $data_greenpass = $this->data_oggi->modify(self::DATE_5_MONTHS_AGO);
-        $testgp['v'][0]['dt'] = $data_greenpass->format('Y-m-d');
+        $dataGreenpass = $this->dataOggi->modify(self::DATE_5_MONTHS_AGO);
+        $testgp['v'][0]['dt'] = $dataGreenpass->format('Y-m-d');
         $testgp['v'][0]['dn'] = 2;
         $testgp['v'][0]['sd'] = 2;
         $greenpass = new GreenPass($testgp);
@@ -217,8 +203,8 @@ class VaccineCheckerTest extends GreenPassCovid19CheckerTest
     public function testCompleteAfter7Month()
     {
         $testgp = GPDataTest::$vaccine;
-        $data_greenpass = $this->data_oggi->modify(self::DATE_7_MONTHS_AGO);
-        $testgp['v'][0]['dt'] = $data_greenpass->format('Y-m-d');
+        $dataGreenpass = $this->dataOggi->modify(self::DATE_7_MONTHS_AGO);
+        $testgp['v'][0]['dt'] = $dataGreenpass->format('Y-m-d');
         $testgp['v'][0]['dn'] = 2;
         $testgp['v'][0]['sd'] = 2;
         $greenpass = new GreenPass($testgp);
@@ -239,8 +225,8 @@ class VaccineCheckerTest extends GreenPassCovid19CheckerTest
     public function testBoosterDose()
     {
         $testgp = GPDataTest::$vaccine;
-        $data_greenpass = $this->data_oggi->modify(self::DATE_A_MONTH_AGO);
-        $testgp['v'][0]['dt'] = $data_greenpass->format('Y-m-d');
+        $dataGreenpass = $this->dataOggi->modify(self::DATE_A_MONTH_AGO);
+        $testgp['v'][0]['dt'] = $dataGreenpass->format('Y-m-d');
         $testgp['v'][0]['dn'] = 3;
         $testgp['v'][0]['sd'] = 2;
         $greenpass = new GreenPass($testgp);
@@ -255,8 +241,8 @@ class VaccineCheckerTest extends GreenPassCovid19CheckerTest
     public function testBoosterDoseAfter150Days()
     {
         $testgp = GPDataTest::$vaccine;
-        $data_greenpass = $this->data_oggi->modify(self::DATE_5_MONTHS_AGO);
-        $testgp['v'][0]['dt'] = $data_greenpass->format('Y-m-d');
+        $dataGreenpass = $this->dataOggi->modify(self::DATE_5_MONTHS_AGO);
+        $testgp['v'][0]['dt'] = $dataGreenpass->format('Y-m-d');
         $testgp['v'][0]['dn'] = 3;
         $testgp['v'][0]['sd'] = 2;
         $greenpass = new GreenPass($testgp);
@@ -271,8 +257,8 @@ class VaccineCheckerTest extends GreenPassCovid19CheckerTest
     public function testBoosterAltDose()
     {
         $testgp = GPDataTest::$vaccine;
-        $data_greenpass = $this->data_oggi->modify(self::DATE_A_MONTH_AGO);
-        $testgp['v'][0]['dt'] = $data_greenpass->format('Y-m-d');
+        $dataGreenpass = $this->dataOggi->modify(self::DATE_A_MONTH_AGO);
+        $testgp['v'][0]['dt'] = $dataGreenpass->format('Y-m-d');
         $testgp['v'][0]['dn'] = 3;
         $testgp['v'][0]['sd'] = 3;
         $greenpass = new GreenPass($testgp);
@@ -287,8 +273,8 @@ class VaccineCheckerTest extends GreenPassCovid19CheckerTest
     public function testBoosterAltDose150Days()
     {
         $testgp = GPDataTest::$vaccine;
-        $data_greenpass = $this->data_oggi->modify(self::DATE_5_MONTHS_AGO);
-        $testgp['v'][0]['dt'] = $data_greenpass->format('Y-m-d');
+        $dataGreenpass = $this->dataOggi->modify(self::DATE_5_MONTHS_AGO);
+        $testgp['v'][0]['dt'] = $dataGreenpass->format('Y-m-d');
         $testgp['v'][0]['dn'] = 3;
         $testgp['v'][0]['sd'] = 3;
         $greenpass = new GreenPass($testgp);
@@ -303,8 +289,8 @@ class VaccineCheckerTest extends GreenPassCovid19CheckerTest
     public function testBoosterAltDose7Months()
     {
         $testgp = GPDataTest::$vaccine;
-        $data_greenpass = $this->data_oggi->modify(self::DATE_7_MONTHS_AGO);
-        $testgp['v'][0]['dt'] = $data_greenpass->format('Y-m-d');
+        $dataGreenpass = $this->dataOggi->modify(self::DATE_7_MONTHS_AGO);
+        $testgp['v'][0]['dt'] = $dataGreenpass->format('Y-m-d');
         $testgp['v'][0]['dn'] = 3;
         $testgp['v'][0]['sd'] = 3;
         $greenpass = new GreenPass($testgp);

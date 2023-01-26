@@ -17,23 +17,8 @@ class TamponeCheckerTest extends GreenPassCovid19CheckerTest
     {
         $testgp = GPDataTest::$testresult;
 
-        $data_greenpass = $this->data_oggi->modify(self::DATE_12_HOURS_AGO);
-        $testgp['t'][0]['sc'] = $data_greenpass->format(\DateTime::ATOM);
-        $greenpass = new GreenPass($testgp);
-
-        $esito = GreenPassCovid19Checker::verifyCert($greenpass, '3G');
-        $this->assertEquals('VALID', $esito);
-    }
-
-    /**
-     * Test scan mode GreenPass.
-     */
-    public function testScanModeTampone()
-    {
-        $testgp = GPDataTest::$testresult;
-
-        $data_greenpass = $this->data_oggi->modify(self::DATE_12_HOURS_AGO);
-        $testgp['t'][0]['sc'] = $data_greenpass->format(\DateTime::ATOM);
+        $dataGreenpass = $this->dataOggi->modify(self::DATE_12_HOURS_AGO);
+        $testgp['t'][0]['sc'] = $dataGreenpass->format(\DateTime::ATOM);
         $greenpass = new GreenPass($testgp);
 
         $esito = GreenPassCovid19Checker::verifyCert($greenpass, '3G');
@@ -47,8 +32,8 @@ class TamponeCheckerTest extends GreenPassCovid19CheckerTest
     {
         $testgp = GPDataTest::$testresult;
 
-        $data_greenpass = $this->data_oggi->modify('-120 hour');
-        $testgp['t'][0]['sc'] = $data_greenpass->format(\DateTime::ATOM);
+        $dataGreenpass = $this->dataOggi->modify('-120 hour');
+        $testgp['t'][0]['sc'] = $dataGreenpass->format(\DateTime::ATOM);
         $greenpass = new GreenPass($testgp);
 
         $esito = GreenPassCovid19Checker::verifyCert($greenpass, '3G');

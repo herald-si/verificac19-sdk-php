@@ -82,9 +82,17 @@ class VaccinationDose extends CertificateType
         }
         // j&j booster
         // https://github.com/ministero-salute/it-dgc-verificac19-sdk-android/commit/6812542889b28343acace7780e536fac9bf637a9
-        $check_jj_booster = $this->product == MedicinalProduct::JOHNSON && (($this->doseGiven > $this->totalDoses) || ($this->doseGiven == $this->totalDoses && $this->doseGiven >= 2));
-        $check_other_booster = $this->doseGiven > $this->totalDoses || ($this->doseGiven == $this->totalDoses && $this->doseGiven > 2);
+        $checkJJBooster =
+            $this->product == MedicinalProduct::JOHNSON
+            && (
+                ($this->doseGiven > $this->totalDoses)
+                || ($this->doseGiven == $this->totalDoses && $this->doseGiven >= 2)
+            );
+        $checkOtherBooster =
+            $this->doseGiven > $this->totalDoses
+            || ($this->doseGiven == $this->totalDoses && $this->doseGiven > 2
+            );
 
-        return $check_jj_booster || $check_other_booster;
+        return $checkJJBooster || $checkOtherBooster;
     }
 }

@@ -16,11 +16,11 @@ class RecoveryCheckerTest extends GreenPassCovid19CheckerTest
     public function testVerifyCertRecovery()
     {
         $testgp = GPDataTest::$recovery;
-        $data_greenpass = $this->data_oggi->modify(self::DATE_A_MONTH_AGO);
-        $data_scadenza_gp = $this->data_oggi->modify(self::DATE_IN_5_MONTHS);
-        $testgp['r'][0]['fr'] = $data_greenpass->format('Y-m-d');
-        $testgp['r'][0]['df'] = $data_greenpass->format('Y-m-d');
-        $testgp['r'][0]['du'] = $data_scadenza_gp->format('Y-m-d');
+        $dataGreenpass = $this->dataOggi->modify(self::DATE_A_MONTH_AGO);
+        $dataScadenzaGp = $this->dataOggi->modify(self::DATE_IN_5_MONTHS);
+        $testgp['r'][0]['fr'] = $dataGreenpass->format('Y-m-d');
+        $testgp['r'][0]['df'] = $dataGreenpass->format('Y-m-d');
+        $testgp['r'][0]['du'] = $dataScadenzaGp->format('Y-m-d');
 
         $greenpass = new GreenPass($testgp);
 
@@ -34,29 +34,11 @@ class RecoveryCheckerTest extends GreenPassCovid19CheckerTest
     public function testSuperGreenPass()
     {
         $testgp = GPDataTest::$recovery;
-        $data_greenpass = $this->data_oggi->modify(self::DATE_A_MONTH_AGO);
-        $data_scadenza_gp = $this->data_oggi->modify(self::DATE_IN_5_MONTHS);
-        $testgp['r'][0]['fr'] = $data_greenpass->format('Y-m-d');
-        $testgp['r'][0]['df'] = $data_greenpass->format('Y-m-d');
-        $testgp['r'][0]['du'] = $data_scadenza_gp->format('Y-m-d');
-
-        $greenpass = new GreenPass($testgp);
-
-        $esito = GreenPassCovid19Checker::verifyCert($greenpass, ValidationScanMode::CLASSIC_DGP);
-        $this->assertEquals('VALID', $esito);
-    }
-
-    /**
-     * Test Booster Scan mode.
-     */
-    public function testBoosterScanMode()
-    {
-        $testgp = GPDataTest::$recovery;
-        $data_greenpass = $this->data_oggi->modify(self::DATE_A_MONTH_AGO);
-        $data_scadenza_gp = $this->data_oggi->modify(self::DATE_IN_5_MONTHS);
-        $testgp['r'][0]['fr'] = $data_greenpass->format('Y-m-d');
-        $testgp['r'][0]['df'] = $data_greenpass->format('Y-m-d');
-        $testgp['r'][0]['du'] = $data_scadenza_gp->format('Y-m-d');
+        $dataGreenpass = $this->dataOggi->modify(self::DATE_A_MONTH_AGO);
+        $dataScadenzaGp = $this->dataOggi->modify(self::DATE_IN_5_MONTHS);
+        $testgp['r'][0]['fr'] = $dataGreenpass->format('Y-m-d');
+        $testgp['r'][0]['df'] = $dataGreenpass->format('Y-m-d');
+        $testgp['r'][0]['du'] = $dataScadenzaGp->format('Y-m-d');
 
         $greenpass = new GreenPass($testgp);
 
@@ -70,9 +52,9 @@ class RecoveryCheckerTest extends GreenPassCovid19CheckerTest
     public function testTomorrow()
     {
         $testgp = GPDataTest::$recovery;
-        $data_greenpass = $this->data_oggi->modify(self::DATE_TOMORROW);
-        $testgp['r'][0]['df'] = $data_greenpass->format('Y-m-d');
-        $testgp['r'][0]['fr'] = $data_greenpass->format('Y-m-d');
+        $dataGreenpass = $this->dataOggi->modify(self::DATE_TOMORROW);
+        $testgp['r'][0]['df'] = $dataGreenpass->format('Y-m-d');
+        $testgp['r'][0]['fr'] = $dataGreenpass->format('Y-m-d');
         $greenpass = new GreenPass($testgp);
 
         $esito = GreenPassCovid19Checker::verifyCert($greenpass);
@@ -85,11 +67,11 @@ class RecoveryCheckerTest extends GreenPassCovid19CheckerTest
     public function testDateUntil()
     {
         $testgp = GPDataTest::$recovery;
-        $data_greenpass = $this->data_oggi->modify(self::DATE_5_MONTHS_AGO);
-        $testgp['r'][0]['fr'] = $data_greenpass->format('Y-m-d');
-        $testgp['r'][0]['df'] = $data_greenpass->format('Y-m-d');
-        $data_fine_validita = $this->data_oggi->modify(self::DATE_A_DAY_AGO);
-        $testgp['r'][0]['du'] = $data_fine_validita->format('Y-m-d');
+        $dataGreenpass = $this->dataOggi->modify(self::DATE_5_MONTHS_AGO);
+        $testgp['r'][0]['fr'] = $dataGreenpass->format('Y-m-d');
+        $testgp['r'][0]['df'] = $dataGreenpass->format('Y-m-d');
+        $dataFineValidita = $this->dataOggi->modify(self::DATE_A_DAY_AGO);
+        $testgp['r'][0]['du'] = $dataFineValidita->format('Y-m-d');
         $greenpass = new GreenPass($testgp);
 
         $esito = GreenPassCovid19Checker::verifyCert($greenpass);
@@ -102,9 +84,9 @@ class RecoveryCheckerTest extends GreenPassCovid19CheckerTest
     public function testDueDate121()
     {
         $testgp = GPDataTest::$recovery;
-        $data_greenpass = $this->data_oggi->modify('-121 day');
-        $testgp['r'][0]['fr'] = $data_greenpass->format('Y-m-d');
-        $testgp['r'][0]['df'] = $data_greenpass->format('Y-m-d');
+        $dataGreenpass = $this->dataOggi->modify('-121 day');
+        $testgp['r'][0]['fr'] = $dataGreenpass->format('Y-m-d');
+        $testgp['r'][0]['df'] = $dataGreenpass->format('Y-m-d');
         $greenpass = new GreenPass($testgp);
 
         $esito = GreenPassCovid19Checker::verifyCert($greenpass);
@@ -117,9 +99,9 @@ class RecoveryCheckerTest extends GreenPassCovid19CheckerTest
     public function testDueDate()
     {
         $testgp = GPDataTest::$recovery;
-        $data_greenpass = $this->data_oggi->modify(self::DATE_7_MONTHS_AGO);
-        $testgp['r'][0]['fr'] = $data_greenpass->format('Y-m-d');
-        $testgp['r'][0]['df'] = $data_greenpass->format('Y-m-d');
+        $dataGreenpass = $this->dataOggi->modify(self::DATE_7_MONTHS_AGO);
+        $testgp['r'][0]['fr'] = $dataGreenpass->format('Y-m-d');
+        $testgp['r'][0]['df'] = $dataGreenpass->format('Y-m-d');
         $greenpass = new GreenPass($testgp);
 
         $esito = GreenPassCovid19Checker::verifyCert($greenpass);

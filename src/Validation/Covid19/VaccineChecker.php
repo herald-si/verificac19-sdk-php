@@ -13,14 +13,14 @@ class VaccineChecker
     private const CERT_BOOSTER = 'BOOSTER';
     private const CERT_COMPLETE = 'COMPLETE';
 
-    private $validation_date = null;
+    private $validationDate = null;
     private $scanMode = null;
     private $cert = null;
     private $holder = null;
 
-    public function __construct(\DateTime $validation_date, string $scanMode, Holder $holder, VaccinationDose $cert)
+    public function __construct(\DateTime $validationDate, string $scanMode, Holder $holder, VaccinationDose $cert)
     {
-        $this->validation_date = $validation_date;
+        $this->validationDate = $validationDate;
         $this->scanMode = $scanMode;
         $this->holder = $holder;
         $this->cert = $cert;
@@ -138,10 +138,10 @@ class VaccineChecker
         $endDate = $vaccineDate->modify("+$endDaysToAdd days");
         $endDate = $endDate->SetTime(23, 59);
 
-        if ($this->validation_date < $startDate) {
+        if ($this->validationDate < $startDate) {
             return ValidationStatus::NOT_VALID_YET;
         }
-        if ($this->validation_date > $endDate) {
+        if ($this->validationDate > $endDate) {
             return ValidationStatus::EXPIRED;
         }
         if (!MedicinalProduct::isEma($cert->product, $cert->country)) {
