@@ -2,6 +2,7 @@
 
 # Indice
 - [Contesto](#contesto)
+- [Changelog](#changelog)
 - [Installazione](#installazione)
   - [Permessi cartella assets](#permessi-cartella-assets)
 - [Uso](#uso)
@@ -39,6 +40,9 @@ esito ai controlli, come indicato nel DPCM 12 ottobre 2021
 - PHP >= 7.3
 - COSE-lib requires the GMP or bcmath extension [vedi issue #31](https://github.com/herald-si/verificac19-sdk-php/issues/31#issuecomment-993470072)
 - SQLite per la gestione delle DCC Revoke List
+
+# Changelog
+Il changelog è disponibile [qui](./CHANGELOG.md).
 
 # Installazione
 E' necessario clonare questo progetto, nel seguente modo:
@@ -141,25 +145,17 @@ Dalla release `1.2.3` è possibile utilizzare un proxy per le chiamate agli endp
 Herald\GreenPass\Utils\EndpointService::setProxy("https://username:password@192.168.0.1:8000");
 ```
 ## Scan Mode
-E' necessario definire una modalità di verifica della Certificazione verde Covid-19, come da elenco:
-
-Per procedere alla scansione selezionare una delle tipologie di verifica della Certificazione verde Covid-19: BASE, RAFFORZATA, VISITATORI RSA, INGRESSO IT.
-* Tipologia `BASE`: l'sdk considera valide le certificazioni verdi generate da vaccinazione, da guarigione, da tampone e le certificazioni di esenzione dalla vaccinazione.
-* Tipologia `RAFFORZATA`: l'sdk considera valide solo le certificazioni verdi generate da vaccinazione o da guarigione e le certificazioni di esenzione dalla vaccinazione.
-* Tipologia `VISITATORI RSA`: da utilizzare per l'accesso di visitatori alle strutture residenziali, socio-assistenziali, socio-sanitarie e hospice: la app considera valide le certificazioni verdi generate da vaccinazione con dose di richiamo. Considera valide, inoltre, le certificazioni verdi generate da vaccinazione con ciclo primario completato o guarigione insieme alla contestuale presentazione di un esito negativo di un test al SARS-CoV-2 eseguito nelle 48 ore precedenti.
-* Tipologia `INGRESSO IT`: da utilizzare all'atto dell'ingresso in Italia dall'estero: la app considera valide tutte le tipologie di certificazione verde COVID-19 (vaccinazione, guarigione o tampone) secondo le regole di validazione europee per la circolazione tra gli Stati Membri. Sulla base del tipo di vaccino o ciclo completato da più di 180gg e fino a 270gg può richiedere la contestuale presentazione di un esito negativo di un test al SARS-CoV-2 eseguito nelle 48 ore precedenti
+Funzionalità Legacy.
 
 Per selezionare la tipologia, è possibile passare al costruttore del validatore un parametro di tipo `Herald\GreenPass\Validation\Covid19\ValidationScanMode`.
 
 Nel caso in cui non venisse scelto, viene impostata di default la tipologia `BASE`.
 
+Dalla versione `1.6.0` è possibile utilizzare solo la tipologia `BASE`.
+
 ```php
 // set scan mode to BASE
 $scanMode = ValidationScanMode::CLASSIC_DGP;
-// or set scan mode to RAFFORZATA
-$scanMode = ValidationScanMode::SUPER_DGP;
-// or set scan mode to VISITATORI RSA
-$scanMode = ValidationScanMode::BOOSTER_DGP;
 
 $gp_reader = new CertificateValidator($gp_string, $scanMode);
 ```
