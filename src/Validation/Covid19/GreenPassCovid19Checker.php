@@ -25,8 +25,8 @@ class GreenPassCovid19Checker
      */
     public static function verifyCert(GreenPass $greenPass, string $scanMode = ValidationScanMode::CLASSIC_DGP)
     {
-        if (!EnvConfig::isDebugEnabled() && ($scanMode == ValidationScanMode::SCHOOL_DGP || $scanMode == ValidationScanMode::WORK_DGP)) {
-            throw new  \InvalidArgumentException('Restricted scan mode, dont use in production');
+        if (!EnvConfig::isDebugEnabled() && ($scanMode != ValidationScanMode::CLASSIC_DGP)) {
+            throw new  \InvalidArgumentException('Invalid scan mode');
         }
         $cert = $greenPass->certificate;
 
