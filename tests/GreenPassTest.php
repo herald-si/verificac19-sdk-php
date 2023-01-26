@@ -17,11 +17,11 @@ class GreenPassTest extends \PHPUnit\Framework\TestCase
      */
     public function testCheckValidFunction()
     {
-        $data_oggi = new \DateTimeImmutable();
+        $dataOggi = new \DateTimeImmutable();
         $testgp = GPDataTest::$vaccine;
 
-        $data_greenpass = $data_oggi->modify('-1 month');
-        $testgp['v'][0]['dt'] = $data_greenpass->format('Y-m-d');
+        $dataGreenpass = $dataOggi->modify('-1 month');
+        $testgp['v'][0]['dt'] = $dataGreenpass->format('Y-m-d');
 
         $this->greenPass = new GreenPass($testgp);
         $valid = $this->greenPass->checkValid('3G');
@@ -30,8 +30,8 @@ class GreenPassTest extends \PHPUnit\Framework\TestCase
 
         $testgp = GPDataTest::$vaccine;
 
-        $data_greenpass = $data_oggi->modify('+1 day');
-        $testgp['v'][0]['dt'] = $data_greenpass->format('Y-m-d');
+        $dataGreenpass = $dataOggi->modify('+1 day');
+        $testgp['v'][0]['dt'] = $dataGreenpass->format('Y-m-d');
         $testgp['v'][0]['dn'] = 1;
 
         $this->greenPass = new GreenPass($testgp);

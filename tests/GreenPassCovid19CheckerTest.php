@@ -33,12 +33,12 @@ class GreenPassCovid19CheckerTest extends \PHPUnit\Framework\TestCase
 
     public const DATE_12_HOURS_AGO = '-12 hour';
 
-    protected $data_oggi;
+    protected $dataOggi;
 
     protected function setUp(): void
     {
         parent::setUp();
-        $this->data_oggi = new \DateTimeImmutable();
+        $this->dataOggi = new \DateTimeImmutable();
         EnvConfig::enableDebugMode();
     }
 
@@ -55,7 +55,7 @@ class GreenPassCovid19CheckerTest extends \PHPUnit\Framework\TestCase
 
     protected function tearDown(): void
     {
-        $this->data_oggi = null;
+        $this->dataOggi = null;
         parent::tearDown();
     }
 }
