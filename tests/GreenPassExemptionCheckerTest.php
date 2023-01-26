@@ -42,9 +42,6 @@ class GreenPassExemptionCheckerTest extends GreenPassCovid19CheckerTest
 
         $esito = GreenPassCovid19Checker::verifyCert($greenpass, '3G');
         $this->assertEquals('VALID', $esito);
-
-        $esito = GreenPassCovid19Checker::verifyCert($greenpass, '2G');
-        $this->assertEquals('VALID', $esito);
     }
 
     /**
@@ -62,9 +59,6 @@ class GreenPassExemptionCheckerTest extends GreenPassCovid19CheckerTest
 
         $esito = GreenPassCovid19Checker::verifyCert($greenpass, '3G');
         $this->assertEquals('VALID', $esito);
-
-        $esito = GreenPassCovid19Checker::verifyCert($greenpass, 'BOOSTED');
-        $this->assertEquals('TEST_NEEDED', $esito);
     }
 
     /**
@@ -111,9 +105,6 @@ class GreenPassExemptionCheckerTest extends GreenPassCovid19CheckerTest
 
         $esito = GreenPassCovid19Checker::verifyCert($greenpass);
         $this->assertEquals('VALID', $esito);
-
-        $esito = GreenPassCovid19Checker::verifyCert($greenpass, 'BOOSTED');
-        $this->assertEquals('TEST_NEEDED', $esito);
     }
 
     /*
